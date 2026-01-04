@@ -30,17 +30,17 @@
         <!-- Single-mode auth: Sign In only -->
         <h2 style="text-align:center;margin-bottom:12px;color:#333;font-size:1.35rem">Sign In</h2>
 
-        <div id="sign-in-form">
+        <form id="signin-form" action="signin.php" method="POST">
             <div class="form-group">
                 <label>Email address</label>
-                <input type="email" placeholder="Enter your email address">
+                <input type="email" name="email" placeholder="Enter your email address" required>
             </div>
 
             <div class="form-group">
                 <label>Password</label>
                 <div class="input-container">
-                    <input type="password" placeholder="Enter your password">
-                    <i class="fa-regular fa-eye-slash eye-icon"></i>
+                    <input type="password" name="password" placeholder="Enter your password" required>
+                    <i class="fa-regular fa-eye-slash eye-icon" onclick="(function(i){const inp=i.parentElement.querySelector('input'); if(inp.type==='password'){inp.type='text'; i.classList.remove('fa-eye-slash'); i.classList.add('fa-eye');} else {inp.type='password'; i.classList.remove('fa-eye'); i.classList.add('fa-eye-slash');}})(this)"></i>
                 </div>
             </div>
 
@@ -51,18 +51,9 @@
                 <a href="#" class="forgot-pass">Forgot password</a>
             </div>
 
-            <button class="main-btn">Sign In</button>
+            <button class="main-btn" type="submit">Sign In</button>
 
             <div class="divider">OR</div>
-
-            <button class="social-btn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
-                Sign in with Google
-            </button>
-            <button class="social-btn">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Facebook_Logo_%282019%29.png" alt="Facebook">
-                Sign in with Facebook
-            </button>
             <div style="text-align:center;margin-top:0.6rem">
                 <a href="index.html" class="return-home">Return to home</a>
             </div>
@@ -70,7 +61,7 @@
                 <span style="color:#333;margin-right:6px">Don't have an account?</span>
                 <a href="signup.html" class="return-home">Sign Up</a>
             </div>
-        </div>
+        </form>
     </div>
     
 </body>
