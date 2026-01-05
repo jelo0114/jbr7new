@@ -7,6 +7,39 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/home.css">
     <link rel="stylesheet" href="/JBR7 CSS/cart.css">
+    <style>
+        .payment-section, .courier-section {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #e6e6e6;
+        }
+        .payment-section h3, .courier-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .payment-select, .courier-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+        .payment-select:focus, .courier-select:focus {
+            outline: none;
+            border-color: #006923;
+        }
+        .payment-select:hover, .courier-select:hover {
+            border-color: #006923;
+        }
+    </style>
 </head>
 <body>
 
@@ -85,6 +118,27 @@
                     </div>
                 </div>
 
+                <div class="payment-section">
+                    <h3><i class="fas fa-credit-card"></i> Payment Method</h3>
+                    <select id="payment-method" class="payment-select">
+                        <option value="">Select payment method</option>
+                        <option value="GCash">GCash</option>
+                        <option value="COD">Cash on Delivery (COD)</option>
+                        <option value="RCBC">RCBC</option>
+                        <option value="Mastercard">Mastercard</option>
+                        <option value="PayMaya">PayMaya</option>
+                    </select>
+                </div>
+
+                <div class="courier-section">
+                    <h3><i class="fas fa-shipping-fast"></i> Courier Service</h3>
+                    <select id="courier-service" class="courier-select">
+                        <option value="">Select courier</option>
+                        <option value="J&T Express">J&T Express</option>
+                        <option value="Flash Express">Flash Express</option>
+                    </select>
+                </div>
+
                 <button class="checkout-btn" onclick="checkout()">
                     <i class="fas fa-lock"></i> Proceed to Checkout
                 </button>
@@ -114,7 +168,7 @@
             </div>
             <div class="footer-section">
                 <h4>Contact Info</h4>
-                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Email: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="01736e7074646b646f6f786d786f636075606241666c60686d2f626e6c">[email&#160;protected]</a></p>
                 <p>Phone: +639216821649</p>
             </div>
             <div class="footer-section">
@@ -128,6 +182,10 @@
             <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
         </div>
     </footer>
+    
+
+
+    
     
 
 

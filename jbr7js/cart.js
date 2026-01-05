@@ -481,6 +481,21 @@ function checkout() {
         showNotification('Your cart is empty! Add items before checkout.', 'info');
         return;
     }
+    
+    // Get payment method and courier selections
+    const paymentMethod = document.getElementById('payment-method').value;
+    const courierService = document.getElementById('courier-service').value;
+    
+    // Validate selections
+    if (!paymentMethod) {
+        showNotification('Please select a payment method', 'info');
+        return;
+    }
+    if (!courierService) {
+        showNotification('Please select a courier service', 'info');
+        return;
+    }
+    
     // Recompute summary server-side style to ensure numbers are correct
     const anySelected = cartItems.some(it => !!it.selected);
     const subtotal = cartItems.reduce((sum, item) => {
@@ -491,9 +506,7 @@ function checkout() {
     const shipping = subtotal > 50 ? 0 : 5.99;
     const total = +(subtotal + shipping).toFixed(2);
 
-    // gather payment/courier/customer info from settings if present
-    const payment = localStorage.getItem('jbr7_default_payment') || localStorage.getItem('default_payment') || 'Not specified';
-    const courier = localStorage.getItem('jbr7_default_courier') || localStorage.getItem('default_courier') || 'Not specified';
+    // gather customer info from settings if present
     const customerEmail = localStorage.getItem('jbr7_customer_email') || localStorage.getItem('customerEmail') || '';
     const customerPhone = localStorage.getItem('jbr7_customer_phone') || localStorage.getItem('customerPhone') || '';
 
@@ -518,8 +531,8 @@ function checkout() {
         subtotal: +subtotal.toFixed(2),
         shipping: +shipping.toFixed(2),
         total: +total.toFixed(2),
-        payment,
-        courier,
+        payment: paymentMethod,
+        courier: courierService,
         customerEmail,
         customerPhone
     };

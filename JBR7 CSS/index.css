@@ -142,8 +142,11 @@ nav a:hover {
 
 .features {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    align-items: center;
+    gap: 60px;
     padding: 80px 8%;
+    flex-wrap: wrap;
 }
 
 .feature-item {

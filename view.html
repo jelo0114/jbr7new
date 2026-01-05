@@ -24,16 +24,59 @@
         .product-desc{color:#444;line-height:1.6;margin-bottom:1rem}
         .attributes{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:1rem}
         .attr{padding:.45rem .8rem;border-radius:8px;border:1px solid #e6e6e6;background:#fff}
-    /* clickable size options inside .attr lists */
-    .attr ul li.size-option{cursor:pointer;padding:.15rem .35rem;border-radius:6px;display:list-item}
-    .attr ul li.size-option:hover{background:#f0f7f2}
-    .attr ul li.size-option.selected{background:#006923;color:#fff}
+        .attr ul li.size-option{cursor:pointer;padding:.15rem .35rem;border-radius:6px;display:list-item}
+        .attr ul li.size-option:hover{background:#f0f7f2}
+        .attr ul li.size-option.selected{background:#006923;color:#fff}
         .actions{display:flex;gap:1rem;margin-top:1rem}
         .btn{padding:.85rem 1.2rem;border-radius:8px;border:none;cursor:pointer;font-weight:700}
         .btn-primary{background:#006923;color:#fff}
         .btn-outline{background:#fff;border:2px solid #006923;color:#006923}
         .back-row{display:flex;align-items:center;gap:1rem;margin:1rem 3%}
-        @media(max-width:900px){.details-container{grid-template-columns:1fr;}.product-main-img{height:360px}}
+
+        /* Reviews Section Styles */
+        .reviews-section{max-width:1100px;margin:3rem auto;padding:2rem 3%;background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+        .reviews-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:2px solid #f0f0f0}
+        .reviews-title{font-size:1.8rem;font-weight:700;color:#222}
+        .rating-summary{display:flex;align-items:center;gap:2rem;padding:1.5rem;background:#f9fafb;border-radius:10px;margin-bottom:2rem}
+        .overall-rating{text-align:center;padding-right:2rem;border-right:2px solid #e5e7eb}
+        .overall-score{font-size:3rem;font-weight:700;color:#006923;line-height:1}
+        .overall-stars{color:#fbbf24;font-size:1.2rem;margin:.5rem 0}
+        .total-reviews{color:#6b7280;font-size:.9rem}
+        .rating-breakdown{flex:1}
+        .rating-bar{display:flex;align-items:center;gap:.8rem;margin-bottom:.6rem}
+        .rating-bar-label{font-size:.9rem;color:#6b7280;min-width:60px}
+        .rating-bar-container{flex:1;height:8px;background:#e5e7eb;border-radius:10px;overflow:hidden}
+        .rating-bar-fill{height:100%;background:linear-gradient(90deg,#fbbf24,#f59e0b);border-radius:10px;transition:width .3s ease}
+        .rating-bar-count{font-size:.85rem;color:#6b7280;min-width:35px;text-align:right}
+
+        .review-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:1.5rem;margin-bottom:1.2rem;transition:box-shadow .2s ease}
+        .review-card:hover{box-shadow:0 4px 12px rgba(0,0,0,0.08)}
+        .review-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem}
+        .reviewer-info{display:flex;align-items:center;gap:.8rem}
+        .reviewer-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#006923,#009c33);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem}
+        .reviewer-details{display:flex;flex-direction:column}
+        .reviewer-name{font-weight:600;color:#222;font-size:1rem}
+        .review-date{color:#9ca3af;font-size:.85rem}
+        .review-stars{color:#fbbf24;font-size:1.1rem}
+        .verified-badge{display:inline-flex;align-items:center;gap:.3rem;background:#ecfdf5;color:#059669;padding:.25rem .6rem;border-radius:6px;font-size:.75rem;font-weight:600;margin-top:.3rem}
+        .verified-badge i{font-size:.7rem}
+        .review-content{color:#4b5563;line-height:1.7;margin-bottom:.8rem}
+        .review-images{display:flex;gap:.6rem;margin-top:1rem}
+        .review-img{width:80px;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;transition:transform .2s ease}
+        .review-img:hover{transform:scale(1.05)}
+        .helpful-section{display:flex;align-items:center;gap:1rem;margin-top:1rem;padding-top:1rem;border-top:1px solid #f3f4f6}
+        .helpful-text{color:#6b7280;font-size:.9rem}
+        .helpful-btn{background:#f9fafb;border:1px solid #e5e7eb;padding:.4rem 1rem;border-radius:6px;cursor:pointer;font-size:.85rem;color:#374151;transition:all .2s ease}
+        .helpful-btn:hover{background:#f3f4f6;border-color:#d1d5db}
+        .helpful-btn i{margin-right:.3rem;color:#006923}
+
+        @media(max-width:900px){
+            .details-container{grid-template-columns:1fr}
+            .product-main-img{height:360px}
+            .rating-summary{flex-direction:column;align-items:stretch}
+            .overall-rating{border-right:none;border-bottom:2px solid #e5e7eb;padding-right:0;padding-bottom:1rem}
+            .reviews-header{flex-direction:column;align-items:flex-start;gap:1rem}
+        }
     </style>
 </head>
 <body>
@@ -85,6 +128,66 @@
             </div>
         </div>
     </section>
+
+    <!-- Reviews Section -->
+    <section class="reviews-section">
+        <div class="reviews-header">
+            <h2 class="reviews-title">Customer Reviews</h2>
+        </div>
+
+        <div class="rating-summary">
+            <div class="overall-rating">
+                <div class="overall-score" id="overallScore">4.8</div>
+                <div class="overall-stars" id="overallStars">
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star"></i>
+                    <i class="fas fa-star-half-alt"></i>
+                </div>
+                <div class="total-reviews" id="totalReviews">Based on 127 reviews</div>
+            </div>
+            <div class="rating-breakdown" id="ratingBreakdown">
+                <div class="rating-bar">
+                    <span class="rating-bar-label">5 stars</span>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar-fill" style="width:78%"></div>
+                    </div>
+                    <span class="rating-bar-count">99</span>
+                </div>
+                <div class="rating-bar">
+                    <span class="rating-bar-label">4 stars</span>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar-fill" style="width:15%"></div>
+                    </div>
+                    <span class="rating-bar-count">19</span>
+                </div>
+                <div class="rating-bar">
+                    <span class="rating-bar-label">3 stars</span>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar-fill" style="width:5%"></div>
+                    </div>
+                    <span class="rating-bar-count">6</span>
+                </div>
+                <div class="rating-bar">
+                    <span class="rating-bar-label">2 stars</span>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar-fill" style="width:1%"></div>
+                    </div>
+                    <span class="rating-bar-count">2</span>
+                </div>
+                <div class="rating-bar">
+                    <span class="rating-bar-label">1 star</span>
+                    <div class="rating-bar-container">
+                        <div class="rating-bar-fill" style="width:1%"></div>
+                    </div>
+                    <span class="rating-bar-count">1</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="reviewsList"></div>
+    </section>
 </main>
 
 <!-- Image modal for zoom -->
@@ -99,17 +202,72 @@
 <script src="jbr7js/home.js"></script>
 <script src="jbr7js/notifications.js"></script>
 <script>
-    // Demo PRODUCTS array; replace or extend to match your catalog
+    // Demo PRODUCTS array
     const PRODUCTS = [
         { id: '1', slug: 'eco-jute-tote', title: 'Eco Jute Tote Bag', price: 45.00, imgs: ['totebag.avif', 'Tote Bag/Sizes.jpg', 'Tote Bag/Black.png', 'Tote Bag/Colored.png', 'Tote Bag/White.png'], desc: 'Sustainable jute tote with scallop top design, perfect for everyday use. Size: 40x35cm.', attrs: ['Eco-friendly', 'Cotton straps', 'Machine wash cold'], sizes: [{label:'8x10',price:35},{label:'10x12',price:45},{label:'13x15',price:50},{label:'14x16',price:55}] },
         { id: '2', slug: 'module-backpack', title: 'Professional Module Backpack', price: 78.00, imgs: ['https://www.teqler.com/media/_processed_/6/8/csm_T131370_70518ba90d.jpg'], desc: 'Multi-compartment backpack with laptop sleeve and water-resistant fabric.', attrs: ['Laptop sleeve', 'Water-resistant', 'Multiple pockets'] },
-    { id: '3', slug: 'canvas-messenger', title: 'Canvas Messenger Bag', price: 62.00, imgs: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500'], desc: 'Classic canvas messenger with adjustable strap and multiple pockets.', attrs: ['Adjustable strap', 'Canvas material', 'One main compartment'] },
-    { id: '4', slug: 'riki-bag', title: 'Riki Bag', price: 38.00, imgs: ['Riki Bag/Riki.jpg','Riki Bag/View1.jpg','Riki Bag/View2.jpg','Riki Bag/View3.jpg'], desc: 'Minimalist Riki bag with clean lines and durable material.', attrs: ['Minimalist', 'Durable', 'Lightweight'] }
-    ,
-        // Demo ringlight product so ringlightDefaults render and can be inspected
+        { id: '3', slug: 'canvas-messenger', title: 'Canvas Messenger Bag', price: 62.00, imgs: ['https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500'], desc: 'Classic canvas messenger with adjustable strap and multiple pockets.', attrs: ['Adjustable strap', 'Canvas material', 'One main compartment'] },
+        { id: '4', slug: 'riki-bag', title: 'Riki Bag', price: 38.00, imgs: ['Riki Bag/Riki.jpg','Riki Bag/View1.jpg','Riki Bag/View2.jpg','Riki Bag/View3.jpg'], desc: 'Minimalist Riki bag with clean lines and durable material.', attrs: ['Minimalist', 'Durable', 'Lightweight'] },
         { id: '5', slug: 'ringlight-bag', title: 'Ringlight Bag', price: 500.00, imgs: ['Ringlight/Sizes.jpg','Ringlight/Bag1.jpg'], desc: 'Protective bag designed to fit ring lights. Choose the size for 45cm or 55cm ring lights.', attrs: ['Padded interior','Zipper closure'], sizes: [{label:'18x21',price:500},{label:'22x22',price:550}] },
-        // Demo vanity/mirror product so vanity size list renders
         { id: '6', slug: 'vanity-mirror-bag', title: 'Vanity Mirror Bag', price: 400.00, imgs: ['Vanity/Sizes.jpg','Vanity/Bag1.jpg'], desc: 'Padded bag for vanity mirrors. Select size for correct pricing.', attrs: ['Soft lining','Zipper closure'], sizes: [{label:'14x14',price:400},{label:'14x16',price:430},{label:'16x19',price:450},{label:'16x21',price:470},{label:'17x25',price:500},{label:'20x24',price:550},{label:'21x28',price:650}] }
+    ];
+
+    // Dummy reviews data
+    const REVIEWS = [
+        {
+            name: 'Maria Santos',
+            initials: 'MS',
+            rating: 5,
+            date: 'December 28, 2024',
+            verified: true,
+            content: 'Absolutely love this bag! The quality is outstanding and it fits perfectly for my daily needs. The material feels durable and the stitching is impeccable. Highly recommend!',
+            helpful: 24
+        },
+        {
+            name: 'John Rivera',
+            initials: 'JR',
+            rating: 5,
+            date: 'December 15, 2024',
+            verified: true,
+            content: 'Great purchase! Used it for a month now and still looks brand new. The size is perfect and the compartments are well-designed. Worth every peso!',
+            helpful: 18
+        },
+        {
+            name: 'Anna Marie Cruz',
+            initials: 'AC',
+            rating: 4,
+            date: 'December 10, 2024',
+            verified: true,
+            content: 'Very good quality bag. The only minor issue is that it took a bit longer to arrive than expected, but the product itself exceeded my expectations. The craftsmanship is excellent.',
+            helpful: 12
+        },
+        {
+            name: 'Carlos Mendoza',
+            initials: 'CM',
+            rating: 5,
+            date: 'November 30, 2024',
+            verified: true,
+            content: 'This is my second purchase from JBR7 Bags and I\'m impressed again! The attention to detail is remarkable. The bag is spacious yet stylish. Perfect for both work and casual use.',
+            helpful: 31
+        },
+        {
+            name: 'Sofia Reyes',
+            initials: 'SR',
+            rating: 5,
+            date: 'November 22, 2024',
+            verified: false,
+            content: 'Beautiful bag with excellent functionality. The eco-friendly materials are a huge plus for me. It\'s comfortable to carry even when fully loaded. Very satisfied with this purchase!',
+            helpful: 9
+        },
+        {
+            name: 'Miguel Torres',
+            initials: 'MT',
+            rating: 4,
+            date: 'November 18, 2024',
+            verified: true,
+            content: 'Good quality for the price. The bag is sturdy and well-made. I use it daily for work and it holds up great. Would definitely buy from this shop again.',
+            helpful: 15
+        }
     ];
 
     function qParam(name){
@@ -119,6 +277,71 @@
 
     function formatPrice(n){ return '₱' + Number(n).toFixed(2); }
 
+    function generateStars(rating){
+        let stars = '';
+        const full = Math.floor(rating);
+        const hasHalf = rating % 1 >= 0.5;
+        
+        for(let i = 0; i < full; i++){
+            stars += '<i class="fas fa-star"></i>';
+        }
+        if(hasHalf){
+            stars += '<i class="fas fa-star-half-alt"></i>';
+        }
+        const empty = 5 - full - (hasHalf ? 1 : 0);
+        for(let i = 0; i < empty; i++){
+            stars += '<i class="far fa-star"></i>';
+        }
+        return stars;
+    }
+
+    function renderReviews(){
+        const container = document.getElementById('reviewsList');
+        container.innerHTML = '';
+        
+        REVIEWS.forEach(review => {
+            const card = document.createElement('div');
+            card.className = 'review-card';
+            card.innerHTML = `
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="reviewer-avatar">${review.initials}</div>
+                        <div class="reviewer-details">
+                            <div class="reviewer-name">${review.name}</div>
+                            <div class="review-date">${review.date}</div>
+                            ${review.verified ? '<span class="verified-badge"><i class="fas fa-check-circle"></i> Verified Purchase</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="review-stars">${generateStars(review.rating)}</div>
+                </div>
+                <div class="review-content">${review.content}</div>
+                <div class="helpful-section">
+                    <span class="helpful-text">Was this helpful?</span>
+                    <button class="helpful-btn" onclick="markHelpful(this)">
+                        <i class="far fa-thumbs-up"></i> Yes (${review.helpful})
+                    </button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function markHelpful(btn){
+        const icon = btn.querySelector('i');
+        if(icon.classList.contains('far')){
+            icon.classList.remove('far');
+            icon.classList.add('fas');
+            btn.style.background = '#ecfdf5';
+            btn.style.borderColor = '#059669';
+            btn.style.color = '#059669';
+            const match = btn.textContent.match(/\d+/);
+            if(match){
+                const num = parseInt(match[0]) + 1;
+                btn.innerHTML = `<i class="fas fa-thumbs-up"></i> Yes (${num})`;
+            }
+        }
+    }
+
     function populate(product){
         if(!product) return;
         document.getElementById('productTitle').textContent = product.title;
@@ -127,17 +350,13 @@
         const main = document.getElementById('mainImg');
         main.src = product.imgs[0] || 'totebag.avif';
 
-        // If this is an Eco Jute tote family (Black/White/Colored), ensure Sizes.jpg is present as the second image
         const titleLower = (product.title || '').toLowerCase();
         if ((titleLower.includes('eco jute') || titleLower.includes('tote')) ) {
-            // ensure 'Tote Bag/Sizes.jpg' is included once after the main image
             if (!product.imgs.includes('Tote Bag/Sizes.jpg')) {
-                // insert as second image
                 product.imgs.splice(1, 0, 'Tote Bag/Sizes.jpg');
             }
         }
 
-        // thumbs
         const thumbs = document.getElementById('thumbs');
         thumbs.innerHTML = '';
         product.imgs.forEach((src, i) => {
@@ -152,16 +371,12 @@
             thumbs.appendChild(img);
         });
         
-        // Probe the product's image folder for additional view images.
-        // If a server-side generated `image-manifest.json` is present we'll read that first (fast and reliable).
-        // Otherwise fall back to a safe client-side probe of a short list of predictable filenames.
         (function probeProductFolderForViews(){
             try {
                 const first = product.imgs[0] || '';
                 if (!first || !first.includes('/')) return;
 
-                const folderName = first.split('/')[0]; // e.g. 'Tote Bag' or 'Riki Bag'
-
+                const folderName = first.split('/')[0];
                 const thumbs = document.getElementById('thumbs');
                 const main = document.getElementById('mainImg');
 
@@ -181,7 +396,6 @@
                     }
                 };
 
-                // try manifest first
                 fetch('image-manifest.json', {cache: 'no-store'}).then(r => {
                     if (!r.ok) throw new Error('no-manifest');
                     return r.json();
@@ -193,18 +407,15 @@
                             if (name.toLowerCase() === 'sizes.jpg') addThumb(path, true);
                             else addThumb(path, false);
                         });
-                        return; // done using manifest
+                        return;
                     }
-                    // no manifest entries for this folder -> fallback to probing
                     runCandidateProbe(folderName);
                 }).catch(() => {
-                    // manifest absent or error -> probe
                     runCandidateProbe(folderName);
                 });
 
-                // fallback probe (same safe candidate list as before)
                 function runCandidateProbe(folderName){
-                    const folder = folderName; // relative folder path like 'Riki Bag'
+                    const folder = folderName;
                     const candidates = [
                         'Sizes.jpg',
                         'view1.jpg','view2.jpg','view3.jpg','view4.jpg','view5.jpg','view6.jpg',
@@ -224,7 +435,6 @@
                         for (const candidate of candidates) {
                             const path = folder + '/' + candidate;
                             if (product.imgs.includes(path)) continue;
-                            // eslint-disable-next-line no-await-in-loop
                             const exists = await imageExists(path);
                             if (exists) {
                                 if (candidate.toLowerCase() === 'sizes.jpg') addThumb(path, true);
@@ -234,225 +444,204 @@
                     })();
                 }
 
-            } catch (e) { /* ignore probe errors */ }
+            } catch (e) { }
         })();
         
-
-        // clicking the main image opens zoom modal
         main.style.cursor = 'zoom-in';
         main.removeEventListener('click', onMainImgClick);
         main.addEventListener('click', onMainImgClick);
 
-    // attrs / sizes
-    const attrs = document.getElementById('attributes');
-    attrs.innerHTML = '';
+        const attrs = document.getElementById('attributes');
+        attrs.innerHTML = '';
 
-    // sensible defaults per family
-    const vanityDefaults = ['₱400 - 14 x 14','₱430 - 14 x 16','₱450 - 16 x 19','₱470 - 16 x 21','₱500 - 17 x 25','₱550 - 20 x 24','₱650 - 21 x 28'];
-    const toteDefaults = ['₱35 - 8 x 10','₱45 - 10 x 12','₱50 - 13 x 15','₱55 - 14 x 16'];
-    const toteColoredDefaults = ['₱38 - 8 x 10','₱43 - 10 x 12','₱57 - 13 x 15','₱65 - 14 x 16'];
-    const ringlightDefaults = ['₱500 - 18 x 21','₱550 - 22 x 22'];
+        const vanityDefaults = ['₱400 - 14 x 14','₱430 - 14 x 16','₱450 - 16 x 19','₱470 - 16 x 21','₱500 - 17 x 25','₱550 - 20 x 24','₱650 - 21 x 28'];
+        const toteDefaults = ['₱35 - 8 x 10','₱45 - 10 x 12','₱50 - 13 x 15','₱55 - 14 x 16'];
+        const toteColoredDefaults = ['₱38 - 8 x 10','₱43 - 10 x 12','₱57 - 13 x 15','₱65 - 14 x 16'];
+        const ringlightDefaults = ['₱500 - 18 x 21','₱550 - 22 x 22'];
 
-    // helper: set selected size (used when list-based sizes are clicked)
-    function setSelectedSize(label, price, clickedLi){
-        // clear previous selection visuals
-        document.querySelectorAll('.attr ul li.size-option').forEach(n => n.classList.remove('selected'));
-        if (clickedLi) clickedLi.classList.add('selected');
-        // store globally so addToCart can see it
-        window._selectedSize = { label: label || null, price: (typeof price === 'number' ? Number(price) : (price ? Number(price) : null)) };
-        // update displayed price if price exists
-        if (window._selectedSize && window._selectedSize.price !== null) {
-            document.getElementById('productPrice').textContent = formatPrice(window._selectedSize.price);
+        function setSelectedSize(label, price, clickedLi){
+            document.querySelectorAll('.attr ul li.size-option').forEach(n => n.classList.remove('selected'));
+            if (clickedLi) clickedLi.classList.add('selected');
+            window._selectedSize = { label: label || null, price: (typeof price === 'number' ? Number(price) : (price ? Number(price) : null)) };
+            if (window._selectedSize && window._selectedSize.price !== null) {
+                document.getElementById('productPrice').textContent = formatPrice(window._selectedSize.price);
+            }
         }
-    }
 
-    // If this is a tote-family product, show two lists: White/Black and Colored
-    if (titleLower.includes('tote') || titleLower.includes('eco jute') || titleLower.includes('katsa')) {
-        // Prepare white/black sizes (prefer product.sizes if available)
-        const whiteSizes = (product.sizes && product.sizes.length)
-            ? product.sizes.map(s => {
+        if (titleLower.includes('tote') || titleLower.includes('eco jute') || titleLower.includes('katsa')) {
+            const whiteSizes = (product.sizes && product.sizes.length)
+                ? product.sizes.map(s => {
+                    const label = (s.label || s).toString().replace(/x/,' x ');
+                    const price = (typeof s.price !== 'undefined') ? ('₱' + Number(s.price)) : null;
+                    return price ? `${price} - ${label}` : label;
+                })
+                : toteDefaults;
+
+            const coloredSizes = toteColoredDefaults;
+
+            const wrap1 = document.createElement('div'); wrap1.className = 'attr';
+            const hdr1 = document.createElement('div'); hdr1.style.fontWeight = '700'; hdr1.textContent = 'Available Sizes White and Black (inches):';
+            wrap1.appendChild(hdr1);
+            const ul1 = document.createElement('ul'); ul1.style.margin = '0.5rem 0 0 0.9rem'; ul1.style.padding = '0'; ul1.style.listStyle = 'disc';
+            whiteSizes.forEach(sz => {
+                const li = document.createElement('li');
+                li.className = 'size-option';
+                let label = sz;
+                let price = null;
+                if (sz.indexOf('-') !== -1) {
+                    const parts = sz.split('-');
+                    price = parts[0].replace(/[^0-9.]/g,'');
+                    label = parts.slice(1).join('-').trim();
+                    li.textContent = `${parts[0].trim()} - ${label}`;
+                } else {
+                    label = sz;
+                    li.textContent = sz + ' inches';
+                }
+                li.dataset.label = label;
+                if (price) li.dataset.price = price;
+                li.style.marginBottom = '0.25rem';
+                li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
+                ul1.appendChild(li);
+            });
+            (function autoSelectFirst(ul){
+                const first = ul.querySelector('li.size-option');
+                if (first && !window._selectedSize) {
+                    setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first);
+                }
+            })(ul1);
+            wrap1.appendChild(ul1);
+            attrs.appendChild(wrap1);
+
+            const wrap2 = document.createElement('div'); wrap2.className = 'attr';
+            const hdr2 = document.createElement('div'); hdr2.style.fontWeight = '700'; hdr2.textContent = 'Available Sizes Colored (inches):';
+            wrap2.appendChild(hdr2);
+            const ul2 = document.createElement('ul'); ul2.style.margin = '0.5rem 0 0 0.9rem'; ul2.style.padding = '0'; ul2.style.listStyle = 'disc';
+            coloredSizes.forEach(sz => {
+                const li = document.createElement('li');
+                li.className = 'size-option';
+                let label = sz;
+                let price = null;
+                if (sz.indexOf('-') !== -1) {
+                    const parts = sz.split('-');
+                    price = parts[0].replace(/[^0-9.]/g,'');
+                    label = parts.slice(1).join('-').trim();
+                    li.textContent = `${parts[0].trim()} - ${label}`;
+                } else {
+                    label = sz;
+                    li.textContent = sz + ' inches';
+                }
+                li.dataset.label = label;
+                if (price) li.dataset.price = price;
+                li.style.marginBottom = '0.25rem';
+                li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
+                ul2.appendChild(li);
+            });
+            wrap2.appendChild(ul2);
+            attrs.appendChild(wrap2);
+
+        } else if (titleLower.includes('vanity') || titleLower.includes('mirror')) {
+            const sizes = vanityDefaults;
+            const wrap = document.createElement('div'); wrap.className = 'attr';
+            const hdr = document.createElement('div'); hdr.style.fontWeight = '700'; hdr.textContent = 'Available Sizes (inches):';
+            wrap.appendChild(hdr);
+            const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
+            sizes.forEach(sz => {
+                const li = document.createElement('li');
+                li.className = 'size-option';
+                let label = sz;
+                let price = null;
+                if (sz.indexOf('-') !== -1) {
+                    const parts = sz.split('-');
+                    price = parts[0].replace(/[^0-9.]/g,'');
+                    label = parts.slice(1).join('-').trim();
+                    li.textContent = `${parts[0].trim()} - ${label}`;
+                } else {
+                    label = sz;
+                    li.textContent = sz + ' inches';
+                }
+                li.dataset.label = label;
+                if (price) li.dataset.price = price;
+                li.style.marginBottom = '0.25rem';
+                li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
+                ul.appendChild(li);
+            });
+            (function autoSelectFirst(ul){ const first = ul.querySelector('li.size-option'); if (first && !window._selectedSize) setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first); })(ul);
+            wrap.appendChild(ul);
+            attrs.appendChild(wrap);
+
+        } else if (titleLower.includes('ring') || titleLower.includes('ringlight') || titleLower.includes('ring light')) {
+            const sizes = ringlightDefaults;
+            const wrap = document.createElement('div'); wrap.className = 'attr';
+            const hdr = document.createElement('div'); hdr.style.fontWeight = '700'; hdr.textContent = 'Available Sizes (Ringlight) (inches):';
+            wrap.appendChild(hdr);
+            const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
+            sizes.forEach(sz => {
+                const li = document.createElement('li');
+                li.className = 'size-option';
+                let label = sz;
+                let price = null;
+                if (sz.indexOf('-') !== -1) {
+                    const parts = sz.split('-');
+                    price = parts[0].replace(/[^0-9.]/g,'');
+                    label = parts.slice(1).join('-').trim();
+                    li.textContent = `${parts[0].trim()} - ${label}`;
+                } else {
+                    label = sz;
+                    li.textContent = sz + ' inches';
+                }
+                li.dataset.label = label;
+                if (price) li.dataset.price = price;
+                li.style.marginBottom = '0.25rem';
+                li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
+                ul.appendChild(li);
+            });
+            (function autoSelectFirst(ul){ const first = ul.querySelector('li.size-option'); if (first && !window._selectedSize) setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first); })(ul);
+            wrap.appendChild(ul);
+            attrs.appendChild(wrap);
+
+        } else if (product.sizes && product.sizes.length) {
+            const sizes = product.sizes.map(s => {
                 const label = (s.label || s).toString().replace(/x/,' x ');
                 const price = (typeof s.price !== 'undefined') ? ('₱' + Number(s.price)) : null;
                 return price ? `${price} - ${label}` : label;
-            })
-            : toteDefaults;
+            });
+            const wrap = document.createElement('div'); wrap.className = 'attr';
+            const hdr = document.createElement('div'); hdr.style.fontWeight = '700';
+            hdr.textContent = titleLower.includes('ringlight') ? 'Available Sizes (Ringlight) (inches):' : 'Available Sizes (inches):';
+            wrap.appendChild(hdr);
+            const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
+            sizes.forEach(sz => {
+                const li = document.createElement('li');
+                li.className = 'size-option';
+                let label = sz;
+                let price = null;
+                if (sz.indexOf('-') !== -1) {
+                    const parts = sz.split('-');
+                    price = parts[0].replace(/[^0-9.]/g,'');
+                    label = parts.slice(1).join('-').trim();
+                    li.textContent = `${parts[0].trim()} - ${label}`;
+                } else {
+                    label = sz;
+                    li.textContent = sz + ' inches';
+                }
+                li.dataset.label = label;
+                if (price) li.dataset.price = price;
+                li.style.marginBottom = '0.25rem';
+                li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
+                ul.appendChild(li);
+            });
+            (function autoSelectFirst(ul){
+                const first = ul.querySelector('li.size-option');
+                if (first && !window._selectedSize) {
+                    setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first);
+                }
+            })(ul);
+            wrap.appendChild(ul);
+            attrs.appendChild(wrap);
 
-        const coloredSizes = toteColoredDefaults;
-
-        // render white/black list
-        const wrap1 = document.createElement('div'); wrap1.className = 'attr';
-        const hdr1 = document.createElement('div'); hdr1.style.fontWeight = '700'; hdr1.textContent = 'Available Sizes White and Black (inches):';
-        wrap1.appendChild(hdr1);
-        const ul1 = document.createElement('ul'); ul1.style.margin = '0.5rem 0 0 0.9rem'; ul1.style.padding = '0'; ul1.style.listStyle = 'disc';
-        whiteSizes.forEach(sz => {
-            const li = document.createElement('li');
-            li.className = 'size-option';
-            let label = sz;
-            let price = null;
-            if (sz.indexOf('-') !== -1) {
-                const parts = sz.split('-');
-                price = parts[0].replace(/[^0-9.]/g,'');
-                label = parts.slice(1).join('-').trim();
-                li.textContent = `${parts[0].trim()} - ${label}`;
-            } else {
-                label = sz;
-                li.textContent = sz + ' inches';
-            }
-            li.dataset.label = label;
-            if (price) li.dataset.price = price;
-            li.style.marginBottom = '0.25rem';
-            li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
-            ul1.appendChild(li);
-        });
-                // auto-select the first white size to show a price preview when available
-                (function autoSelectFirst(ul){
-                    const first = ul.querySelector('li.size-option');
-                    if (first && !window._selectedSize) {
-                        // trigger selection without firing a real click event
-                        setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first);
-                    }
-                })(ul1);
-        wrap1.appendChild(ul1);
-        attrs.appendChild(wrap1);
-
-        // render colored list
-        const wrap2 = document.createElement('div'); wrap2.className = 'attr';
-        const hdr2 = document.createElement('div'); hdr2.style.fontWeight = '700'; hdr2.textContent = 'Available Sizes Colored (inches):';
-        wrap2.appendChild(hdr2);
-        const ul2 = document.createElement('ul'); ul2.style.margin = '0.5rem 0 0 0.9rem'; ul2.style.padding = '0'; ul2.style.listStyle = 'disc';
-        coloredSizes.forEach(sz => {
-            const li = document.createElement('li');
-            li.className = 'size-option';
-            let label = sz;
-            let price = null;
-            if (sz.indexOf('-') !== -1) {
-                const parts = sz.split('-');
-                price = parts[0].replace(/[^0-9.]/g,'');
-                label = parts.slice(1).join('-').trim();
-                li.textContent = `${parts[0].trim()} - ${label}`;
-            } else {
-                label = sz;
-                li.textContent = sz + ' inches';
-            }
-            li.dataset.label = label;
-            if (price) li.dataset.price = price;
-            li.style.marginBottom = '0.25rem';
-            li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
-            ul2.appendChild(li);
-        });
-        wrap2.appendChild(ul2);
-        attrs.appendChild(wrap2);
-                // do not auto-select colored sizes; leave white/black as primary preview
-
-    // If the title indicates vanity/mirror (but product.sizes may be absent), render vanity defaults
-    } else if (titleLower.includes('vanity') || titleLower.includes('mirror')) {
-        const sizes = vanityDefaults;
-        const wrap = document.createElement('div'); wrap.className = 'attr';
-        const hdr = document.createElement('div'); hdr.style.fontWeight = '700'; hdr.textContent = 'Available Sizes (inches):';
-        wrap.appendChild(hdr);
-        const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
-        sizes.forEach(sz => {
-            const li = document.createElement('li');
-            li.className = 'size-option';
-            let label = sz;
-            let price = null;
-            if (sz.indexOf('-') !== -1) {
-                const parts = sz.split('-');
-                price = parts[0].replace(/[^0-9.]/g,'');
-                label = parts.slice(1).join('-').trim();
-                li.textContent = `${parts[0].trim()} - ${label}`;
-            } else {
-                label = sz;
-                li.textContent = sz + ' inches';
-            }
-            li.dataset.label = label;
-            if (price) li.dataset.price = price;
-            li.style.marginBottom = '0.25rem';
-            li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
-            ul.appendChild(li);
-        });
-        // auto-select first size to show a price preview
-        (function autoSelectFirst(ul){ const first = ul.querySelector('li.size-option'); if (first && !window._selectedSize) setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first); })(ul);
-        wrap.appendChild(ul);
-        attrs.appendChild(wrap);
-
-    // If the title indicates a ringlight product (but product.sizes may be absent), render ringlight defaults
-    } else if (titleLower.includes('ring') || titleLower.includes('ringlight') || titleLower.includes('ring light')) {
-        const sizes = ringlightDefaults;
-        const wrap = document.createElement('div'); wrap.className = 'attr';
-        const hdr = document.createElement('div'); hdr.style.fontWeight = '700'; hdr.textContent = 'Available Sizes (Ringlight) (inches):';
-        wrap.appendChild(hdr);
-        const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
-        sizes.forEach(sz => {
-            const li = document.createElement('li');
-            li.className = 'size-option';
-            let label = sz;
-            let price = null;
-            if (sz.indexOf('-') !== -1) {
-                const parts = sz.split('-');
-                price = parts[0].replace(/[^0-9.]/g,'');
-                label = parts.slice(1).join('-').trim();
-                li.textContent = `${parts[0].trim()} - ${label}`;
-            } else {
-                label = sz;
-                li.textContent = sz + ' inches';
-            }
-            li.dataset.label = label;
-            if (price) li.dataset.price = price;
-            li.style.marginBottom = '0.25rem';
-            li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
-            ul.appendChild(li);
-        });
-        (function autoSelectFirst(ul){ const first = ul.querySelector('li.size-option'); if (first && !window._selectedSize) setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first); })(ul);
-        wrap.appendChild(ul);
-        attrs.appendChild(wrap);
-
-    // If the product provides a sizes array, render the same clickable list UI (vanity, mirror, ringlight, etc.)
-    } else if (product.sizes && product.sizes.length) {
-        const sizes = product.sizes.map(s => {
-            const label = (s.label || s).toString().replace(/x/,' x ');
-            const price = (typeof s.price !== 'undefined') ? ('₱' + Number(s.price)) : null;
-            return price ? `${price} - ${label}` : label;
-        });
-        const wrap = document.createElement('div'); wrap.className = 'attr';
-        const hdr = document.createElement('div'); hdr.style.fontWeight = '700';
-        hdr.textContent = titleLower.includes('ringlight') ? 'Available Sizes (Ringlight) (inches):' : 'Available Sizes (inches):';
-        wrap.appendChild(hdr);
-        const ul = document.createElement('ul'); ul.style.margin = '0.5rem 0 0 0.9rem'; ul.style.padding = '0'; ul.style.listStyle = 'disc';
-        sizes.forEach(sz => {
-            const li = document.createElement('li');
-            li.className = 'size-option';
-            let label = sz;
-            let price = null;
-            if (sz.indexOf('-') !== -1) {
-                const parts = sz.split('-');
-                price = parts[0].replace(/[^0-9.]/g,'');
-                label = parts.slice(1).join('-').trim();
-                li.textContent = `${parts[0].trim()} - ${label}`;
-            } else {
-                label = sz;
-                li.textContent = sz + ' inches';
-            }
-            li.dataset.label = label;
-            if (price) li.dataset.price = price;
-            li.style.marginBottom = '0.25rem';
-            li.addEventListener('click', function(){ setSelectedSize(this.dataset.label, this.dataset.price ? Number(this.dataset.price) : null, this); });
-            ul.appendChild(li);
-        });
-                // auto-select first size to show a price preview
-                (function autoSelectFirst(ul){
-                    const first = ul.querySelector('li.size-option');
-                    if (first && !window._selectedSize) {
-                        setSelectedSize(first.dataset.label, first.dataset.price ? Number(first.dataset.price) : null, first);
-                    }
-                })(ul);
-        wrap.appendChild(ul);
-        attrs.appendChild(wrap);
-
-    // No sizes information: show attributes
-    } else {
-        product.attrs.forEach(a => { const d = document.createElement('div'); d.className='attr'; d.textContent = a; attrs.appendChild(d); });
-    }
+        } else {
+            product.attrs.forEach(a => { const d = document.createElement('div'); d.className='attr'; d.textContent = a; attrs.appendChild(d); });
+        }
     }
 
     function onMainImgClick(e){
@@ -466,7 +655,6 @@
         img.src = src;
         modal.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
-        // prevent scrolling
         document.body.style.overflow = 'hidden';
     }
 
@@ -477,16 +665,13 @@
         document.body.style.overflow = '';
     }
 
-    // close modal on ESC
     document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ closeImageModal(); } });
 
-    // Back behavior: try history.back(); fallback to `from` param mapping, then default to explore
     function goBack(){
         const from = qParam('from');
         if(window.history.length > 1){
             window.history.back();
             setTimeout(()=>{
-                // if still on same page after back attempt, fallback
                 if(document.visibilityState === 'visible'){
                     fallbackToFrom(from);
                 }
@@ -504,37 +689,31 @@
 
     document.getElementById('backBtn').addEventListener('click', goBack);
 
-    // Initialize page based on id param or slug
     document.addEventListener('DOMContentLoaded', function(){
         const id = qParam('id');
         const slug = qParam('slug');
         let product = null;
         if(id){ product = PRODUCTS.find(p => p.id === id); }
         if(!product && slug){ product = PRODUCTS.find(p => p.slug === slug); }
-        // Fallback: allow view links to pass title/price/img/desc via query params
         if(!product){
             const qTitle = qParam('title');
             const qPrice = qParam('price');
             const qImg = qParam('img');
             const qDesc = qParam('desc');
             const qAttrs = qParam('attrs');
-            // normalize image path from query param: handle double-encoding and percent encodings
             function normalizeImgPath(raw){
                 if(!raw) return '';
                 try {
-                    // If raw is an absolute URL, extract pathname to get a site-relative path
                     let url;
                     try { url = new URL(raw, window.location.href); } catch(e) { url = null; }
                     let path = raw;
                     if (url && (url.protocol === 'http:' || url.protocol === 'https:' || raw.startsWith('/'))) {
                         path = url.pathname || raw;
                     }
-                    // decode percent-encodings (try twice for double-encoded values)
                     let s = decodeURIComponent(path);
                     if (s.indexOf('%') !== -1) {
-                        try { s = decodeURIComponent(s); } catch(e) { /* ignore */ }
+                        try { s = decodeURIComponent(s); } catch(e) { }
                     }
-                    // strip leading slash if present and convert %20 to spaces
                     s = s.replace(/^\//, '').replace(/%20/g, ' ').trim();
                     return s;
                 } catch(e){
@@ -557,20 +736,17 @@
         }
         if(!product){ product = PRODUCTS[0]; }
         populate(product);
+        renderReviews();
 
-        // Breadcrumb showing source
         const from = qParam('from');
         const breadcrumb = document.getElementById('breadcrumb');
         if(from){ breadcrumb.textContent = 'From: ' + from.charAt(0).toUpperCase()+from.slice(1); }
 
-        // Wire add to cart (simple localStorage demo)
-        // Add to cart: store in `cart` (used by cart.js). Store name, price, image and quantity.
         document.getElementById('addToCart').addEventListener('click', function(){
             try {
                 const stored = JSON.parse(localStorage.getItem('cart') || '[]');
                 const mainImgEl = document.getElementById('mainImg');
                 const imgSrc = mainImgEl.getAttribute('src') || mainImgEl.src || '';
-                // determine selected size price if applicable
                 const sizeSelectEl = document.getElementById('sizeSelect');
                 let selectedSizeLabel = null;
                 let selectedPrice = null;
@@ -578,7 +754,6 @@
                     selectedPrice = Number(sizeSelectEl.value) || 0;
                     selectedSizeLabel = sizeSelectEl.options[sizeSelectEl.selectedIndex] && sizeSelectEl.options[sizeSelectEl.selectedIndex].dataset.label;
                 }
-                // If no select is present, check for a clicked size (setSelectedSize stores this on window._selectedSize)
                 if (!sizeSelectEl && window._selectedSize) {
                     selectedPrice = (typeof window._selectedSize.price === 'number') ? window._selectedSize.price : null;
                     selectedSizeLabel = window._selectedSize.label || null;
@@ -593,7 +768,6 @@
                     selected: false
                 };
 
-                // Try to merge with existing same-name & image item
                 const idx = stored.findIndex(i => i.name === item.name && i.image === item.image);
                 if (idx > -1) {
                     stored[idx].quantity = (stored[idx].quantity || 0) + 1;
@@ -601,7 +775,6 @@
                     stored.push(item);
                 }
                 localStorage.setItem('cart', JSON.stringify(stored));
-                // update the header badge (preferred global helper)
                 if (window.updateNavBadge) window.updateNavBadge();
                 else if (typeof updateCartBadge === 'function') updateCartBadge();
                 if(typeof showNotification === 'function') showNotification('Added to cart', 'success');
@@ -610,13 +783,11 @@
             }
         });
 
-        // Save item: store product title in `savedBags` (used by saved.js)
         document.getElementById('saveItem').addEventListener('click', function(){
             try {
                 const saved = JSON.parse(localStorage.getItem('savedBags') || '[]');
                 const mainImgEl = document.getElementById('mainImg');
                 const imgSrc = mainImgEl ? (mainImgEl.getAttribute('src') || mainImgEl.src || '') : '';
-                // when saving from the view page include selected size/price if present
                 const sizeSelectEl2 = document.getElementById('sizeSelect');
                 let savedPrice = product.price;
                 let savedSizeLabel = null;
@@ -630,13 +801,11 @@
                 if (!exists) saved.unshift(itemObj);
                 localStorage.setItem('savedBags', JSON.stringify(saved));
                 if(typeof showNotification === 'function') showNotification('Saved item', 'info');
-                // update saved count UI if present
                 const savedCountEl = document.getElementById('savedCount');
                 if (savedCountEl) savedCountEl.textContent = `${saved.length} Saved Item${saved.length !== 1 ? 's' : ''}`;
             } catch (e) { console.error('Save item failed', e); }
         });
 
-        // ensure badge reflects current cart state on page load
         if (window.updateNavBadge) window.updateNavBadge();
     });
 </script>

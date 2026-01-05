@@ -24,8 +24,8 @@
   }
 
   // Populate order info
-  document.getElementById('orderId').textContent = data.orderId || 'N/A';
-  document.getElementById('orderDate').textContent = data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString();
+  document.getElementById('orderId').textContent = 'Order ID: ' + (data.orderId || 'N/A');
+  document.getElementById('orderDate').textContent = 'Date: ' + (data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString());
   document.getElementById('payment').textContent = 'Payment: ' + (data.payment || 'Not specified');
   document.getElementById('courier').textContent = 'Courier: ' + (data.courier || 'Not specified');
 
@@ -108,7 +108,6 @@
   // If totals are missing, compute from normalized items
   let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
   let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
-  let totalVal = (typeof data.total !== 'undefined' && data.total) ? Number(data.total) : null;
 
   if (subtotalVal === null || subtotalVal === 0) {
     subtotalVal = items.reduce((s,it)=> s + (Number(it.lineTotal) || 0), 0);
@@ -116,9 +115,9 @@
   if (shippingVal === null) {
     shippingVal = subtotalVal > 50 ? 0 : 5.99;
   }
-  if (totalVal === null || totalVal === 0) {
-    totalVal = +(subtotalVal + shippingVal).toFixed(2);
-  }
+  
+  // ALWAYS recalculate total to ensure it's correct (subtotal + shipping only, no tax)
+  let totalVal = +(subtotalVal + shippingVal).toFixed(2);
 
   document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
   document.getElementById('shipping').textContent = (shippingVal === 0) ? 'FREE' : fmt(shippingVal || 0);
