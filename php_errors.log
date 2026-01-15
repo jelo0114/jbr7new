@@ -1,0 +1,420 @@
+[16-May-2025 09:16:26 Europe/Berlin] Starting debug log
+[16-May-2025 09:16:26 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:16:26 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:16:26 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:16:26 Europe/Berlin] Database connection successful
+[16-May-2025 09:16:26 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:17:32 Europe/Berlin] Starting debug log
+[16-May-2025 09:17:32 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:17:32 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:17:32 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:17:32 Europe/Berlin] Database connection successful
+[16-May-2025 09:17:32 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:17:57 Europe/Berlin] Starting debug log
+[16-May-2025 09:17:57 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:17:57 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:17:57 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:17:57 Europe/Berlin] Database connection successful
+[16-May-2025 09:17:57 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:18:36 Europe/Berlin] Starting debug log
+[16-May-2025 09:18:36 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:18:36 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:18:36 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:18:36 Europe/Berlin] Database connection successful
+[16-May-2025 09:18:36 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:18:47 Europe/Berlin] Starting debug log
+[16-May-2025 09:18:47 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:18:47 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:18:47 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:18:47 Europe/Berlin] Database connection successful
+[16-May-2025 09:18:47 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:19:00 Europe/Berlin] Starting debug log
+[16-May-2025 09:19:00 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:19:00 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:19:00 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:19:00 Europe/Berlin] Database connection successful
+[16-May-2025 09:19:00 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:19:11 Europe/Berlin] Starting debug log
+[16-May-2025 09:19:11 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:19:11 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:19:11 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:19:11 Europe/Berlin] Database connection successful
+[16-May-2025 09:19:11 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:19:11 Europe/Berlin] Avatar upload process started
+[16-May-2025 09:19:11 Europe/Berlin] Files array contents: Array
+(
+    [name] => Screenshot 2025-05-05 195455.png
+    [full_path] => Screenshot 2025-05-05 195455.png
+    [type] => image/png
+    [tmp_name] => C:\xampp\tmp\php6F2D.tmp
+    [error] => 0
+    [size] => 125402
+)
+
+[16-May-2025 09:19:11 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 09:19:11 Europe/Berlin] File type: image/png
+[16-May-2025 09:19:11 Europe/Berlin] Reading file contents from: C:\xampp\tmp\php6F2D.tmp
+[16-May-2025 09:19:11 Europe/Berlin] Successfully read 125402 bytes
+[16-May-2025 09:19:11 Europe/Berlin] User verified, proceeding with update
+[16-May-2025 09:19:11 Europe/Berlin] Execute result: true
+[16-May-2025 09:19:11 Europe/Berlin] Statement executed successfully
+[16-May-2025 09:19:11 Europe/Berlin] Affected rows: 1
+[16-May-2025 09:19:11 Europe/Berlin] Database updated successfully
+[16-May-2025 09:19:11 Europe/Berlin] Verified image size in database: 125402 bytes
+[16-May-2025 09:19:11 Europe/Berlin] Starting debug log
+[16-May-2025 09:19:11 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:19:11 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:19:11 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:19:11 Europe/Berlin] Database connection successful
+[16-May-2025 09:19:11 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:19:23 Europe/Berlin] Starting debug log
+[16-May-2025 09:19:23 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:19:23 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:19:23 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:19:23 Europe/Berlin] Database connection successful
+[16-May-2025 09:19:23 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:19:23 Europe/Berlin] Avatar upload process started
+[16-May-2025 09:19:23 Europe/Berlin] Files array contents: Array
+(
+    [name] => Screenshot 2025-05-04 220836.png
+    [full_path] => Screenshot 2025-05-04 220836.png
+    [type] => image/png
+    [tmp_name] => C:\xampp\tmp\php9C0A.tmp
+    [error] => 0
+    [size] => 1160161
+)
+
+[16-May-2025 09:19:23 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 09:19:23 Europe/Berlin] File type: image/png
+[16-May-2025 09:19:23 Europe/Berlin] Reading file contents from: C:\xampp\tmp\php9C0A.tmp
+[16-May-2025 09:19:23 Europe/Berlin] Successfully read 1160161 bytes
+[16-May-2025 09:19:23 Europe/Berlin] User verified, proceeding with update
+[16-May-2025 09:19:23 Europe/Berlin] Execute result: true
+[16-May-2025 09:19:23 Europe/Berlin] Statement executed successfully
+[16-May-2025 09:19:23 Europe/Berlin] Affected rows: 1
+[16-May-2025 09:19:23 Europe/Berlin] Database updated successfully
+[16-May-2025 09:19:23 Europe/Berlin] Verified image size in database: 1160161 bytes
+[16-May-2025 09:19:23 Europe/Berlin] Starting debug log
+[16-May-2025 09:19:23 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:19:23 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:19:23 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:19:23 Europe/Berlin] Database connection successful
+[16-May-2025 09:19:23 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:20:08 Europe/Berlin] Starting debug log
+[16-May-2025 09:20:08 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:20:08 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:20:08 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:20:08 Europe/Berlin] Database connection successful
+[16-May-2025 09:20:08 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:20:15 Europe/Berlin] Starting debug log
+[16-May-2025 09:20:15 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:20:15 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:20:15 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:20:15 Europe/Berlin] Database connection successful
+[16-May-2025 09:20:16 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:20:16 Europe/Berlin] Avatar upload process started
+[16-May-2025 09:20:16 Europe/Berlin] Files array contents: Array
+(
+    [name] => Screenshot 2025-05-05 195455.png
+    [full_path] => Screenshot 2025-05-05 195455.png
+    [type] => image/png
+    [tmp_name] => C:\xampp\tmp\php693F.tmp
+    [error] => 0
+    [size] => 125402
+)
+
+[16-May-2025 09:20:16 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 09:20:16 Europe/Berlin] File type: image/png
+[16-May-2025 09:20:16 Europe/Berlin] Reading file contents from: C:\xampp\tmp\php693F.tmp
+[16-May-2025 09:20:16 Europe/Berlin] Successfully read 125402 bytes
+[16-May-2025 09:20:16 Europe/Berlin] User verified, proceeding with update
+[16-May-2025 09:20:16 Europe/Berlin] Execute result: true
+[16-May-2025 09:20:16 Europe/Berlin] Statement executed successfully
+[16-May-2025 09:20:16 Europe/Berlin] Affected rows: 1
+[16-May-2025 09:20:16 Europe/Berlin] Database updated successfully
+[16-May-2025 09:20:16 Europe/Berlin] Verified image size in database: 125402 bytes
+[16-May-2025 09:20:16 Europe/Berlin] Starting debug log
+[16-May-2025 09:20:16 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 09:20:16 Europe/Berlin] Session data - Username: testing
+[16-May-2025 09:20:16 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[16-May-2025 09:20:16 Europe/Berlin] Database connection successful
+[16-May-2025 09:20:16 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 09:24:51 Europe/Berlin] Starting debug log
+[16-May-2025 09:24:51 Europe/Berlin] Session data - User ID: 2
+[16-May-2025 09:24:51 Europe/Berlin] Session data - Username: garmar1
+[16-May-2025 09:24:51 Europe/Berlin] Session data - Email: charles@gmail.com
+[16-May-2025 09:24:51 Europe/Berlin] Database connection successful
+[16-May-2025 09:24:51 Europe/Berlin] User ID 2 verified in database
+[16-May-2025 09:25:06 Europe/Berlin] Starting debug log
+[16-May-2025 09:25:06 Europe/Berlin] Session data - User ID: 2
+[16-May-2025 09:25:06 Europe/Berlin] Session data - Username: garmar1
+[16-May-2025 09:25:06 Europe/Berlin] Session data - Email: charles@gmail.com
+[16-May-2025 09:25:06 Europe/Berlin] Database connection successful
+[16-May-2025 09:25:06 Europe/Berlin] User ID 2 verified in database
+[16-May-2025 09:25:06 Europe/Berlin] Avatar upload process started
+[16-May-2025 09:25:06 Europe/Berlin] Files array contents: Array
+(
+    [name] => Screenshot 2025-05-15 194140.png
+    [full_path] => Screenshot 2025-05-15 194140.png
+    [type] => image/png
+    [tmp_name] => C:\xampp\tmp\phpD99A.tmp
+    [error] => 0
+    [size] => 303591
+)
+
+[16-May-2025 09:25:06 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 09:25:06 Europe/Berlin] File type: image/png
+[16-May-2025 09:25:06 Europe/Berlin] Reading file contents from: C:\xampp\tmp\phpD99A.tmp
+[16-May-2025 09:25:06 Europe/Berlin] Successfully read 303591 bytes
+[16-May-2025 09:25:06 Europe/Berlin] User verified, proceeding with update
+[16-May-2025 09:25:06 Europe/Berlin] Execute result: true
+[16-May-2025 09:25:06 Europe/Berlin] Statement executed successfully
+[16-May-2025 09:25:06 Europe/Berlin] Affected rows: 1
+[16-May-2025 09:25:06 Europe/Berlin] Database updated successfully
+[16-May-2025 09:25:06 Europe/Berlin] Verified image size in database: 303591 bytes
+[16-May-2025 09:25:06 Europe/Berlin] Starting debug log
+[16-May-2025 09:25:06 Europe/Berlin] Session data - User ID: 2
+[16-May-2025 09:25:06 Europe/Berlin] Session data - Username: garmar1
+[16-May-2025 09:25:06 Europe/Berlin] Session data - Email: charles@gmail.com
+[16-May-2025 09:25:06 Europe/Berlin] Database connection successful
+[16-May-2025 09:25:06 Europe/Berlin] User ID 2 verified in database
+[16-May-2025 11:09:24 Europe/Berlin] Starting debug log
+[16-May-2025 11:09:24 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:09:24 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:09:24 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:09:24 Europe/Berlin] Database connection successful
+[16-May-2025 11:09:24 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:09:36 Europe/Berlin] Starting debug log
+[16-May-2025 11:09:36 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:09:36 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:09:36 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:09:36 Europe/Berlin] Database connection successful
+[16-May-2025 11:09:36 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:15:56 Europe/Berlin] Starting debug log
+[16-May-2025 11:15:56 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 11:15:56 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:15:56 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:15:56 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:15:56 Europe/Berlin] Database connection successful
+[16-May-2025 11:15:56 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:15:56 Europe/Berlin] PHP Deprecated:  htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated in C:\XAMPP\htdocs\account-settings.php on line 623
+[16-May-2025 11:18:54 Europe/Berlin] Starting debug log
+[16-May-2025 11:18:54 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:18:54 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:18:54 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:18:54 Europe/Berlin] Database connection successful
+[16-May-2025 11:18:54 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:19:19 Europe/Berlin] Starting debug log
+[16-May-2025 11:19:19 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:19:19 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:19:19 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:19:19 Europe/Berlin] Database connection successful
+[16-May-2025 11:19:19 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:19:19 Europe/Berlin] Avatar upload process started
+[16-May-2025 11:19:19 Europe/Berlin] Files array contents: Array
+(
+    [name] => qqqqqqqqqqqqqq232323.png
+    [full_path] => qqqqqqqqqqqqqq232323.png
+    [type] => image/png
+    [tmp_name] => C:\XAMPP\tmp\php30F.tmp
+    [error] => 0
+    [size] => 6710559
+)
+
+[16-May-2025 11:19:19 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 11:19:19 Europe/Berlin] File type: image/png
+[16-May-2025 11:19:19 Europe/Berlin] File too large: 6710559 bytes
+[16-May-2025 11:19:19 Europe/Berlin] Starting debug log
+[16-May-2025 11:19:19 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:19:19 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:19:19 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:19:19 Europe/Berlin] Database connection successful
+[16-May-2025 11:19:19 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:19:49 Europe/Berlin] Starting debug log
+[16-May-2025 11:19:49 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:19:49 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:19:49 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:19:49 Europe/Berlin] Database connection successful
+[16-May-2025 11:19:49 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:19:49 Europe/Berlin] Avatar upload process started
+[16-May-2025 11:19:49 Europe/Berlin] Files array contents: Array
+(
+    [name] => qqqqqqqqqqqqqq232323.png
+    [full_path] => qqqqqqqqqqqqqq232323.png
+    [type] => image/png
+    [tmp_name] => C:\XAMPP\tmp\php786F.tmp
+    [error] => 0
+    [size] => 6710559
+)
+
+[16-May-2025 11:19:49 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 11:19:49 Europe/Berlin] File type: image/png
+[16-May-2025 11:19:49 Europe/Berlin] File too large: 6710559 bytes
+[16-May-2025 11:19:49 Europe/Berlin] Starting debug log
+[16-May-2025 11:19:49 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:19:49 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:19:49 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:19:49 Europe/Berlin] Database connection successful
+[16-May-2025 11:19:49 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:21:56 Europe/Berlin] Starting debug log
+[16-May-2025 11:21:56 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:21:56 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:21:56 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:21:56 Europe/Berlin] Database connection successful
+[16-May-2025 11:21:56 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:22:49 Europe/Berlin] Starting debug log
+[16-May-2025 11:22:49 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:22:49 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:22:49 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:22:49 Europe/Berlin] Database connection successful
+[16-May-2025 11:22:49 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:22:49 Europe/Berlin] Avatar upload process started
+[16-May-2025 11:22:49 Europe/Berlin] Files array contents: Array
+(
+    [name] => IMG_20240825_122453_883.jpg
+    [full_path] => IMG_20240825_122453_883.jpg
+    [type] => image/jpeg
+    [tmp_name] => C:\XAMPP\tmp\php37AF.tmp
+    [error] => 0
+    [size] => 34593
+)
+
+[16-May-2025 11:22:49 Europe/Berlin] File upload successful, proceeding with processing
+[16-May-2025 11:22:49 Europe/Berlin] File type: image/jpeg
+[16-May-2025 11:22:49 Europe/Berlin] Reading file contents from: C:\XAMPP\tmp\php37AF.tmp
+[16-May-2025 11:22:49 Europe/Berlin] Successfully read 34593 bytes
+[16-May-2025 11:22:49 Europe/Berlin] User verified, proceeding with update
+[16-May-2025 11:22:49 Europe/Berlin] Execute result: true
+[16-May-2025 11:22:49 Europe/Berlin] Statement executed successfully
+[16-May-2025 11:22:49 Europe/Berlin] Affected rows: 1
+[16-May-2025 11:22:49 Europe/Berlin] Database updated successfully
+[16-May-2025 11:22:49 Europe/Berlin] Verified image size in database: 34593 bytes
+[16-May-2025 11:22:49 Europe/Berlin] Starting debug log
+[16-May-2025 11:22:49 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:22:49 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:22:49 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:22:49 Europe/Berlin] Database connection successful
+[16-May-2025 11:22:49 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:25:07 Europe/Berlin] Starting debug log
+[16-May-2025 11:25:07 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:25:07 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:25:07 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:25:07 Europe/Berlin] Database connection successful
+[16-May-2025 11:25:07 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:25:58 Europe/Berlin] Starting debug log
+[16-May-2025 11:25:58 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:25:58 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:25:58 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:25:58 Europe/Berlin] Database connection successful
+[16-May-2025 11:25:58 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:26:07 Europe/Berlin] Starting debug log
+[16-May-2025 11:26:07 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:26:07 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:26:07 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:26:07 Europe/Berlin] Database connection successful
+[16-May-2025 11:26:07 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:27:47 Europe/Berlin] Starting debug log
+[16-May-2025 11:27:47 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:27:47 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:27:47 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:27:47 Europe/Berlin] Database connection successful
+[16-May-2025 11:27:47 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:27:59 Europe/Berlin] Starting debug log
+[16-May-2025 11:27:59 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:27:59 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:27:59 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:27:59 Europe/Berlin] Database connection successful
+[16-May-2025 11:27:59 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 11:28:36 Europe/Berlin] Starting debug log
+[16-May-2025 11:28:36 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 11:28:36 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 11:28:36 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 11:28:36 Europe/Berlin] Database connection successful
+[16-May-2025 11:28:36 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 14:49:00 Europe/Berlin] Starting debug log
+[16-May-2025 14:49:00 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 14:49:00 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 14:49:00 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 14:49:00 Europe/Berlin] Database connection successful
+[16-May-2025 14:49:00 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 14:49:10 Europe/Berlin] Starting debug log
+[16-May-2025 14:49:10 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 14:49:10 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 14:49:10 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 14:49:10 Europe/Berlin] Database connection successful
+[16-May-2025 14:49:10 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:10:30 Europe/Berlin] Starting debug log
+[16-May-2025 15:10:30 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:10:30 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:10:30 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:10:30 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:10:30 Europe/Berlin] Database connection successful
+[16-May-2025 15:10:30 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:11:07 Europe/Berlin] Starting debug log
+[16-May-2025 15:11:07 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:11:07 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:11:07 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:11:07 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:11:07 Europe/Berlin] Database connection successful
+[16-May-2025 15:11:07 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:12:50 Europe/Berlin] Starting debug log
+[16-May-2025 15:12:50 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:12:50 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:12:50 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:12:50 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:12:50 Europe/Berlin] Database connection successful
+[16-May-2025 15:12:50 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:16:33 Europe/Berlin] Starting debug log
+[16-May-2025 15:16:33 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:16:33 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:16:33 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:16:33 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:16:33 Europe/Berlin] Database connection successful
+[16-May-2025 15:16:33 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:16:43 Europe/Berlin] Starting debug log
+[16-May-2025 15:16:43 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:16:43 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:16:43 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:16:43 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:16:43 Europe/Berlin] Database connection successful
+[16-May-2025 15:16:43 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:22:44 Europe/Berlin] Starting debug log
+[16-May-2025 15:22:44 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:22:44 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:22:44 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:22:44 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:22:44 Europe/Berlin] Database connection successful
+[16-May-2025 15:22:44 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:22:46 Europe/Berlin] Starting debug log
+[16-May-2025 15:22:46 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:22:46 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:22:46 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:22:46 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:22:46 Europe/Berlin] Database connection successful
+[16-May-2025 15:22:46 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:23:10 Europe/Berlin] Starting debug log
+[16-May-2025 15:23:10 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:23:10 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:23:10 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:23:10 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:23:10 Europe/Berlin] Database connection successful
+[16-May-2025 15:23:10 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:24:25 Europe/Berlin] Starting debug log
+[16-May-2025 15:24:25 Europe/Berlin] PHP Warning:  Undefined array key "client_contact_number" in C:\XAMPP\htdocs\account-settings.php on line 34
+[16-May-2025 15:24:25 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:24:25 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:24:25 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:24:25 Europe/Berlin] Database connection successful
+[16-May-2025 15:24:25 Europe/Berlin] User ID 1 verified in database
+[16-May-2025 15:25:26 Europe/Berlin] Starting debug log
+[16-May-2025 15:25:26 Europe/Berlin] Session data - User ID: 1
+[16-May-2025 15:25:26 Europe/Berlin] Session data - Username: jamescarillo
+[16-May-2025 15:25:26 Europe/Berlin] Session data - Email: bonakid055@gmail.com
+[16-May-2025 15:25:26 Europe/Berlin] Database connection successful
+[16-May-2025 15:25:26 Europe/Berlin] User ID 1 verified in database
+[17-May-2025 13:27:23 Europe/Berlin] Starting debug log
+[17-May-2025 13:27:23 Europe/Berlin] Session data - User ID: 1
+[17-May-2025 13:27:23 Europe/Berlin] Session data - Username: testing
+[17-May-2025 13:27:23 Europe/Berlin] Session data - Email: cuevak32@gmail.com
+[17-May-2025 13:27:23 Europe/Berlin] Database connection successful
+[17-May-2025 13:27:23 Europe/Berlin] User ID 1 verified in database
