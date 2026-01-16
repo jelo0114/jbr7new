@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login / Sign Up - Carillo Law</title>
+  <link rel="stylesheet" href="client-login.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <a href="index.html" class="back-home-btn"><i class="fas fa-home"></i> Back to Home</a>
+    
+    <div class="background-shapes">
+        <div class="shape shape1"></div>
+        <div class="shape shape2"></div>
+        <div class="shape shape3"></div>
+        <div class="circle circle1"></div>
+        <div class="circle circle2"></div>
+        <div class="circle circle3"></div>
+    </div>
+    
+    <div class="container">
+        <div class="toggle-buttons">
+            <button id="loginBtn" class="active">Login</button>
+            <button id="signupBtn">Sign Up</button>
+        </div>
+        <div class="form-container" id="formContainer">
+
+        <!-- Login Form -->
+            <div class="form-box" id="loginForm">
+                <h2>Login</h2>
+                <form id="loginFormElement">
+                    <input type="text" id="login_id" placeholder="Username or Email" required />
+                    <div class="password-wrapper">
+                        <input type="password" id="login_password" placeholder="Password" required />
+                        <img src="https://cdn-icons-png.flaticon.com/512/565/565655.png" alt="Show" class="toggle-password" data-toggle="login_password" />
+                    </div>
+                    <div class="remember-forget">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            Remember Me
+                        </label>
+                        <a href="#">Forget Password</a>
+                    </div>
+                    <button type="submit">Login</button>
+                    <p id="loginMessage" class="message"></p>
+                </form>
+            </div>
+
+            <!-- Signup Form -->
+            <div class="form-box" id="signupForm">
+                <h2>Sign Up</h2>
+                <form id="signupFormElement">
+                    <input type="text" id="signup_username" placeholder="Username" required />
+                    <input type="text" id="signup_first_name" placeholder="First Name" required />
+                    <input type="text" id="signup_last_name" placeholder="Last Name" required />
+                    <input type="email" id="signup_email" placeholder="Email" required />
+                    <input type="tel" id="signup_contact_number" placeholder="Mobile Number" required />
+
+                    <div class="password-wrapper">
+                        <input type="password" id="signup_password" placeholder="Password" required />
+                        <img src="https://cdn-icons-png.flaticon.com/512/565/565655.png" alt="Show" class="toggle-password" data-toggle="signup_password" />
+                    </div>
+
+                    <div class="password-wrapper">
+                        <input type="password" id="signup_confirm_password" placeholder="Confirm Password" required />
+                        <img src="https://cdn-icons-png.flaticon.com/512/565/565655.png" alt="Show" class="toggle-password" data-toggle="signup_confirm_password" />
+                    </div>
+
+                    <div class="terms">
+                        <label class="custom-checkbox">
+                            <input type="checkbox" id="agreeTerms" required />
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" id="termsLink">Terms & Privacy Policy</a>
+                        </label>
+                    </div>
+                    <button type="submit">Create Account</button>
+                    <p id="signupMessage" class="message"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terms & Privacy Modal -->
+    <div id="termsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h1>Privacy Policy</h1>
+            <p>Last updated: May 08, 2025</p>
+            <p>This Privacy Policy describes Our policies and procedures on the collection, use and disclosure of Your information when You use the Service and tells You about Your privacy rights and how the law protects You.</p>
+            <p>We use Your Personal data to provide and improve the Service. By using the Service, You agree to the collection and use of information in accordance with this Privacy Policy. This Privacy Policy has been created with the help of the <a href="https://www.termsfeed.com/privacy-policy-generator/" target="_blank">Privacy Policy Generator</a>.</p>
+            <!-- ... Rest of privacy policy content can be added ... -->
+            <h2>Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy, You can contact us:</p>
+            <ul>
+                <li><p>By email: pcvcarillolaw@gmail.com</p></li>
+                <li><p>By phone number: 0973 727 8473</p></li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="js/login.js"></script>
+</body>
+</html>

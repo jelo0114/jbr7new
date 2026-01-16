@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Carillo Law</title>
+    <link rel="stylesheet" href="../admin/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <span class="admin-title">Admin Dashboard</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="admin-home.html" class="active">Dashboard</a></li>
+            <li><a href="appointments.html">Appointments</a></li>
+            <li><a href="manage_users.html">Manage Users</a></li>
+            <li><a href="generate_report.html">Reports</a></li>
+            <li><a href="#" id="adminLogoutLink">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-container">
+        <h1>Welcome to Admin Dashboard</h1>
+        
+        <div class="dashboard-overview">
+            <div class="card">
+                <h3>Total Consultations</h3>
+                <p id="totalConsultations">0</p>
+            </div>
+            <div class="card">
+                <h3>Pending Appointments</h3>
+                <p id="pendingAppointments">0</p>
+            </div>
+            <div class="card">
+                <h3>Total Users</h3>
+                <p id="totalUsers">0</p>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <a href="appointments.html" class="btn">View Appointments</a>
+            <a href="manage_users.html" class="btn">Manage Users</a>
+            <a href="generate_report.html" class="btn">Generate Reports</a>
+        </div>
+    </div>
+
+    <script src="../js/admin-check.js"></script>
+    <script src="../js/admin-home.js"></script>
+</body>
+</html>

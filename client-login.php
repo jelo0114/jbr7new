@@ -8,30 +8,13 @@ $login_error = null;
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['login'])) {
 
-    // 1. Get reCaptcha response from POST
-    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
+    $login_id = trim($_POST['login_id'] ?? ''); 
+    $password = $_POST['login_password'] ?? '';
 
-    // 2. Verify reCaptcha response with Google API
-    $secret_key = '6LdjTTIrAAAAABqMWpLh2ZM2BPq1F9MJRnk0DARF'; // your secret key
-    $verify_url = "https://www.google.com/recaptcha/api/siteverify?secret=$secret_key&response=$recaptcha_response";
-
-    $response = file_get_contents($verify_url);
-    $response_keys = json_decode($response, true);
-
-    if (empty($recaptcha_response) || intval($response_keys["success"]) !== 1) {
-        
-        $login_error = 'reCaptcha verification failed. Please complete the reCAPTCHA and try again.';
-        error_log("Login failed - reCaptcha verification failed");
+    if (!$login_id || !$password) {
+        $login_error = "Please enter your username/email and password.";
+        error_log("Login failed - Empty credentials");
     } else {
-        
-
-        $login_id = trim($_POST['login_id'] ?? ''); 
-        $password = $_POST['login_password'] ?? '';
-
-        if (!$login_id || !$password) {
-            $login_error = "Please enter your username/email and password.";
-            error_log("Login failed - Empty credentials");
-        } else {
             try {
                 $db = Database::getInstance();
                 $conn = $db->getConnection();
@@ -110,23 +93,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     $password = $_POST['password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    // 1. Get reCaptcha response from POST
-    $recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
-
-    // 2. Verify reCaptcha response with Google API
-    $secret_key = '6LdjTTIrAAAAABqMWpLh2ZM2BPq1F9MJRnk0DARF'; // your secret key
-    $verify_url = "https://www.google.com/recaptcha/api/siteverify?secret=$secret_key&response=$recaptcha_response";
-
-    $response = file_get_contents($verify_url);
-    $response_keys = json_decode($response, true);
-
-    if (empty($recaptcha_response) || intval($response_keys["success"]) !== 1) {
-        // reCaptcha failed
-        $login_error = 'reCaptcha verification failed. Please complete the reCAPTCHA and try again.';
-        error_log("Login failed - reCaptcha verification failed");
-    } else {
-        // reCaptcha passed - continue with login logic
-
     // Basic validation
     if (!$username || !$first_name || !$last_name || !$email || !$contact_number || !$password || !$confirm_password) {
         $signup_error = "All fields are required.";
@@ -179,7 +145,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login / Sign Up - Carillo Law</title>
   <link rel="stylesheet" href="client-login.css">
-  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   
 </head>
@@ -219,8 +184,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     </label>
                     <a href="#">Forget Password</a>
                 </div>
-                <div class="g-recaptcha" data-sitekey="6LdjTTIrAAAAAFMFYvoIHK4X3cZ6Y-Ja52ncrRG0"></div>
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 <button type="submit" name="login">Login</button>
                 <?php if ($login_error): ?>
                     <p class="error-message" style="color:red;"> <?= $login_error ?> </p>
@@ -254,8 +217,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
                     I agree to the <a href="#" id = "termsLink">Terms & Privacy Policy</a>
                     </label>
                 </div>
-                <div class="g-recaptcha" data-sitekey="6LdjTTIrAAAAAFMFYvoIHK4X3cZ6Y-Ja52ncrRG0"></div>
-                <script src="https://www.google.com/recaptcha/api.js" async defer></script>
                 <button type="submit" name="signup">Create Account</button>
                 <?php if ($signup_error): ?>
                     <p class="error-message" style="color:red;"> <?= $signup_error ?> </p>
@@ -471,76 +432,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['signup'])) {
     </div>
 
 
+    <script src="js/login.js"></script>
     <script>
+        // Handle form visibility on page load based on errors
         document.addEventListener('DOMContentLoaded', function() {
-        <?php if (!empty($signup_error)): ?>
-            // Show signup tab, hide login tab
-            document.getElementById('tab-login').classList.remove('active');
-            document.getElementById('login-form').style.display = 'none';
-
-            document.getElementById('tab-signup').classList.add('active');
-            document.getElementById('signup-form').style.display = 'block';
-        <?php elseif (!empty($login_error)): ?>
-            // Show login tab, hide signup tab (optional, if you want)
-            document.getElementById('tab-login').classList.add('active');
-            document.getElementById('login-form').style.display = 'block';
-
-            document.getElementById('tab-signup').classList.remove('active');
-            document.getElementById('signup-form').style.display = 'none';
-        <?php endif; ?>
-    });
-        const formContainer = document.getElementById("formContainer");
-        const loginBtn = document.getElementById("loginBtn");
-        const signupBtn = document.getElementById("signupBtn");
-
-        /*TERMS and PRIVACY POLICY*/
-        const termsLink = document.getElementById("termsLink");
-        const termsModal = document.getElementById("termsModal");
-        const closeButton = document.querySelector(".close-button");
-
-        termsLink.addEventListener("click", function (e) {
-            e.preventDefault();
-            termsModal.style.display = "flex";
+            <?php if (!empty($signup_error)): ?>
+                // Show signup tab if there was a signup error
+                const formContainer = document.getElementById("formContainer");
+                const signupBtn = document.getElementById("signupBtn");
+                const loginBtn = document.getElementById("loginBtn");
+                formContainer.style.transform = "translateX(-50%)";
+                signupBtn.classList.add("active");
+                loginBtn.classList.remove("active");
+            <?php endif; ?>
         });
-
-        closeButton.addEventListener("click", function () {
-            termsModal.style.display = "none";
-        });
-
-        window.addEventListener("click", function (e) {
-            if (e.target === termsModal) {
-            termsModal.style.display = "none";
-            }
-        });
-        
-        loginBtn.addEventListener("click", () => {
-        formContainer.style.transform = "translateX(0%)";
-        loginBtn.classList.add("active");
-        signupBtn.classList.remove("active");
-        });
-
-        signupBtn.addEventListener("click", () => {
-        formContainer.style.transform = "translateX(-50%)";
-        signupBtn.classList.add("active");
-        loginBtn.classList.remove("active");
-        });
-
-        function setupToggle(toggleId, inputId) {
-        const toggle = document.getElementById(toggleId);
-        const input = document.getElementById(inputId);
-
-        toggle.addEventListener("click", function () {
-        const isPassword = input.getAttribute("type") === "password";
-        input.setAttribute("type", isPassword ? "text" : "password");
-        toggle.src = isPassword
-            ? "https://cdn-icons-png.flaticon.com/512/159/159604.png" // eye-slash
-            : "https://cdn-icons-png.flaticon.com/512/565/565655.png"; // eye
-        });
-    }
-
-    setupToggle("toggleLoginPassword", "loginPassword");
-    setupToggle("toggleSignupPassword", "signupPassword");
-    setupToggle("toggleConfirmPassword", "confirmPassword");
     </script>
     </body>
 </html>

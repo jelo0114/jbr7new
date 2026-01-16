@@ -58,10 +58,6 @@ button:hover {
   background-color: #094245;
 }
 
-.g-recaptcha {
-  margin: 15px 10px;
-}
-
 .toggle-buttons {
   display: flex;
   justify-content: center;

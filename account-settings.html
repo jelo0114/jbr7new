@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - Carillo Law</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <div class="upperbar">
+        <div class="topbar">
+            <span>[📞 0973 727 8473]</span>
+            <span><a href="https://mail.google.com/mail/?view=cm&fs=1&to=pcvcarillolaw@gmail.com" target="_blank" class="email-link">
+                <i class="fas fa-envelope"></i> pcvcarillolaw@gmail.com</a></span>
+        </div>
+        <nav class="navbar">
+            <div class="logo">
+                <a href="index.html"><img src="src/web_logo-removebg-preview.png" alt="Carillo Law Office"></a>
+                <span><a href="index.html" class="webname">CARILLO LAW</a></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="about.html">ABOUT</a></li>
+                <li><a href="services.html">SERVICES</a></li>
+                <li><a href="contacts.html">CONTACTS</a></li>
+                <li><a href="testimonials.html">TESTIMONIALS</a></li>
+                <li><a href="appointments.html">APPOINTMENTS</a></li>
+                <li>
+                    <div class="user-nav-container" id="userNavContainer">
+                        <a href="client-login.html" class="login-btn">Login</a>
+                    </div>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <section class="account-settings-section">
+        <div class="account-settings-container">
+            <h1>Account Settings</h1>
+            <form id="settingsForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="contact_number">Contact Number</label>
+                    <input type="tel" id="contact_number" disabled>
+                </div>
+                <p id="settingsMessage" class="message"></p>
+            </form>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-section about">
+                <h3>Carillo Law Office</h3>
+                <p>Providing trusted legal and notarial services in civil, real estate, and contract law for over 5 years.</p>
+            </div>
+            <div class="footer-section contact">
+                <h4>Contact Us</h4>
+                <p>📍 9017 C.P. Trinidad St., Concepcion, Baliuag, Philippines</p>
+                <p>📞 0973 727 8473</p>
+                <p><a href="https://mail.google.com/mail/?view=cm&fs=1&to=pcvcarillolaw@gmail.com" target="_blank" class="email-link">
+                    <i class="fas fa-envelope"></i> pcvcarillolaw@gmail.com</a></p>
+                <p><a href="https://www.facebook.com/profile.php?id=100083055586233" target="_blank" class="facebook-link">
+                    <i class="fab fa-facebook-square"></i> Facebook</a></p>
+            </div>
+            <div class="footer-section hours">
+                <h4>Office Hours</h4>
+                <p>Mon – Fri: 9:00 AM – 6:00 PM</p>
+                <p>Sat: 8:00 AM – 5:00 PM</p>
+                <p>Sun & Holidays: Closed</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Carillo Law Office. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="js/auth-check.js"></script>
+    <script src="js/account-settings.js"></script>
+</body>
+</html>

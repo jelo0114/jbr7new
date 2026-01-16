@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - Admin</title>
+    <link rel="stylesheet" href="../admin/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <span class="admin-title">Admin Dashboard</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="admin-home.html">Dashboard</a></li>
+            <li><a href="appointments.html">Appointments</a></li>
+            <li><a href="manage_users.html" class="active">Manage Users</a></li>
+            <li><a href="generate_report.html">Reports</a></li>
+            <li><a href="#" id="adminLogoutLink">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-container">
+        <h1>Manage Users</h1>
+        
+        <table id="usersTable" class="admin-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Name</th>
+                    <th>Contact</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersBody">
+                <!-- Users will be loaded here -->
+            </tbody>
+        </table>
+        
+        <p id="usersMessage" class="message"></p>
+    </div>
+
+    <script src="../js/admin-check.js"></script>
+    <script src="../js/manage-users.js"></script>
+</body>
+</html>

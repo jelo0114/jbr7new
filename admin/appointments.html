@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointments - Admin</title>
+    <link rel="stylesheet" href="../admin/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">
+            <span class="admin-title">Admin Dashboard</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="admin-home.html">Dashboard</a></li>
+            <li><a href="appointments.html" class="active">Appointments</a></li>
+            <li><a href="manage_users.html">Manage Users</a></li>
+            <li><a href="generate_report.html">Reports</a></li>
+            <li><a href="#" id="adminLogoutLink">Logout</a></li>
+        </ul>
+    </nav>
+
+    <div class="admin-container">
+        <h1>Appointments</h1>
+        
+        <div class="filter-section">
+            <label for="appointmentDate">Select Date:</label>
+            <input type="date" id="appointmentDate">
+            <button onclick="loadAppointmentsByDate()">Load Appointments</button>
+        </div>
+        
+        <table id="appointmentsTable" class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Time</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentsBody">
+                <!-- Appointments will be loaded here -->
+            </tbody>
+        </table>
+        
+        <p id="appointmentsMessage" class="message"></p>
+    </div>
+
+    <script src="../js/admin-check.js"></script>
+    <script src="../js/admin-appointments.js"></script>
+</body>
+</html>
