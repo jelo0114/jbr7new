@@ -47,10 +47,11 @@
     }
   ],
   "functions": {
-    "**/*.php": {
-      "runtime": "vercel-php@0.7.3",
-      "memory": 1024,
-      "maxDuration": 30
+    "api/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "jbr7php/**/*.php": {
+      "runtime": "vercel-php@0.7.3"
     }
   },
   "rewrites": [
