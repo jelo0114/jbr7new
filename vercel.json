@@ -1,68 +1,24 @@
 {
   "version": 2,
-  "routes": [
-    {
-      "src": "/jbr7php/(.*)",
-      "dest": "/jbr7php/$1"
-    },
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/config/(.*)",
-      "dest": "/config/$1"
-    },
-    {
-      "src": "/(.*\\.php)$",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.html)$",
-      "dest": "/$1"
-    },
-    {
-      "src": "/JBR7 CSS/(.*)",
-      "dest": "/JBR7 CSS/$1"
-    },
-    {
-      "src": "/jbr7js/(.*)",
-      "dest": "/jbr7js/$1"
-    },
-    {
-      "src": "/(.*\\.css)$",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.js)$",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*\\.jpg|.*\\.jpeg|.*\\.png|.*\\.gif|.*\\.svg|.*\\.avif|.*\\.webp)$",
-      "dest": "/$1"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
-  ],
   "functions": {
-    "api/**/*.php": {
-      "runtime": "vercel-php@0.7.3"
-    },
-    "jbr7php/**/*.php": {
-      "runtime": "vercel-php@0.7.3"
+    "**/*.php": {
+      "runtime": "vercel-php@0.7.3",
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
-  "rewrites": [
-    {
-      "source": "/jbr7php/:path*",
-      "destination": "/jbr7php/:path*"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    }
+  "routes": [
+    { "src": "/jbr7php/(.*)", "dest": "/jbr7php/$1" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/config/(.*)", "dest": "/config/$1" },
+    { "src": "/(.*\\.php)$", "dest": "/$1" },
+    { "src": "/(.*\\.html)$", "dest": "/$1" },
+    { "src": "/JBR7 CSS/(.*)", "dest": "/JBR7 CSS/$1" },
+    { "src": "/jbr7js/(.*)", "dest": "/jbr7js/$1" },
+    { "src": "/(.*\\.css)$", "dest": "/$1" },
+    { "src": "/(.*\\.js)$", "dest": "/$1" },
+    { "src": "/(.*\\.(jpg|jpeg|png|gif|svg|avif|webp))$", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ],
   "cleanUrls": false,
   "trailingSlash": false,
@@ -70,18 +26,9 @@
     {
       "source": "/jbr7php/(.*)",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "*"
-        },
-        {
-          "key": "Access-Control-Allow-Methods",
-          "value": "GET, POST, PUT, DELETE, OPTIONS"
-        },
-        {
-          "key": "Access-Control-Allow-Headers",
-          "value": "Content-Type, Authorization, X-Requested-With"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, X-Requested-With" }
       ]
     }
   ]
