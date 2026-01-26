@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JBR7 Bags - Sign Up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/JBR7 CSS/signin.css">
+    
+</head>
+<body>
+    
+     <div class="logo-container">
+        <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-image" onerror="this.style.display='none'">
+
+    <div class="logo-text">
+        <span class="brand-name"></span>
+        <span class="brand-tagline">MANUFACTURING</span>
+    </div>
+</div>
+    <div class="auth-card">
+        <h2 style="text-align:center;margin-bottom:12px;color:#333;font-size:1.35rem">Sign Up</h2>
+
+    <form id="signup-form" style="margin-top:6px" action="/jbr7php/signup.php" method="POST">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="signup-username" name="username" placeholder="Choose a username" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" id="signup-email" name="email" placeholder="Enter your email address" required>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-container">
+                    <input type="password" id="signup-password" name="password" placeholder="Create a password" required>
+                    <i class="fa-regular fa-eye-slash eye-icon" onclick="togglePassword(this)"></i>
+                </div>
+            </div>
+
+            <button type="submit" class="main-btn">Sign Up</button>
+
+            <div style="text-align:center;margin-top:0.6rem">
+                <a href="index.html" class="return-home">Return to home</a>
+            </div>
+
+            <div style="text-align:center;margin-top:0.6rem">
+                <span style="color:#333;margin-right:6px">Already have an account?</span>
+                <a href="signin.html" class="return-home">Sign in</a>
+            </div>
+        </form>
+    </div>
+   
+
+    <script>
+    // Simple password toggle for the eye icon (kept client-side)
+    function togglePassword(icon){
+        const input = icon.parentElement.querySelector('input[type="password"]');
+        if(!input) return;
+        if(input.type === 'password'){ input.type = 'text'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
+        else { input.type = 'password'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
+    }
+    </script>
+</body>
+</html>

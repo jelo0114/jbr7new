@@ -1,0 +1,2278 @@
+/* Profile Page Styles */
+
+.profile-container {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Profile Header */
+.profile-header {
+    position: relative;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.profile-cover {
+    height: 250px;
+    background: linear-gradient(135deg, #a4b18c 0%, #93a37a 100%);
+}
+
+.profile-info-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5%;
+    position: relative;
+    margin-top: -80px;
+    display: flex; /* align avatar, details and actions */
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.profile-avatar-section {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+}
+
+.profile-avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #006923, #00852c);
+    border: 6px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 4rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #3b5d72;
+    color: #fff;
+    border: 3px solid #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.edit-avatar-btn:hover {
+    background-color: #006923;
+    transform: scale(1.1);
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    margin-left: 0;
+    padding-top: 18px; /* reduce top padding since flex centers alignment */
+    justify-content: center;
+}
+
+.profile-name {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.profile-email,
+.profile-member-since {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* profile-actions is defined later with a flex layout to align buttons cleanly */
+
+/* Profile Stats */
+.profile-stats {
+    max-width: 1400px;
+    margin: 3rem auto;
+    padding: 0 5%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    animation: slideInFromBottom 0.6s ease-out;
+}
+
+.stat-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #006923, #00852c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Profile Content Layout */
+.profile-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5% 3rem 5%;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+}
+
+/* Profile Sidebar */
+.profile-sidebar {
+    animation: slideInFromLeft 0.6s ease-out;
+}
+
+.profile-menu {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+.profile-menu-item {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    color: #555;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.profile-menu-item i {
+    font-size: 1.2rem;
+    width: 24px;
+    color: #006923;
+}
+
+.profile-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.profile-menu-item.active {
+    background: linear-gradient(135deg, #006923, #00852c);
+    color: #fff;
+}
+
+.profile-menu-item.active i {
+    color: #fff;
+}
+
+/* Logout Item Styling */
+.profile-menu-item.logout-item {
+    margin-top: 0.5rem;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 1.5rem;
+}
+
+.profile-menu-item.logout-item i {
+    color: #c50010;
+}
+
+.profile-menu-item.logout-item:hover {
+    background-color: #fff5f5;
+    color: #c50010;
+}
+
+.profile-menu-item.logout-item:hover i {
+    color: #c50010;
+}
+
+/* Loyalty Card */
+.loyalty-card {
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+    border-radius: 12px;
+    padding: 2rem;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(59, 93, 114, 0.3);
+}
+
+.loyalty-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.loyalty-header i {
+    color: #eee126;
+    font-size: 1.5rem;
+}
+
+.loyalty-points h3 {
+    font-size: 2.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.loyalty-points p {
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #eee126, #ddd115);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.loyalty-progress p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.loyalty-btn {
+    width: 100%;
+    background-color: #eee126;
+    color: #000;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.loyalty-btn:hover {
+    background-color: #ddd115;
+    transform: translateY(-2px);
+}
+
+/* Profile Main Content */
+.profile-main {
+    animation: slideInFromRight 0.6s ease-out;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+.profile-actions button {
+    margin-left: 0;
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 2rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.order-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn {
+    background-color: #fff;
+    border: 2px solid #ddd;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    border-color: #006923;
+    color: #006923;
+}
+
+.filter-btn.active {
+    background-color: #006923;
+    border-color: #006923;
+    color: #fff;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.order-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 1.5rem;
+}
+
+.order-id strong,
+.order-info h3 {
+    display: block;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.order-status.processing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.order-status.shipped {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.order-status.delivered {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.order-content {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.order-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #f0f0f0;
+}
+
+.order-details h3 {
+    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.order-details p {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+
+.order-price {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.3rem !important;
+    margin-top: 0.5rem;
+}
+
+.order-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Wishlist Grid */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.wishlist-item {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.wishlist-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.remove-wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c50010;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.remove-wishlist-btn:hover {
+    background-color: #c50010;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.wishlist-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.wishlist-info {
+    padding: 1.5rem;
+}
+
+.wishlist-info h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.wishlist-price {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+.wishlist-item-image {
+    position: relative;
+    width: 100%;
+}
+
+.wishlist-item-image img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.wishlist-item-details {
+    padding: 1.5rem;
+}
+
+.wishlist-item-details h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.wishlist-item-price {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.wishlist-item-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.wishlist-item-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Reviews List */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.review-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.review-product {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.review-product img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.review-product h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.review-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.review-rating {
+    margin-bottom: 1rem;
+}
+
+.review-rating i {
+    color: #f39c12;
+    font-size: 1.2rem;
+    margin-right: 0.2rem;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.review-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Rewards */
+.rewards-summary {
+    margin-bottom: 3rem;
+}
+
+.rewards-card-large {
+    background: linear-gradient(135deg, #006923, #00852c);
+    border-radius: 15px;
+    padding: 3rem;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 105, 35, 0.3);
+}
+
+.rewards-icon {
+    display: inline-flex;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.2);
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.rewards-card-large h3 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.rewards-card-large p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.rewards-available h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.reward-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.reward-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.reward-item .reward-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.reward-item h4 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.reward-cost {
+    color: #006923;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.points-history {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.points-history h3 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-info strong {
+    display: block;
+    color: #333;
+    margin-bottom: 0.3rem;
+}
+
+.history-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.points-earned {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.points-redeemed {
+    color: #c50010;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.activity-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.viewed {
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+}
+
+.activity-icon.added {
+    background: linear-gradient(135deg, #006923, #00852c);
+}
+
+.activity-icon.saved {
+    background: linear-gradient(135deg, #c50010, #a30010);
+}
+
+.activity-icon.reviewed {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.activity-icon.ordered {
+    background: linear-gradient(135deg, #a4b18c, #93a37a);
+}
+
+.activity-content strong {
+    display: block;
+    color: #333;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+}
+
+.activity-content p {
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.activity-time {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #006923;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* view button style used in profile orders and elsewhere */
+.view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background-color: #006923;
+    color: #fff;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: 2px solid transparent;
+    transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+.view-btn:hover {
+    background-color: #005019;
+    transform: translateY(-2px);
+}
+
+.btn-primary:hover {
+    background-color: #005019;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 105, 35, 0.3);
+}
+
+.btn-secondary {
+    background-color: #3b5d72;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-secondary:hover {
+    background-color: #2d4a5c;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #c50010;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #a30010;
+    transform: translateY(-2px);
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #3b5d72;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-text:hover {
+    color: #006923;
+    text-decoration: underline;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        float: none;
+        display: block;
+        margin-left: 0;
+        padding-top: 2rem;
+    }
+
+    .profile-actions button {
+        margin-left: 0;
+        margin-right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-cover {
+        height: 150px;
+    }
+
+    .profile-info-wrapper {
+        margin-top: -60px;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+
+    .profile-details {
+        display: block;
+        margin-left: 0;
+        margin-top: 1rem;
+        padding-top: 0;
+    }
+
+    .profile-name {
+        font-size: 2rem;
+    }
+
+    .profile-actions {
+        padding-top: 1rem;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .profile-content {
+        padding: 0 3% 3rem 3%;
+    }
+
+    .order-filters {
+        flex-wrap: wrap;
+    }
+
+    .order-content {
+        flex-direction: column;
+    }
+
+    .order-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .order-actions {
+        flex-direction: column;
+    }
+
+    .order-actions button {
+        width: 100%;
+    }
+
+    .wishlist-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rewards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions button {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+}
+
+/* Profile Page Styles */
+
+.profile-container {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Profile Header */
+.profile-header {
+    position: relative;
+    animation: fadeIn 0.6s ease-out;
+}
+
+.profile-cover {
+    height: 250px;
+    background: linear-gradient(135deg, #a4b18c 0%, #93a37a 100%);
+}
+
+.profile-info-wrapper {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5%;
+    position: relative;
+    margin-top: -80px;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.profile-avatar-section {
+    position: relative;
+    display: block;
+    flex: 0 0 auto;
+}
+
+.profile-avatar {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #006923, #00852c);
+    border: 6px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 4rem;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: #3b5d72;
+    color: #fff;
+    border: 3px solid #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 10;
+    pointer-events: auto;
+}
+
+.edit-avatar-btn:hover {
+    background-color: #006923;
+    transform: scale(1.1);
+}
+
+.profile-details {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    margin-left: 0;
+    padding-top: 18px;
+    justify-content: center;
+}
+
+.profile-name {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+
+.profile-email,
+.profile-member-since {
+    color: #666;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Profile Stats */
+.profile-stats {
+    max-width: 1400px;
+    margin: 3rem auto;
+    padding: 0 5%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    animation: slideInFromBottom 0.6s ease-out;
+}
+
+.stat-card {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #006923, #00852c);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    color: #333;
+    font-weight: bold;
+    margin-bottom: 0.3rem;
+}
+
+.stat-label {
+    color: #666;
+    font-size: 1rem;
+}
+
+/* Profile Content Layout */
+.profile-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 5% 3rem 5%;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 2rem;
+}
+
+/* Profile Sidebar */
+.profile-sidebar {
+    animation: slideInFromLeft 0.6s ease-out;
+}
+
+.profile-menu {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom: 2rem;
+}
+
+.profile-menu-item {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 1rem;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 1rem;
+    color: #555;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.profile-menu-item i {
+    font-size: 1.2rem;
+    width: 24px;
+    color: #006923;
+}
+
+.profile-menu-item:hover {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.profile-menu-item.active {
+    background: linear-gradient(135deg, #006923, #00852c);
+    color: #fff;
+}
+
+.profile-menu-item.active i {
+    color: #fff;
+}
+
+/* Logout Item Styling */
+.profile-menu-item.logout-item {
+    margin-top: 0.5rem;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 1.5rem;
+}
+
+.profile-menu-item.logout-item i {
+    color: #c50010;
+}
+
+.profile-menu-item.logout-item:hover {
+    background-color: #fff5f5;
+    color: #c50010;
+}
+
+.profile-menu-item.logout-item:hover i {
+    color: #c50010;
+}
+
+/* Loyalty Card */
+.loyalty-card {
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+    border-radius: 12px;
+    padding: 2rem;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(59, 93, 114, 0.3);
+}
+
+.loyalty-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+}
+
+.loyalty-header i {
+    color: #eee126;
+    font-size: 1.5rem;
+}
+
+.loyalty-points h3 {
+    font-size: 2.5rem;
+    margin-bottom: 0.3rem;
+}
+
+.loyalty-points p {
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #eee126, #ddd115);
+    border-radius: 10px;
+    transition: width 0.5s ease;
+}
+
+.loyalty-progress p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 1.5rem;
+}
+
+.loyalty-btn {
+    width: 100%;
+    background-color: #eee126;
+    color: #000;
+    border: none;
+    padding: 0.9rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.loyalty-btn:hover {
+    background-color: #ddd115;
+    transform: translateY(-2px);
+}
+
+/* Profile Main Content */
+.profile-main {
+    animation: slideInFromRight 0.6s ease-out;
+}
+
+.profile-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    margin-top: 0.5rem;
+}
+
+.profile-actions button {
+    margin-left: 0;
+}
+
+/* Profile Sections - FIXED */
+.profile-section {
+    display: none;
+}
+
+.profile-section.active {
+    display: block;
+}
+
+/* Orders Section - Make it visible by default */
+#ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.section-header h2 {
+    font-size: 2rem;
+    color: #333;
+    font-weight: 600;
+}
+
+.order-filters {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.filter-btn {
+    background-color: #fff;
+    border: 2px solid #ddd;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #555;
+    transition: all 0.3s ease;
+}
+
+.filter-btn:hover {
+    border-color: #006923;
+    color: #006923;
+}
+
+.filter-btn.active {
+    background-color: #006923;
+    border-color: #006923;
+    color: #fff;
+}
+
+/* Orders List */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.order-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.order-item:hover {
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 1.5rem;
+}
+
+.order-id strong,
+.order-info h3 {
+    display: block;
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.order-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.order-status {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.order-status.processing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.order-status.shipped {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.order-status.delivered {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.order-content {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.order-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #f0f0f0;
+}
+
+.order-details h3 {
+    color: #333;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.order-details p {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 0.3rem;
+}
+
+.order-price {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.3rem !important;
+    margin-top: 0.5rem;
+}
+
+.order-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Wishlist Grid */
+.wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 2rem;
+}
+
+.empty-wishlist {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.1rem;
+}
+
+.wishlist-item {
+    background-color: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.wishlist-item:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.remove-wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.9);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #c50010;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.remove-wishlist-btn:hover {
+    background-color: #c50010;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.wishlist-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.wishlist-info {
+    padding: 1.5rem;
+}
+
+.wishlist-info h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.wishlist-price {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+/* Reviews List */
+.reviews-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.review-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.review-product {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.review-product img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.review-product h3 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.3rem;
+}
+
+.review-date {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.review-rating {
+    margin-bottom: 1rem;
+}
+
+.review-rating i {
+    color: #f39c12;
+    font-size: 1.2rem;
+    margin-right: 0.2rem;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.8;
+    margin-bottom: 1rem;
+}
+
+.review-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+/* Rewards */
+.rewards-summary {
+    margin-bottom: 3rem;
+}
+
+.rewards-card-large {
+    background: linear-gradient(135deg, #006923, #00852c);
+    border-radius: 15px;
+    padding: 3rem;
+    text-align: center;
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(0, 105, 35, 0.3);
+}
+
+.rewards-icon {
+    display: inline-flex;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: rgba(255,255,255,0.2);
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.rewards-card-large h3 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+.rewards-card-large p {
+    font-size: 1.2rem;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+}
+
+.rewards-available h3 {
+    font-size: 1.5rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.rewards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.reward-item {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    transition: all 0.3s ease;
+}
+
+.reward-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+}
+
+.reward-item .reward-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+}
+
+.reward-item h4 {
+    color: #333;
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+}
+
+.reward-cost {
+    color: #006923;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.points-history {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.points-history h3 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.history-item:last-child {
+    border-bottom: none;
+}
+
+.history-info strong {
+    display: block;
+    color: #333;
+    margin-bottom: 0.3rem;
+}
+
+.history-info span {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.points-earned {
+    color: #006923;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.points-redeemed {
+    color: #c50010;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Activity Timeline */
+.activity-timeline {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.activity-item {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1.5rem 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.activity-icon.viewed {
+    background: linear-gradient(135deg, #3b5d72, #4a7388);
+}
+
+.activity-icon.added {
+    background: linear-gradient(135deg, #006923, #00852c);
+}
+
+.activity-icon.saved {
+    background: linear-gradient(135deg, #c50010, #a30010);
+}
+
+.activity-icon.reviewed {
+    background: linear-gradient(135deg, #f39c12, #e67e22);
+}
+
+.activity-icon.ordered {
+    background: linear-gradient(135deg, #a4b18c, #93a37a);
+}
+
+.activity-content strong {
+    display: block;
+    color: #333;
+    font-size: 1.05rem;
+    margin-bottom: 0.3rem;
+}
+
+.activity-content p {
+    color: #666;
+    margin-bottom: 0.3rem;
+}
+
+.activity-time {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: #006923;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.view-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    background-color: #3b5d72;
+    color: #fff;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.view-btn:hover {
+    background-color: #2d4a5c;
+    transform: translateY(-2px);
+}
+
+.btn-primary:hover {
+    background-color: #005019;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 105, 35, 0.3);
+}
+
+.btn-secondary {
+    background-color: #3b5d72;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn-secondary:hover {
+    background-color: #2d4a5c;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background-color: #c50010;
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.btn-danger:hover {
+    background-color: #a30010;
+    transform: translateY(-2px);
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #3b5d72;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-text:hover {
+    color: #006923;
+    text-decoration: underline;
+}
+
+
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInFromLeft {
+    0% {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromRight {
+    0% {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideInFromBottom {
+    0% {
+        opacity: 0;
+        transform: translateY(50px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .profile-content {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions {
+        float: none;
+        display: block;
+        margin-left: 0;
+        padding-top: 2rem;
+    }
+
+    .profile-actions button {
+        margin-left: 0;
+        margin-right: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-cover {
+        height: 150px;
+    }
+
+    .profile-info-wrapper {
+        margin-top: -60px;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        font-size: 3rem;
+    }
+
+    .profile-details {
+        display: block;
+        margin-left: 0;
+        margin-top: 1rem;
+        padding-top: 0;
+    }
+
+    .profile-name {
+        font-size: 2rem;
+    }
+
+    .profile-actions {
+        padding-top: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .profile-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .profile-content {
+        padding: 0 3% 3rem 3%;
+    }
+
+    .order-filters {
+        flex-wrap: wrap;
+    }
+
+    .order-content {
+        flex-direction: column;
+    }
+
+    .order-image {
+        width: 100%;
+        height: 200px;
+    }
+
+    .order-actions {
+        flex-direction: column;
+    }
+
+    .order-actions button,
+    .order-actions a {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .wishlist-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .rewards-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-actions button {
+        display: block;
+        width: 100%;
+        margin: 0.5rem 0;
+    }
+
+    .stat-card {
+        padding: 1.5rem;
+    }
+
+    .order-item {
+        padding: 1.5rem;
+    }
+
+    .orders-list {
+        max-height: 400px;
+    }
+}
+
+/* Redeemed Coupons Section */
+.redeemed-coupons-section {
+    margin-top: 2rem;
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+
+.redeemed-coupons-section h3 {
+    font-size: 1.3rem;
+    color: #333;
+    margin-bottom: 1.5rem;
+}
+
+.redeemed-coupons-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.redeemed-coupon-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.redeemed-coupon-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.redeemed-coupon-card.active {
+    border-color: #4caf50;
+    background: linear-gradient(135deg, #e8f5e9 0%, #ffffff 100%);
+}
+
+.redeemed-coupon-card.used {
+    border-color: #9e9e9e;
+    opacity: 0.7;
+    background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 100%);
+}
+
+.redeemed-coupon-card.expired {
+    border-color: #ff9800;
+    opacity: 0.8;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffffff 100%);
+}
+
+.coupon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.coupon-discount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #006923;
+}
+
+.redeemed-coupon-card.used .coupon-discount,
+.redeemed-coupon-card.expired .coupon-discount {
+    color: #666;
+}
+
+.coupon-status {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.coupon-status.active {
+    background-color: #4caf50;
+    color: #fff;
+}
+
+.coupon-status.used {
+    background-color: #9e9e9e;
+    color: #fff;
+}
+
+.coupon-status.expired {
+    background-color: #ff9800;
+    color: #fff;
+}
+
+.coupon-code {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+}
+
+.coupon-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.coupon-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.coupon-detail-item i {
+    color: #006923;
+    width: 16px;
+}

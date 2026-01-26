@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - JBR7 Bags Manufacturing</title>
+    <title>Warranty Information - JBR7 Bags Manufacturing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -62,7 +62,6 @@
             gap: 0.5rem;
         }
 
-        /* emphasize the JBR7 part in red similar to the reference */
         .logo-text h2 span {
             color: #c50010;
             display: inline-block;
@@ -112,7 +111,7 @@
             color: #ffd700;
         }
 
-        /* Cart Hero Section - Matching the cart.css style */
+        /* Cart Hero Section */
         .cart-hero {
             background: linear-gradient(120deg, #006923 0%, #ffffff 100%);
             padding: 4rem 5%;
@@ -136,41 +135,35 @@
             color: #000000;
         }
 
-        /* Cart Content Wrapper - Matching the cart.css style */
+        /* Cart Content Wrapper */
         .cart-content-wrapper {
             padding: 3rem 5%;
             background-color: #f8f9fa;
         }
 
-        .about-container {
+        .policy-container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Vision & Mission Cards - Using cart item style */
-        .vm-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .vm-card {
+        /* Policy Cards */
+        .policy-section {
             background-color: #fff;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
             border: 2px solid #e8e8e8;
             transition: all 0.3s ease;
             animation: slideInFromLeft 0.6s ease-out;
         }
 
-        .vm-card:hover {
+        .policy-section:hover {
             border-color: #a4b18c;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .vm-card-header {
+        .policy-section-header {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -179,7 +172,7 @@
             border-bottom: 2px solid #a4b18c;
         }
 
-        .vm-icon {
+        .policy-icon {
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -191,71 +184,37 @@
             color: white;
         }
 
-        .vm-card h3 {
+        .policy-section h2 {
             font-size: 1.8rem;
             color: #333;
             font-weight: 600;
         }
 
-        .vm-card p {
+        .policy-section h3 {
+            font-size: 1.4rem;
+            color: #333;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section p {
             font-size: 1.05rem;
             color: #555;
             line-height: 1.8;
-        }
-
-        /* Values Section - Matching order summary style */
-        .values-section {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            animation: slideInFromRight 0.6s ease-out;
-        }
-
-        .values-section h2 {
-            font-size: 1.8rem;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #a4b18c;
-        }
-
-        .values-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .value-item {
-            text-align: center;
-            padding: 2rem;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .value-item:hover {
-            background-color: #e8f5e9;
-            transform: translateY(-5px);
-        }
-
-        .value-item i {
-            font-size: 3rem;
             margin-bottom: 1rem;
-            color: #006923;
         }
 
-        .value-item h4 {
-            font-size: 1.3rem;
+        .policy-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section ul li {
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.8;
             margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .value-item p {
-            font-size: 0.95rem;
-            color: #666;
         }
 
         /* Footer */
@@ -315,8 +274,6 @@
             transition: all 0.3s ease;
         }
 
-       
-
         .footer-bottom {
             text-align: center;
             padding-top: 2rem;
@@ -329,17 +286,6 @@
             0% {
                 opacity: 0;
                 transform: translateX(-50px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInFromRight {
-            0% {
-                opacity: 0;
-                transform: translateX(50px);
             }
             100% {
                 opacity: 1;
@@ -363,10 +309,6 @@
             .cart-hero-content h1 {
                 font-size: 2.5rem;
             }
-
-            .vm-container {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 768px) {
@@ -386,25 +328,16 @@
                 padding: 2rem 3%;
             }
 
-            .vm-card {
+            .policy-section {
                 padding: 1.5rem;
             }
 
-            .vm-card h3 {
+            .policy-section h2 {
                 font-size: 1.4rem;
             }
 
-            .values-section {
-                padding: 1.5rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.4rem;
-            }
-
-            .values-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1.5rem;
+            .policy-section h3 {
+                font-size: 1.2rem;
             }
         }
 
@@ -419,73 +352,25 @@
                 gap: 0.5rem;
             }
 
-            .cart-hero-content p {
-                font-size: 0.85rem;
-            }
-
             .cart-content-wrapper {
                 padding: 1.5rem 3%;
             }
 
-            .vm-card {
+            .policy-section {
                 padding: 1rem;
             }
 
-            .vm-card h3 {
+            .policy-section h2 {
                 font-size: 1.2rem;
             }
 
-            .vm-card p {
+            .policy-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .policy-section p, .policy-section ul li {
                 font-size: 0.95rem;
             }
-
-            .values-section {
-                padding: 1rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.2rem;
-            }
-
-            .value-item {
-                padding: 1.5rem;
-            }
-
-            .value-item i {
-                font-size: 2.5rem;
-            }
-
-            .value-item h4 {
-                font-size: 1.1rem;
-            }
-
-            .value-item p {
-                font-size: 0.85rem;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .cart-hero-content h1 {
-                font-size: 1.3rem;
-            }
-
-            .vm-card h3 {
-                font-size: 1.1rem;
-            }
-
-            .vm-card p {
-                font-size: 0.9rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.1rem;
-            }
-
-            .value-item h4 {
-                font-size: 1rem;
-            }
-
-            
         }
     </style>
 </head>
@@ -499,67 +384,140 @@
                 <span class="sub-logo">MANUFACTURING</span>
             </div>
         </a>
-        
-       
     </header>
 
     <section class="cart-hero">
         <div class="cart-hero-content">
-            <h1>ABOUT US</h1>
-            <p>Crafting Quality Bags for Education and Beyond</p>
+            <h1><i class="fas fa-certificate"></i> WARRANTY INFORMATION</h1>
+            <p>Our Product Warranty and Quality Guarantee</p>
         </div>
     </section>
 
     <div class="cart-content-wrapper">
-        <div class="about-container">
-            <!-- Vision & Mission Cards -->
-            <div class="vm-container">
-                <div class="vm-card">
-                    <div class="vm-card-header">
-                        <div class="vm-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3>Our Vision</h3>
+        <div class="policy-container">
+            <div class="policy-section">
+                <div class="policy-section-header">
+                    <div class="policy-icon">
+                        <i class="fas fa-certificate"></i>
                     </div>
-                    <p>To be the trusted supplier of high-quality, affordable school bags for local government units, online sellers, and bulk buyers, recognized for our commitment to durability, craftsmanship, and community impact.</p>
+                    <h2>Warranty Information</h2>
                 </div>
-
-                <div class="vm-card">
-                    <div class="vm-card-header">
-                        <div class="vm-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <h3>Our Mission</h3>
-                    </div>
-                    <p>At JBR7 Bags Manufacturing, our mission is to supply top-quality school bags that combine affordability with exceptional craftsmanship. We aim to meet the needs of local government units, online sellers, and bulk buyers by providing durable and stylish bags at competitive prices. We are dedicated to delivering reliable products that enhance the lives of students and support educational initiatives. By offering flexible and scalable solutions, we strive to build lasting partnerships and contribute to the success of our clients and the growth of our local community.</p>
-                </div>
+                <p><strong>Last Updated:</strong> January 2025</p>
+                <p>At JBR7 Bags Manufacturing, we stand behind the quality of our products. This warranty information outlines our commitment to providing you with durable, high-quality bags and our policies for addressing any manufacturing defects.</p>
             </div>
 
-            <!-- Values Section -->
-            <div class="values-section">
-                <h2>Our Core Values</h2>
-                <div class="values-grid">
-                    <div class="value-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <h4>Quality</h4>
-                        <p>Every bag is crafted with attention to detail and durability</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-dollar-sign"></i>
-                        <h4>Affordability</h4>
-                        <p>Competitive pricing without compromising on quality</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-handshake"></i>
-                        <h4>Partnership</h4>
-                        <p>Building lasting relationships with our clients</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-heart"></i>
-                        <h4>Community</h4>
-                        <p>Supporting education and local growth initiatives</p>
-                    </div>
-                </div>
+            <div class="policy-section">
+                <h3><i class="fas fa-shield-alt"></i> Warranty Coverage</h3>
+                <p>We provide warranty coverage for the following:</p>
+                <ul>
+                    <li><strong>Manufacturing Defects:</strong> Defects in materials or workmanship</li>
+                    <li><strong>Structural Issues:</strong> Broken zippers, torn seams, or hardware failures</li>
+                    <li><strong>Material Defects:</strong> Fabric tears, color fading (beyond normal wear), or material deterioration</li>
+                    <li><strong>Quality Issues:</strong> Products that do not meet our quality standards</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-clock"></i> Warranty Period</h3>
+                <p>Our warranty periods vary by product type:</p>
+                <ul>
+                    <li><strong>Standard Products:</strong> 30 days from date of purchase</li>
+                    <li><strong>Custom Orders:</strong> 30 days from date of delivery (manufacturing defects only)</li>
+                    <li><strong>Bulk Orders:</strong> 30 days from date of delivery</li>
+                </ul>
+                <p>All warranty claims must be reported within the warranty period.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-check-circle"></i> What's Covered</h3>
+                <p>The warranty covers:</p>
+                <ul>
+                    <li>Manufacturing defects in materials or workmanship</li>
+                    <li>Defective zippers, buckles, or hardware</li>
+                    <li>Torn seams or stitching defects</li>
+                    <li>Material defects (tears, holes, premature wear)</li>
+                    <li>Printing or logo defects (for custom orders)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-times-circle"></i> What's Not Covered</h3>
+                <p>The warranty does NOT cover:</p>
+                <ul>
+                    <li>Normal wear and tear</li>
+                    <li>Damage from misuse or abuse</li>
+                    <li>Damage from accidents or improper care</li>
+                    <li>Damage from exposure to extreme conditions</li>
+                    <li>Modifications or alterations made by the customer</li>
+                    <li>Cosmetic issues that don't affect functionality</li>
+                    <li>Products used beyond their intended purpose</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-sync-alt"></i> Warranty Claims Process</h3>
+                <p>To file a warranty claim:</p>
+                <ul>
+                    <li><strong>Step 1:</strong> Contact us immediately with photos of the defect</li>
+                    <li><strong>Step 2:</strong> Provide your order number and purchase date</li>
+                    <li><strong>Step 3:</strong> Our team will review your claim within 2-3 business days</li>
+                    <li><strong>Step 4:</strong> If approved, we'll provide a replacement or full refund</li>
+                    <li><strong>Step 5:</strong> Defective items may not need to be returned (unless requested)</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-gift"></i> Warranty Remedies</h3>
+                <p>If your product is covered under warranty, we will:</p>
+                <ul>
+                    <li><strong>Replace:</strong> Provide a new product of the same model (if available)</li>
+                    <li><strong>Refund:</strong> Issue a full refund of the purchase price</li>
+                    <li><strong>Repair:</strong> Repair the defect when possible (at our discretion)</li>
+                </ul>
+                <p>We reserve the right to choose the most appropriate remedy based on the nature of the defect and product availability.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-truck"></i> Shipping for Warranty Claims</h3>
+                <p>For approved warranty claims:</p>
+                <ul>
+                    <li>Replacement shipping is free of charge</li>
+                    <li>Return shipping for defective items is covered by us</li>
+                    <li>We provide prepaid shipping labels when returns are required</li>
+                    <li>International customers may be responsible for return shipping costs</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-star"></i> Quality Guarantee</h3>
+                <p>Beyond our warranty, we guarantee:</p>
+                <ul>
+                    <li>All products meet our quality standards before shipping</li>
+                    <li>Thorough quality inspection before delivery</li>
+                    <li>Commitment to customer satisfaction</li>
+                    <li>Continuous improvement of our manufacturing processes</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-tools"></i> Care Instructions</h3>
+                <p>To maintain your bag and prevent issues:</p>
+                <ul>
+                    <li>Follow care instructions provided with your product</li>
+                    <li>Avoid overloading beyond recommended capacity</li>
+                    <li>Store in a dry, cool place when not in use</li>
+                    <li>Clean according to material-specific guidelines</li>
+                    <li>Handle zippers and hardware with care</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-envelope"></i> Contact for Warranty Claims</h3>
+                <p>To file a warranty claim or ask questions:</p>
+                <p><strong>Email:</strong> roquejennylynbatac@gmail.com<br>
+                <strong>Phone:</strong> 09216821649<br>
+                <strong>Address:</strong> 059 Purok 1, Culianin, Plaridel, Bulacan</p>
+                <p>Please include photos of the defect and your order information when contacting us.</p>
             </div>
         </div>
     </div>
@@ -601,13 +559,18 @@
         }
 
         function handleFooterNavigate(page) {
-            console.log('Footer navigation:', page);
+            if (page === 'about') {
+                window.location.href = '/about.html';
+            } else if (page === 'products') {
+                window.location.href = '/explore.html';
+            } else if (page === 'contact') {
+                window.location.href = '/contact.html';
+            }
         }
 
         function handleSocialClick(platform) {
-            // Open the same Facebook share link used site-wide
             if (platform === 'facebook') {
-                window.open('https://www.facebook.com/share/1CMB6249vF/', '_blank');
+                window.open('https://web.facebook.com/profile.php?id=61557774894148&rdid=6Um97esYK1zmLPMi&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F1CMB6249vF%2F%3F_rdc%3D1%26_rdr%23', '_blank');
                 return;
             }
             console.log('Social click:', platform);

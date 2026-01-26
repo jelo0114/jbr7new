@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - JBR7 Bags Manufacturing</title>
+    <title>Privacy Policy - JBR7 Bags Manufacturing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         * {
@@ -62,7 +62,6 @@
             gap: 0.5rem;
         }
 
-        /* emphasize the JBR7 part in red similar to the reference */
         .logo-text h2 span {
             color: #c50010;
             display: inline-block;
@@ -112,7 +111,7 @@
             color: #ffd700;
         }
 
-        /* Cart Hero Section - Matching the cart.css style */
+        /* Cart Hero Section */
         .cart-hero {
             background: linear-gradient(120deg, #006923 0%, #ffffff 100%);
             padding: 4rem 5%;
@@ -136,41 +135,35 @@
             color: #000000;
         }
 
-        /* Cart Content Wrapper - Matching the cart.css style */
+        /* Cart Content Wrapper */
         .cart-content-wrapper {
             padding: 3rem 5%;
             background-color: #f8f9fa;
         }
 
-        .about-container {
+        .policy-container {
             max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* Vision & Mission Cards - Using cart item style */
-        .vm-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-            gap: 2rem;
-            margin-bottom: 3rem;
-        }
-
-        .vm-card {
+        /* Policy Cards */
+        .policy-section {
             background-color: #fff;
             border-radius: 12px;
-            padding: 2rem;
+            padding: 2.5rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
             border: 2px solid #e8e8e8;
             transition: all 0.3s ease;
             animation: slideInFromLeft 0.6s ease-out;
         }
 
-        .vm-card:hover {
+        .policy-section:hover {
             border-color: #a4b18c;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
 
-        .vm-card-header {
+        .policy-section-header {
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -179,7 +172,7 @@
             border-bottom: 2px solid #a4b18c;
         }
 
-        .vm-icon {
+        .policy-icon {
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -191,71 +184,37 @@
             color: white;
         }
 
-        .vm-card h3 {
+        .policy-section h2 {
             font-size: 1.8rem;
             color: #333;
             font-weight: 600;
         }
 
-        .vm-card p {
+        .policy-section h3 {
+            font-size: 1.4rem;
+            color: #333;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section p {
             font-size: 1.05rem;
             color: #555;
             line-height: 1.8;
-        }
-
-        /* Values Section - Matching order summary style */
-        .values-section {
-            background-color: #fff;
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            animation: slideInFromRight 0.6s ease-out;
-        }
-
-        .values-section h2 {
-            font-size: 1.8rem;
-            color: #333;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid #a4b18c;
-        }
-
-        .values-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-        }
-
-        .value-item {
-            text-align: center;
-            padding: 2rem;
-            background-color: #f8f9fa;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .value-item:hover {
-            background-color: #e8f5e9;
-            transform: translateY(-5px);
-        }
-
-        .value-item i {
-            font-size: 3rem;
             margin-bottom: 1rem;
-            color: #006923;
         }
 
-        .value-item h4 {
-            font-size: 1.3rem;
+        .policy-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section ul li {
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.8;
             margin-bottom: 0.5rem;
-            color: #333;
-            font-weight: 600;
-        }
-
-        .value-item p {
-            font-size: 0.95rem;
-            color: #666;
         }
 
         /* Footer */
@@ -315,8 +274,6 @@
             transition: all 0.3s ease;
         }
 
-       
-
         .footer-bottom {
             text-align: center;
             padding-top: 2rem;
@@ -329,17 +286,6 @@
             0% {
                 opacity: 0;
                 transform: translateX(-50px);
-            }
-            100% {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        @keyframes slideInFromRight {
-            0% {
-                opacity: 0;
-                transform: translateX(50px);
             }
             100% {
                 opacity: 1;
@@ -363,10 +309,6 @@
             .cart-hero-content h1 {
                 font-size: 2.5rem;
             }
-
-            .vm-container {
-                grid-template-columns: 1fr;
-            }
         }
 
         @media (max-width: 768px) {
@@ -386,25 +328,16 @@
                 padding: 2rem 3%;
             }
 
-            .vm-card {
+            .policy-section {
                 padding: 1.5rem;
             }
 
-            .vm-card h3 {
+            .policy-section h2 {
                 font-size: 1.4rem;
             }
 
-            .values-section {
-                padding: 1.5rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.4rem;
-            }
-
-            .values-grid {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1.5rem;
+            .policy-section h3 {
+                font-size: 1.2rem;
             }
         }
 
@@ -419,73 +352,25 @@
                 gap: 0.5rem;
             }
 
-            .cart-hero-content p {
-                font-size: 0.85rem;
-            }
-
             .cart-content-wrapper {
                 padding: 1.5rem 3%;
             }
 
-            .vm-card {
+            .policy-section {
                 padding: 1rem;
             }
 
-            .vm-card h3 {
+            .policy-section h2 {
                 font-size: 1.2rem;
             }
 
-            .vm-card p {
+            .policy-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .policy-section p, .policy-section ul li {
                 font-size: 0.95rem;
             }
-
-            .values-section {
-                padding: 1rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.2rem;
-            }
-
-            .value-item {
-                padding: 1.5rem;
-            }
-
-            .value-item i {
-                font-size: 2.5rem;
-            }
-
-            .value-item h4 {
-                font-size: 1.1rem;
-            }
-
-            .value-item p {
-                font-size: 0.85rem;
-            }
-        }
-
-        @media (max-width: 360px) {
-            .cart-hero-content h1 {
-                font-size: 1.3rem;
-            }
-
-            .vm-card h3 {
-                font-size: 1.1rem;
-            }
-
-            .vm-card p {
-                font-size: 0.9rem;
-            }
-
-            .values-section h2 {
-                font-size: 1.1rem;
-            }
-
-            .value-item h4 {
-                font-size: 1rem;
-            }
-
-            
         }
     </style>
 </head>
@@ -499,67 +384,95 @@
                 <span class="sub-logo">MANUFACTURING</span>
             </div>
         </a>
-        
-       
     </header>
 
     <section class="cart-hero">
         <div class="cart-hero-content">
-            <h1>ABOUT US</h1>
-            <p>Crafting Quality Bags for Education and Beyond</p>
+            <h1><i class="fas fa-shield-alt"></i> PRIVACY POLICY</h1>
+            <p>How We Protect Your Personal Information</p>
         </div>
     </section>
 
     <div class="cart-content-wrapper">
-        <div class="about-container">
-            <!-- Vision & Mission Cards -->
-            <div class="vm-container">
-                <div class="vm-card">
-                    <div class="vm-card-header">
-                        <div class="vm-icon">
-                            <i class="fas fa-eye"></i>
-                        </div>
-                        <h3>Our Vision</h3>
+        <div class="policy-container">
+            <div class="policy-section">
+                <div class="policy-section-header">
+                    <div class="policy-icon">
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <p>To be the trusted supplier of high-quality, affordable school bags for local government units, online sellers, and bulk buyers, recognized for our commitment to durability, craftsmanship, and community impact.</p>
+                    <h2>Privacy Policy</h2>
                 </div>
-
-                <div class="vm-card">
-                    <div class="vm-card-header">
-                        <div class="vm-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <h3>Our Mission</h3>
-                    </div>
-                    <p>At JBR7 Bags Manufacturing, our mission is to supply top-quality school bags that combine affordability with exceptional craftsmanship. We aim to meet the needs of local government units, online sellers, and bulk buyers by providing durable and stylish bags at competitive prices. We are dedicated to delivering reliable products that enhance the lives of students and support educational initiatives. By offering flexible and scalable solutions, we strive to build lasting partnerships and contribute to the success of our clients and the growth of our local community.</p>
-                </div>
+                <p><strong>Last Updated:</strong> January 2025</p>
+                <p>JBR7 Bags Manufacturing ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our services.</p>
             </div>
 
-            <!-- Values Section -->
-            <div class="values-section">
-                <h2>Our Core Values</h2>
-                <div class="values-grid">
-                    <div class="value-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <h4>Quality</h4>
-                        <p>Every bag is crafted with attention to detail and durability</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-dollar-sign"></i>
-                        <h4>Affordability</h4>
-                        <p>Competitive pricing without compromising on quality</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-handshake"></i>
-                        <h4>Partnership</h4>
-                        <p>Building lasting relationships with our clients</p>
-                    </div>
-                    <div class="value-item">
-                        <i class="fas fa-heart"></i>
-                        <h4>Community</h4>
-                        <p>Supporting education and local growth initiatives</p>
-                    </div>
-                </div>
+            <div class="policy-section">
+                <h3><i class="fas fa-info-circle"></i> Information We Collect</h3>
+                <p>We may collect information that you provide directly to us, including:</p>
+                <ul>
+                    <li><strong>Personal Information:</strong> Name, email address, phone number, shipping address, and billing information when you place an order.</li>
+                    <li><strong>Order Information:</strong> Products purchased, order history, and payment details.</li>
+                    <li><strong>Communication Data:</strong> Messages, inquiries, and feedback you send to us.</li>
+                    <li><strong>Account Information:</strong> Username, password, and profile information if you create an account.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-cog"></i> How We Use Your Information</h3>
+                <p>We use the information we collect to:</p>
+                <ul>
+                    <li>Process and fulfill your orders</li>
+                    <li>Communicate with you about your orders, products, and services</li>
+                    <li>Send you marketing communications (with your consent)</li>
+                    <li>Improve our website and services</li>
+                    <li>Prevent fraud and ensure security</li>
+                    <li>Comply with legal obligations</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-share-alt"></i> Information Sharing</h3>
+                <p>We do not sell, trade, or rent your personal information to third parties. We may share your information only in the following circumstances:</p>
+                <ul>
+                    <li><strong>Service Providers:</strong> With trusted third-party service providers who assist us in operating our website and conducting our business.</li>
+                    <li><strong>Legal Requirements:</strong> When required by law or to protect our rights and safety.</li>
+                    <li><strong>Business Transfers:</strong> In connection with a merger, acquisition, or sale of assets.</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-lock"></i> Data Security</h3>
+                <p>We implement appropriate technical and organizational security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the internet is 100% secure.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-cookie"></i> Cookies and Tracking</h3>
+                <p>We use cookies and similar tracking technologies to enhance your browsing experience, analyze website traffic, and personalize content. You can control cookie preferences through your browser settings.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-user-check"></i> Your Rights</h3>
+                <p>You have the right to:</p>
+                <ul>
+                    <li>Access and receive a copy of your personal data</li>
+                    <li>Correct inaccurate or incomplete information</li>
+                    <li>Request deletion of your personal data</li>
+                    <li>Object to processing of your personal data</li>
+                    <li>Withdraw consent at any time</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-envelope"></i> Contact Us</h3>
+                <p>If you have questions about this Privacy Policy or wish to exercise your rights, please contact us:</p>
+                <p><strong>Email:</strong> roquejennylynbatac@gmail.com<br>
+                <strong>Phone:</strong> 09216821649<br>
+                <strong>Address:</strong> 059 Purok 1, Culianin, Plaridel, Bulacan</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-sync-alt"></i> Changes to This Policy</h3>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Last Updated" date.</p>
             </div>
         </div>
     </div>
@@ -601,13 +514,18 @@
         }
 
         function handleFooterNavigate(page) {
-            console.log('Footer navigation:', page);
+            if (page === 'about') {
+                window.location.href = '/about.html';
+            } else if (page === 'products') {
+                window.location.href = '/explore.html';
+            } else if (page === 'contact') {
+                window.location.href = '/contact.html';
+            }
         }
 
         function handleSocialClick(platform) {
-            // Open the same Facebook share link used site-wide
             if (platform === 'facebook') {
-                window.open('https://www.facebook.com/share/1CMB6249vF/', '_blank');
+                window.open('https://web.facebook.com/profile.php?id=61557774894148&rdid=6Um97esYK1zmLPMi&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F1CMB6249vF%2F%3F_rdc%3D1%26_rdr%23', '_blank');
                 return;
             }
             console.log('Social click:', platform);

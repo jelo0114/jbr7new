@@ -1,0 +1,10 @@
+node_modules/
+.git/
+.vercel/
+*.log
+php_errors.log
+.env
+.env.local
+*.md
+SQL/
+*.sql

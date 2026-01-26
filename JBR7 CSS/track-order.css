@@ -1,0 +1,87 @@
+:root{
+  --green:#006923;
+  --muted:#666;
+  --bg:#f8f9fa;
+}
+body{font-family: Arial, Helvetica, sans-serif; margin:0; background:var(--bg); color:#222}
+
+/* Header - match site */
+.header--site, header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 5%;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+
+.logo{display:flex;align-items:center;gap:.75rem}
+.logo-img{width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,0.12)}
+.logo-text{display:flex;flex-direction:column;justify-content:center}
+.logo h2{margin:0;font-size:1.8rem;line-height:1}
+.logo span{color:#d43737;font-weight:700}
+.logo .sub-logo{display:block;font-size:0.7rem;letter-spacing:2px;color:#006923;margin-top:0}
+
+/* vertical separator between logo and nav */
+.header-sep{width:4px;height:32px;background:linear-gradient(180deg,var(--green) 0%, #37b36a 100%);border-radius:4px;margin-left:6px;margin-right:6px}
+
+nav{margin-left:auto;display:flex;gap:1.5rem;align-items:center}
+nav a{color:#333;text-decoration:none;font-size:0.95rem;transition:color 0.3s ease;display:flex;align-items:center;gap:0.4rem;padding:0.5rem 0.8rem;border-radius:8px;position:relative}
+nav a::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background-color:var(--green);opacity:0.9;transition:left 0.4s ease;z-index:-1;border-radius:8px}
+nav a.active::before{left:0}
+nav a.active{color:#fff}
+nav a:not(.active):hover::before{left:0;opacity:0.7}
+nav a:not(.active):hover{color:#fff}
+nav a i{font-size:1.1rem;position:relative;z-index:1}
+
+/* Base button styles */
+.btn{padding:.75rem 1rem;border-radius:8px;border:none;cursor:pointer;font-weight:700;display:inline-flex;align-items:center;gap:.5rem}
+.btn-outline{background:#fff;border:2px solid var(--green);color:var(--green)}
+.btn-primary{background:var(--green);color:#fff}
+
+/* Back row */
+.back-row{background:transparent;padding:.8rem 4%;border-bottom:0;display:flex;align-items:center}
+.back-row .btn{margin:0}
+.from-label{margin-left:1rem;color:var(--muted);font-weight:600}
+
+/* Track hero */
+.track-hero{padding:1.5rem 4%;display:flex;align-items:center;gap:1rem}
+.track-info{background:#fff;padding:1.1rem;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.06);flex:1;display:flex;flex-direction:column}
+.order-meta{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.order-id{font-weight:700;color:#222;font-size:1.05rem}
+.order-status{margin-top:.5rem;color:var(--muted);font-weight:600}
+.track-actions{display:flex;gap:.6rem;align-items:center}
+.view-btn{background:var(--green);color:#fff;padding:.6rem .95rem;border-radius:8px;border:0;display:inline-flex;align-items:center;gap:.6rem;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.10)}
+
+/* Map and stages */
+.map-wrap{margin:1rem 4%}
+.map-frame{width:100%;height:460px;border-radius:12px;border:0;box-shadow:0 10px 28px rgba(0,0,0,0.08)}
+.progress{max-width:1100px;margin:1.25rem auto;padding:0 4%}
+.stages{display:flex;gap:1rem;align-items:center;justify-content:space-between}
+.stage{background:#fff;padding:0.9rem;border-radius:12px;flex:1;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.05);color:#333}
+.stage.active{border:3px solid var(--green);box-shadow:0 10px 26px rgba(0,0,0,0.06)}
+.stage small{display:block;color:var(--muted);font-size:0.85rem;margin-top:.4rem}
+
+@media (max-width:900px){
+  .track-hero{flex-direction:column;align-items:stretch}
+  .map-frame{height:300px}
+  nav{display:none}
+  .track-info{padding:.9rem}
+  .order-meta{flex-direction:column;align-items:flex-start;gap:.6rem}
+  .logo{gap:.5rem}
+  .logo-img{width:48px;height:48px}
+}
+
+/* Rider block */
+.rider{display:flex;gap:1rem;align-items:center;margin-top:1rem}
+.rider .avatar{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem}
+.rider .meta{font-size:0.98rem}
+.rider .meta .name{font-weight:700;color:#222}
+.rider .meta .eta{color:var(--muted);font-weight:600;margin-top:.25rem}
+
+/* Utilities */
+.centered{max-width:1100px;margin:0 auto}

@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart - JBR7 Bags Manufacturing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/home.css">
+    <link rel="stylesheet" href="/JBR7 CSS/cart.css">
+    <style>
+        .payment-section, .courier-section {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid #e6e6e6;
+        }
+        .payment-section h3, .courier-section h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .payment-select, .courier-select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background-color: #fff;
+            transition: border-color 0.3s ease;
+            cursor: pointer;
+        }
+        .payment-select:focus, .courier-select:focus {
+            outline: none;
+            border-color: #006923;
+        }
+        .payment-select:hover, .courier-select:hover {
+            border-color: #006923;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+    <a href="/home.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 Bags" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+        <div class="header-sep" aria-hidden="true"></div>
+        <nav>
+            <a href="#home" onclick="handleNavigate('home')" data-page="home"><i class="fas fa-home"></i> Home</a>
+            <a href="#explore" onclick="handleNavigate('explore')" data-page="explore"><i class="fas fa-compass"></i> Explore</a>
+            <a href="#saved" onclick="handleNavigate('saved')" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="#cart" onclick="handleNavigate('cart')" data-page="cart" class="active"><i class="fas fa-shopping-cart"></i> Cart</a>
+            <a href="#contact" onclick="handleNavigate('contact')" data-page="contact"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="#settings" onclick="handleNavigate('settings')" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#search" onclick="handleNavigate('search')" data-page="search"><i class="fas fa-search"></i></a>
+            <a href="#notifications" onclick="handleNavigate('notifications')" data-page="notifications"><i class="fas fa-bell"></i></a>
+            <a href="#messages" onclick="handleNavigate('messages')" data-page="messages"><i class="fas fa-comment"></i></a>
+            <a href="#profile" onclick="handleNavigate('profile')" data-page="profile"><i class="fas fa-user-circle"></i></a>
+        </nav>
+    </header>
+
+    <section class="cart-hero">
+        <div class="cart-hero-content">
+            <h1><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h1>
+            <p id="cart-item-count">Items in your cart</p>
+        </div>
+    </section>
+
+    <section class="cart-content-wrapper">
+        <div class="cart-main">
+            <!-- Cart Items Section -->
+            <div class="cart-items-section">
+                <div class="cart-header-actions">
+                    <h2>Cart Items</h2>
+                    <button class="clear-cart-btn" onclick="clearCart()">
+                        <i class="fas fa-trash"></i> Clear Cart
+                    </button>
+                </div>
+                
+                <div class="cart-items-container" id="cart-items-container">
+                    <!-- Cart items will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Order Summary Section -->
+            <div class="order-summary">
+                <h2>Order Summary</h2>
+                
+                <div class="summary-details">
+                        <div class="summary-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₱0.00</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Shipping:</span>
+                        <span id="shipping">₱0.00</span>
+                    </div>
+                    <div class="summary-row total-row">
+                        <span>Total:</span>
+                        <span id="total">₱0.00</span>
+                    </div>
+                </div>
+
+                <div class="promo-section">
+                    <h3>Apply Coupon</h3>
+                    <div class="coupon-dropdown-group">
+                        <select id="coupon-select" onchange="applyCoupon()">
+                            <option value="">Select a coupon...</option>
+                            <!-- Coupons will be populated by JavaScript -->
+                        </select>
+                        <button class="remove-coupon-btn" id="remove-coupon-btn" onclick="removeCoupon()" style="display: none;">
+                            <i class="fas fa-times"></i> Remove
+                        </button>
+                    </div>
+                    <div id="applied-coupon-info" style="display: none; margin-top: 0.8rem; padding: 0.8rem; background: #e8f5e9; border-radius: 6px; font-size: 0.9rem;">
+                        <i class="fas fa-check-circle" style="color: #4caf50;"></i>
+                        <span id="applied-coupon-text"></span>
+                    </div>
+                </div>
+
+                <div class="payment-section">
+                    <h3><i class="fas fa-credit-card"></i> Payment Method</h3>
+                    <select id="payment-method" class="payment-select">
+                        <option value="">Select payment method</option>
+                        <option value="GCash">GCash</option>
+                        <option value="COD">Cash on Delivery (COD)</option>
+                        <option value="RCBC">RCBC</option>
+                        <option value="Mastercard">Mastercard</option>
+                        <option value="PayMaya">PayMaya</option>
+                    </select>
+                </div>
+
+                <div class="courier-section">
+                    <h3><i class="fas fa-shipping-fast"></i> Courier Service</h3>
+                    <select id="courier-service" class="courier-select">
+                        <option value="">Select courier</option>
+                        <option value="J&T Express">J&T Express</option>
+                        <option value="Flash Express">Flash Express</option>
+                    </select>
+                </div>
+
+                <button class="checkout-btn" onclick="checkout()">
+                    <i class="fas fa-lock"></i> Proceed to Checkout
+                </button>
+
+                <div class="continue-shopping">
+                    <a href="#explore" onclick="handleNavigate('explore')">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+    
+
+
+    
+    
+
+
+    <script src="/jbr7js/user-storage.js"></script>
+    <script src="/jbr7js/cart.js"></script>
+    <script src="/jbr7js/home.js"></script>
+    <script src="/jbr7js/notifications.js"></script>
+    <script src="/jbr7js/view-linker.js"></script>
+</body>
+</html>

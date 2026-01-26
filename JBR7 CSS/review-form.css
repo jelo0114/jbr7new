@@ -1,0 +1,104 @@
+/* ===== Review Form Base ===== */
+.review-heading{
+    margin-bottom:1.5rem;
+    color:#111;
+    font-size:1.5rem;
+    font-weight:700;
+}
+
+.review-heading-icon{
+    color:#fbbf24;
+    margin-right:.4rem;
+}
+
+.review-product-box{
+    display:flex;
+    gap:1rem;
+    align-items:center;
+    margin-bottom:1.5rem;
+    padding:1rem;
+    background:#fff;
+    border-radius:8px;
+}
+
+.review-product-image{
+    width:80px;
+    height:80px;
+    object-fit:cover;
+    border-radius:8px;
+}
+
+.review-product-title{
+    margin:0;
+    font-size:1.1rem;
+    color:#111;
+}
+
+.review-product-subtitle{
+    margin:.25rem 0 0;
+    color:#6b7280;
+    font-size:.9rem;
+}
+
+/* ===== Fields ===== */
+.review-field{
+    margin-bottom:1.5rem;
+}
+
+.review-label{
+    display:block;
+    margin-bottom:.5rem;
+    font-weight:600;
+    color:#111;
+}
+
+.review-input,
+.review-textarea{
+    width:100%;
+    padding:.75rem;
+    border:1.5px solid #e5e7eb;
+    border-radius:8px;
+    font-size:1rem;
+}
+
+.review-textarea{
+    resize:vertical;
+}
+
+/* ===== Stars ===== */
+.review-stars-input{
+    font-size:2rem;
+    cursor:pointer;
+}
+
+.review-stars-input i{
+    color:#d1d5db;
+}
+
+/* ===== Actions ===== */
+.review-actions{
+    display:flex;
+    gap:1rem;
+}
+
+.review-submit-btn{
+    flex:1;
+    padding:.875rem;
+    background:#006923;
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-weight:600;
+    font-size:1rem;
+    cursor:pointer;
+}
+
+.review-cancel-btn{
+    padding:.875rem 1.5rem;
+    background:#fff;
+    color:#6b7280;
+    border:2px solid #e5e7eb;
+    border-radius:8px;
+    font-weight:600;
+    cursor:pointer;
+}
