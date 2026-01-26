@@ -1,24 +1,50 @@
 {
   "version": 2,
   "functions": {
-    "**/*.php": {
+    "api/**/*.php": {
+      "runtime": "vercel-php@0.7.3",
+      "memory": 1024,
+      "maxDuration": 30
+    },
+    "jbr7php/**/*.php": {
       "runtime": "vercel-php@0.7.3",
       "memory": 1024,
       "maxDuration": 30
     }
   },
   "routes": [
-    { "src": "/jbr7php/(.*)", "dest": "/jbr7php/$1" },
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/config/(.*)", "dest": "/config/$1" },
-    { "src": "/(.*\\.php)$", "dest": "/$1" },
-    { "src": "/(.*\\.html)$", "dest": "/$1" },
-    { "src": "/JBR7 CSS/(.*)", "dest": "/JBR7 CSS/$1" },
-    { "src": "/jbr7js/(.*)", "dest": "/jbr7js/$1" },
-    { "src": "/(.*\\.css)$", "dest": "/$1" },
-    { "src": "/(.*\\.js)$", "dest": "/$1" },
-    { "src": "/(.*\\.(jpg|jpeg|png|gif|svg|avif|webp))$", "dest": "/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/jbr7php/(.*\\.php)",
+      "dest": "/jbr7php/$1"
+    },
+    {
+      "src": "/api/(.*\\.php)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/config/(.*)",
+      "dest": "/config/$1"
+    },
+    {
+      "src": "/JBR7 CSS/(.*)",
+      "dest": "/JBR7 CSS/$1"
+    },
+    {
+      "src": "/jbr7js/(.*)",
+      "dest": "/jbr7js/$1"
+    },
+    {
+      "src": "/(.*\\.(css|js|jpg|jpeg|png|gif|svg|avif|webp))$",
+      "dest": "/$1"
+    },
+    {
+      "src": "/(.*\\.html)$",
+      "dest": "/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/index.html"
+    }
   ],
   "cleanUrls": false,
   "trailingSlash": false,
@@ -26,9 +52,35 @@
     {
       "source": "/jbr7php/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, X-Requested-With" }
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        }
       ]
     }
   ]

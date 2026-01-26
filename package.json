@@ -3,12 +3,18 @@
   "version": "1.0.0",
   "description": "JBR7 Bags Manufacturing E-commerce Platform",
   "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'Static build complete'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "engines": {
     "node": ">=18.x"
   },
   "dependencies": {
-    "vercel-php": "^0.7.3"
+    "vercel-php": "^0.7.3",
+    "@supabase/supabase-js": "^2.39.3"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
   }
 }
