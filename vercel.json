@@ -3,7 +3,7 @@
   "builds": [
     {
       "src": "**/*.php",
-      "use": "@vercel/php"
+      "use": "vercel-php@0.7.3"
     }
   ],
   "routes": [
@@ -54,13 +54,10 @@
   ],
   "functions": {
     "**/*.php": {
-      "runtime": "@vercel/php@2.0.0",
+      "runtime": "vercel-php@0.7.3",
       "memory": 1024,
       "maxDuration": 30
     }
-  },
-  "env": {
-    "PHP_VERSION": "8.2"
   },
   "rewrites": [
     {
