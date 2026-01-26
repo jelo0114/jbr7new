@@ -1,36 +1,35 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
-  "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "regions": ["sin1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "@supabase-url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase-anon-key"
+  "functions": {
+    "**/*.php": {
+      "runtime": "vercel-php@0.7.3",
+      "memory": 1024,
+      "maxDuration": 30
     }
   },
-  
+  "routes": [
+    { "src": "/jbr7php/(.*)", "dest": "/jbr7php/$1" },
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/config/(.*)", "dest": "/config/$1" },
+    { "src": "/(.*\\.php)$", "dest": "/$1" },
+    { "src": "/(.*\\.html)$", "dest": "/$1" },
+    { "src": "/JBR7 CSS/(.*)", "dest": "/JBR7 CSS/$1" },
+    { "src": "/jbr7js/(.*)", "dest": "/jbr7js/$1" },
+    { "src": "/(.*\\.css)$", "dest": "/$1" },
+    { "src": "/(.*\\.js)$", "dest": "/$1" },
+    { "src": "/(.*\\.(jpg|jpeg|png|gif|svg|avif|webp))$", "dest": "/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
+  ],
+  "cleanUrls": false,
+  "trailingSlash": false,
   "headers": [
     {
-      "source": "/api/(.*)",
+      "source": "/jbr7php/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "s-maxage=0"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, DELETE, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization, X-Requested-With" }
       ]
-    }
-  ],
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/"
     }
   ]
 }
