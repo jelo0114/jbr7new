@@ -8,12 +8,32 @@
   ],
   "routes": [
     {
+      "src": "/jbr7php/(.*)",
+      "dest": "/jbr7php/$1"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/config/(.*)",
+      "dest": "/config/$1"
+    },
+    {
       "src": "/(.*\\.php)$",
       "dest": "/$1"
     },
     {
       "src": "/(.*\\.html)$",
       "dest": "/$1"
+    },
+    {
+      "src": "/JBR7 CSS/(.*)",
+      "dest": "/JBR7 CSS/$1"
+    },
+    {
+      "src": "/jbr7js/(.*)",
+      "dest": "/jbr7js/$1"
     },
     {
       "src": "/(.*\\.css)$",
@@ -24,7 +44,7 @@
       "dest": "/$1"
     },
     {
-      "src": "/(.*\\.jpg|.*\\.jpeg|.*\\.png|.*\\.gif|.*\\.svg|.*\\.avif)$",
+      "src": "/(.*\\.jpg|.*\\.jpeg|.*\\.png|.*\\.gif|.*\\.svg|.*\\.avif|.*\\.webp)$",
       "dest": "/$1"
     },
     {
@@ -32,7 +52,43 @@
       "dest": "/index.html"
     }
   ],
+  "functions": {
+    "**/*.php": {
+      "runtime": "@vercel/php@2.0.0",
+      "memory": 1024,
+      "maxDuration": 30
+    }
+  },
   "env": {
     "PHP_VERSION": "8.2"
-  }
+  },
+  "rewrites": [
+    {
+      "source": "/jbr7php/:path*",
+      "destination": "/jbr7php/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/jbr7php/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization, X-Requested-With"
+        }
+      ]
+    }
+  ]
 }

@@ -8,3 +8,7 @@ php_errors.log
 *.md
 SQL/
 *.sql
+# Don't ignore PHP files or config
+!jbr7php/
+!config/
+!api/

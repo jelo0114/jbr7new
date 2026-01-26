@@ -62,6 +62,68 @@
         if(input.type === 'password'){ input.type = 'text'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
         else { input.type = 'password'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
     }
+
+    // Handle form submission via AJAX (same as signin.html)
+    document.getElementById('signup-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const username = form.querySelector('input[name="username"]').value;
+        const email = form.querySelector('input[name="email"]').value;
+        const password = form.querySelector('input[name="password"]').value;
+        
+        // Show loading state
+        const originalText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Signing up...';
+        
+        // Create error div if it doesn't exist
+        let errorDiv = document.getElementById('signup-error');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.id = 'signup-error';
+            errorDiv.style.cssText = 'display:none;color:#e53e3e;text-align:center;margin-top:1rem;font-size:0.9rem;';
+            form.appendChild(errorDiv);
+        }
+        errorDiv.style.display = 'none';
+        
+        // Submit via AJAX
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('email', email);
+        formData.append('password', password);
+        
+        fetch('/jbr7php/signup.php', {
+            method: 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            }
+            return response.json().then(err => Promise.reject(err));
+        })
+        .then(data => {
+            if (data.success) {
+                // Success - redirect to signin page
+                window.location.href = '/signin.html?signup=success';
+            } else {
+                throw new Error(data.error || 'Signup failed');
+            }
+        })
+        .catch(error => {
+            console.error('Signup error:', error);
+            errorDiv.textContent = error.error || error.message || 'Signup failed. Please try again.';
+            errorDiv.style.display = 'block';
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalText;
+        });
+    });
     </script>
 </body>
 </html>

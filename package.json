@@ -1,0 +1,14 @@
+{
+  "name": "jbr7-bags",
+  "version": "1.0.0",
+  "description": "JBR7 Bags Manufacturing E-commerce Platform",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@vercel/php": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}
