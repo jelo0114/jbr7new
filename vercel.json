@@ -72,6 +72,8 @@
       "destination": "/api/:path*"
     }
   ],
+  "cleanUrls": false,
+  "trailingSlash": false,
   "headers": [
     {
       "source": "/jbr7php/(.*)",

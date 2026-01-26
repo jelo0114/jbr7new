@@ -12,10 +12,12 @@ require_once __DIR__ . '/../config/database.php';
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if ($isAjax) {
         http_response_code(405);
-        echo json_encode(['success' => false, 'error' => 'Method not allowed']);
+        echo json_encode(['success' => false, 'error' => 'Method not allowed. Use POST to sign in.']);
         exit;
     }
-    header('Location: /signin.html');
+    // For GET requests, redirect to signin page
+    // Use 307 Temporary Redirect to preserve method (though we're redirecting anyway)
+    header('Location: /signin.html', true, 307);
     exit;
 }
 
