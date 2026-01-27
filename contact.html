@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us - JBR7 Bags Manufacturing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/home.css">
+    <link rel="stylesheet" href="/JBR7 CSS/contact.css">
+</head>
+<body>
+
+    <header>
+    <a href="/contact.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 Bags" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+        <div class="header-sep" aria-hidden="true"></div>
+        <nav>
+            <a href="#home" onclick="handleNavigate('home')" data-page="home"><i class="fas fa-home"></i> Home</a>
+            <a href="#explore" onclick="handleNavigate('explore')" data-page="explore"><i class="fas fa-compass"></i> Explore</a>
+            <a href="#saved" onclick="handleNavigate('saved')" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="#cart" onclick="handleNavigate('cart')" data-page="cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+            <a href="#contact" onclick="handleNavigate('contact')" data-page="contact" class="active"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="#settings" onclick="handleNavigate('settings')" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#search" onclick="handleNavigate('search')" data-page="search"><i class="fas fa-search"></i></a>
+            <a href="#notifications" onclick="handleNavigate('notifications')" data-page="notifications"><i class="fas fa-bell"></i></a>
+            <a href="#messages" onclick="handleNavigate('messages')" data-page="messages"><i class="fas fa-comment"></i></a>
+            <a href="#profile" onclick="handleNavigate('profile')" data-page="profile"><i class="fas fa-user-circle"></i></a>
+        </nav>
+    </header>
+
+    <div class="contact-container">
+        <!-- Header -->
+        <div class="contact-header">
+            
+            <div class="contact-header-content">
+                <h1 class="contact-title">Help Center</h1>
+                <p class="contact-subtitle">Find answers and get support for your JBR7 Bags experience</p>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="contact-search-section">
+            <div class="contact-search-bar">
+                <span class="search-icon">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input
+                    type="text"
+                    placeholder="Search for help articles, FAQs, or topics..."
+                    class="contact-search-input"
+                    id="searchQuery"
+                    onkeyup="filterFaqs()"
+                />
+            </div>
+            <p class="contact-search-hint">Try searching: "custom orders", "shipping", "payment methods"</p>
+        </div>
+
+        <!-- Content -->
+        <div class="contact-content">
+            <!-- Help Categories -->
+            <div class="contact-categories-section">
+                <h2 class="contact-section-title">Browse by Topic</h2>
+                <div class="contact-categories-grid">
+                    
+                    <!-- Category 1 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3 class="contact-category-title">Ordering Bags</h3>
+                        <p class="contact-category-desc">Learn how to browse, customize, and order your bags</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> How to browse products</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Customization options</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Bulk order discounts</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Order process step-by-step</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Design specifications</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Minimum order quantities</li>
+                        </ul>
+                    </div>
+
+                    <!-- Category 2 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <h3 class="contact-category-title">Payments & Pricing</h3>
+                        <p class="contact-category-desc">Payment methods and pricing information</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Accepted payment methods</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Pricing structure</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Payment schedule</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Currency options</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Invoice and receipts</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Payment security</li>
+                        </ul>
+                    </div>
+
+                    <!-- Category 3 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-truck"></i>
+                        </div>
+                        <h3 class="contact-category-title">Shipping & Delivery</h3>
+                        <p class="contact-category-desc">Delivery options and tracking information</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Shipping methods available</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Delivery timeframes</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Tracking your order</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> International shipping</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Shipping costs</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Free shipping offers</li>
+                        </ul>
+                    </div>
+
+                    <!-- Category 4 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-paint-brush"></i>
+                        </div>
+                        <h3 class="contact-category-title">Customization</h3>
+                        <p class="contact-category-desc">Design your bags exactly how you want them</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Logo printing options</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Color customization</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Material selections</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Size adjustments</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Design file formats</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Sample requests</li>
+                        </ul>
+                    </div>
+
+                    <!-- Category 5 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <h3 class="contact-category-title">Returns & Refunds</h3>
+                        <p class="contact-category-desc">Return policies and refund procedures</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Return policy details</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> How to initiate a return</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Refund process timeline</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Exchange options</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Defective products</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Custom order returns</li>
+                        </ul>
+                    </div>
+
+                    <!-- Category 6 -->
+                    <div class="contact-category-card">
+                        <div class="contact-category-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3 class="contact-category-title">Sustainability</h3>
+                        <p class="contact-category-desc">Our eco-friendly practices and materials</p>
+                        <ul class="contact-topic-list">
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Eco-friendly materials</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Sustainable manufacturing</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Recycling programs</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Carbon footprint</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Certifications</li>
+                            <li class="contact-topic-item"><span class="topic-bullet">•</span> Green packaging</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- FAQs Section -->
+            <div class="contact-faq-section">
+                <h2 class="contact-section-title">Frequently Asked Questions</h2>
+                <div class="contact-faq-list" id="faqList">
+                    <!-- FAQ items will be inserted by JavaScript -->
+                </div>
+                <div class="contact-no-results" id="noResults" style="display: none;">
+                    <p>No results found</p>
+                    <p class="contact-no-results-hint">Try different keywords or browse the topics above</p>
+                </div>
+            </div>
+
+            <!-- Contact Support Section -->
+            
+
+                <div class="contact-support-grid">
+                    <div class="contact-support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <h3 class="support-title">Email Support</h3>
+                            <p class="support-detail">roquejennylynbatac@gmail.com</p>
+                            <p class="support-info">Response within 24 hours</p>
+                    </div>
+
+                    <div class="contact-support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <h3 class="support-title">Phone Support</h3>
+                        <p class="support-detail">09216821649</p>
+                        <p class="support-info">Mon-Fri: 9AM - 6PM</p>
+                    </div>
+
+                    <div class="contact-support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="support-title">Live Chat</h3>
+                        <p class="support-detail">Instant messaging</p>
+                        <p class="support-info">Average response: 5 minutes</p>
+                        <button class="support-btn" onclick="startLiveChat()">Start Chat</button>
+                    </div>
+
+                    <div class="contact-support-card">
+                        <div class="support-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <h3 class="support-title">Visit Us</h3>
+                        <p class="support-detail">059 Purok 1, Culianin, Plaridel, Bulacan</p>
+                        <p class="support-info">By appointment only</p>
+                        <button class="support-btn" onclick="getDirections()">Get Directions</button>
+                    </div>
+                </div>
+
+                <!-- Customer Service Button -->
+                <div class="customer-service-cta">
+                    <div class="cta-content">
+                        <i class="fas fa-headset"></i>
+                        <div class="cta-text">
+                            <h3>Need Immediate Assistance?</h3>
+                            <p>Connect with our customer service team right now</p>
+                        </div>
+                    </div>
+                    <button class="customer-service-btn" onclick="openCustomerServiceChat()">
+                        <i class="fas fa-user-headset"></i>
+                        Customer Service
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Links Section -->
+            <div class="contact-quick-links">
+                <div class="quick-links-header">
+                    <h3 class="quick-links-title">
+                        <i class="fas fa-link"></i>
+                        Quick Links
+                    </h3>
+                    <p class="quick-links-subtitle">Access important pages and information quickly</p>
+                </div>
+                <div class="quick-links-grid">
+                    <a href="/about.html" class="quick-link-item">
+                        <div class="quick-link-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="quick-link-content">
+                            <h4>About Us</h4>
+                            <p>Learn about JBR7 Bags</p>
+                        </div>
+                        <i class="fas fa-chevron-right quick-link-arrow"></i>
+                    </a>
+                    <a href="/privacy-policy.html" class="quick-link-item">
+                        <div class="quick-link-icon">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                        <div class="quick-link-content">
+                            <h4>Privacy Policy</h4>
+                            <p>How we protect your data</p>
+                        </div>
+                        <i class="fas fa-chevron-right quick-link-arrow"></i>
+                    </a>
+                    <a href="/terms-of-service.html" class="quick-link-item">
+                        <div class="quick-link-icon">
+                            <i class="fas fa-file-contract"></i>
+                        </div>
+                        <div class="quick-link-content">
+                            <h4>Terms of Service</h4>
+                            <p>Our terms and conditions</p>
+                        </div>
+                        <i class="fas fa-chevron-right quick-link-arrow"></i>
+                    </a>
+                    <a href="/warranty.html" class="quick-link-item">
+                        <div class="quick-link-icon">
+                            <i class="fas fa-certificate"></i>
+                        </div>
+                        <div class="quick-link-content">
+                            <h4>Warranty Information</h4>
+                            <p>Product warranty details</p>
+                        </div>
+                        <i class="fas fa-chevron-right quick-link-arrow"></i>
+                    </a>
+                    <a href="/explore.html" class="quick-link-item">
+                        <div class="quick-link-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="quick-link-content">
+                            <h4>Browse Products</h4>
+                            <p>Explore our collection</p>
+                        </div>
+                        <i class="fas fa-chevron-right quick-link-arrow"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+    
+
+    <script src="/jbr7js/home.js"></script>
+    <script src="/jbr7js/contact.js"></script>
+    <script src="/jbr7js/notifications.js"></script>
+</body>
+</html>

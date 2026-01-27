@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - JBR7 Bags Manufacturing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="JBR7 CSS/settings.css">
+</head>
+<body>
+
+    <header>
+    <a href="home.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+        <div class="header-sep" aria-hidden="true"></div>
+        <nav>
+            <a href="#home" onclick="handleNavigate('home')" data-page="home"><i class="fas fa-home"></i> Home</a>
+            <a href="#explore" onclick="handleNavigate('explore')" data-page="explore"><i class="fas fa-compass"></i> Explore</a>
+            <a href="#saved" onclick="handleNavigate('saved')" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="#cart" onclick="handleNavigate('cart')" data-page="cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+            <a href="#contact" onclick="handleNavigate('contact')" data-page="contact"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="#settings" onclick="handleNavigate('settings')" data-page="settings" class="active"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#search" onclick="handleNavigate('search')" data-page="search"><i class="fas fa-search"></i></a>
+            <a href="#notifications" onclick="handleNavigate('notifications')" data-page="notifications"><i class="fas fa-bell"></i></a>
+            <a href="#messages" onclick="handleNavigate('messages')" data-page="messages"><i class="fas fa-comment"></i></a>
+            <a href="#profile" onclick="handleNavigate('profile')" data-page="profile"><i class="fas fa-user-circle"></i></a>
+        </nav>
+    </header>
+
+    <div class="settings-container">
+        <!-- Header -->
+        <div class="settings-header">
+           
+            <div class="settings-header-content">
+                <h1 class="settings-title"><i class="fas fa-cog"></i> Settings</h1>
+                <p class="settings-subtitle">Manage your account preferences and settings</p>
+            </div>
+        </div>
+
+        <!-- Settings Content -->
+        <div class="settings-content">
+            
+            <!-- Settings Sidebar -->
+            <div class="settings-sidebar">
+                <div class="settings-menu">
+                    <button class="settings-menu-item active" onclick="showSettingsSection('account')" data-section="account">
+                        <i class="fas fa-user-circle"></i>
+                        <span>Account</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('notifications')" data-section="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifications</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('privacy')" data-section="privacy">
+                        <i class="fas fa-lock"></i>
+                        <span>Privacy & Security</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('payment')" data-section="payment">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Payment Methods</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('shipping')" data-section="shipping">
+                        <i class="fas fa-truck"></i>
+                        <span>Shipping Addresses</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('help')" data-section="help">
+                        <i class="fas fa-question-circle"></i>
+                        <span data-translate="help_support">Help & Support</span>
+                    </button>
+                    <button class="settings-menu-item" onclick="showSettingsSection('couriers')" data-section="couriers">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <rect x="1" y="4" width="14" height="10" rx="1" fill="#006923"></rect>
+                            <path d="M15 8h5l3 3v3" stroke="#006923" stroke-width="1.2" fill="#37b36a"></path>
+                            <circle cx="6" cy="17" r="2" fill="#222"></circle>
+                            <circle cx="18" cy="17" r="2" fill="#222"></circle>
+                        </svg>
+                        <span data-translate="couriers">Couriers</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Main Content -->
+            <div class="settings-main">
+                
+                <!-- Account Section -->
+                <div class="settings-section active" id="account-section">
+                    <h2 class="section-title" data-translate="account_information">Account Information</h2>
+                    
+                    <div class="settings-card">
+                        <div class="form-group">
+                            <label data-translate="full_name">Full Name</label>
+                            <input type="text" placeholder="Enter full name" id="fullName" data-translate-placeholder="enter_full_name">
+                        </div>
+                        <div class="form-group">
+                            <label data-translate="email_address">Email Address</label>
+                            <input type="email" placeholder="Enter email address" id="email" data-translate-placeholder="enter_email">
+                        </div>
+                        <div class="form-group">
+                            <label data-translate="phone_number">Phone Number</label>
+                            <input type="tel" placeholder="Enter phone number" id="phone" data-translate-placeholder="enter_phone">
+                        </div>
+                        <button class="btn-primary" onclick="saveAccountInfo()" data-translate="save_changes">Save Changes</button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title" data-translate="change_password">Change Password</h3>
+                        <div class="form-group">
+                            <label data-translate="current_password">Current Password</label>
+                            <input type="password" placeholder="Enter current password" data-translate-placeholder="enter_current_password">
+                        </div>
+                        <div class="form-group">
+                            <label data-translate="new_password">New Password</label>
+                            <input type="password" placeholder="Enter new password" data-translate-placeholder="enter_new_password">
+                        </div>
+                        <div class="form-group">
+                            <label data-translate="confirm_password">Confirm New Password</label>
+                            <input type="password" placeholder="Confirm new password" data-translate-placeholder="confirm_new_password">
+                        </div>
+                        <button class="btn-primary" onclick="changePassword()" data-translate="update_password">Update Password</button>
+                    </div>
+
+                    <div class="settings-card danger-zone">
+                        <h3 class="card-title">Data & Account Management</h3>
+                        <div class="privacy-option" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <strong>Download Your Data</strong>
+                                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">Download all your account data including orders, reviews, addresses, and more</p>
+                            </div>
+                            <button class="btn-secondary" onclick="downloadUserData()" style="white-space: nowrap;">
+                                <i class="fas fa-download"></i> Download Data
+                            </button>
+                        </div>
+                        <div class="privacy-option" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0;">
+                            <div>
+                                <strong>Delete Account</strong>
+                                <p style="margin: 0.5rem 0 0 0; color: #666; font-size: 0.9rem;">Permanently delete your account and all associated data</p>
+                            </div>
+                            <button class="btn-danger" onclick="deleteAccount()" style="white-space: nowrap;">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="settings-section" id="notifications-section" style="display: none;">
+                    <h2 class="section-title">Notification Preferences</h2>
+                    
+                    <div class="settings-card">
+                        <h3 class="card-title">Push Notifications</h3>
+                        <div class="toggle-option">
+                            <div class="toggle-info">
+                                <strong>Order Status</strong>
+                                <p>Real-time updates on your orders</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushOrderStatus" onchange="togglePushNotification('order_status', this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-option">
+                            <div class="toggle-info">
+                                <strong>Cart Reminders</strong>
+                                <p>Get reminded about items left in your cart</p>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="pushCartReminder" onchange="togglePushNotification('cart_reminder', this)">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Privacy & Security Section - 2FA REMOVED -->
+                <div class="settings-section" id="privacy-section" style="display: none;">
+                    <h2 class="section-title">Privacy & Security</h2>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Login History</h3>
+                        <div id="loginHistoryContainer">
+                            <div class="loading-spinner" style="text-align: center; padding: 2rem;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #006923;"></i>
+                                <p style="margin-top: 1rem; color: #666;">Loading login history...</p>
+                            </div>
+                        </div>
+                        <button class="btn-text" onclick="loadLoginHistory()" style="margin-top: 1rem;">
+                            <i class="fas fa-sync-alt"></i> Refresh History
+                        </button>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">Data & Privacy</h3>
+                        <div class="privacy-option">
+                            <span>Download Your Data</span>
+                            <button class="btn-secondary" onclick="downloadUserData()">
+                                <i class="fas fa-download"></i> Download Data
+                            </button>
+                        </div>
+                        <div class="privacy-option">
+                            <span>Delete Account</span>
+                            <button class="btn-danger" onclick="deleteAccount()">
+                                <i class="fas fa-trash"></i> Delete Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment Methods Section -->
+                <div class="settings-section" id="payment-section" style="display: none;">
+                    <h2 class="section-title">Payment Methods</h2>
+                    
+                    <div class="settings-card">
+                        <p>Manage your saved payment methods. Use the radio control to choose a default method.</p>
+
+                        <div class="payment-list">
+                            <div class="payment-method-item">
+                                <div class="payment-icon" aria-hidden="true">
+                                    <img src="JBR7 PMETHOD IMAGE/Gcash.png" alt="GCash">
+                                </div>
+                                <div class="payment-info">
+                                    <strong>GCash • john.gcash@example.com</strong>
+                                    <span>Mobile wallet</span>
+                                </div>
+                                <div class="payment-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultPayment" value="gcash">
+                                        <span>Set Default</span>
+                                    </label>
+                                    <button class="btn-text" onclick="removePayment()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="payment-method-item">
+                                <div class="payment-icon" aria-hidden="true">
+                                    <img src="JBR7 PMETHOD IMAGE/PayMaya.png" alt="PayMaya">
+                                </div>
+                                <div class="payment-info">
+                                    <strong>PayMaya • paymaya.user@example.com</strong>
+                                    <span>Mobile wallet / e-wallet</span>
+                                </div>
+                                <div class="payment-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultPayment" value="paymaya">
+                                        <span>Set Default</span>
+                                    </label>
+                                    <button class="btn-text" onclick="removePayment()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="payment-method-item">
+                                <div class="payment-icon" aria-hidden="true">
+                                    <img src="cod.png" alt="Cash on Delivery" onerror="this.style.display='none'">
+                                </div>
+                                <div class="payment-info">
+                                    <strong>Cash on Delivery (COD)</strong>
+                                    <span>Pay with cash when your order arrives</span>
+                                </div>
+                                <div class="payment-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultPayment" value="cod">
+                                        <span>Set Default</span>
+                                    </label>
+                                    <button class="btn-text" onclick="removePayment()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="payment-method-item">
+                                <div class="payment-icon" aria-hidden="true">
+                                    <img src="JBR7 PMETHOD IMAGE/RCBC.png" alt="RCBC">
+                                </div>
+                                <div class="payment-info">
+                                    <strong>RCBC • **** 1234</strong>
+                                    <span>Bank transfer / debit</span>
+                                </div>
+                                <div class="payment-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultPayment" value="rcbc">
+                                        <span>Set Default</span>
+                                    </label>
+                                    <button class="btn-text" onclick="removePayment()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+
+                            <div class="payment-method-item">
+                                <div class="payment-icon" aria-hidden="true">
+                                    <img src="JBR7 PMETHOD IMAGE/Mastercard.png" alt="Mastercard">
+                                </div>
+                                <div class="payment-info">
+                                    <strong>Mastercard • **** 8888</strong>
+                                    <span>Expires 06/2026</span>
+                                </div>
+                                <div class="payment-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultPayment" value="mastercard">
+                                        <span>Set Default</span>
+                                    </label>
+                                    <button class="btn-text" onclick="removePayment()"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:1rem;display:flex;gap:1rem;flex-wrap:wrap">
+                            <button class="btn-primary" onclick="savePaymentPreference()">Save Preferences</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Addresses Section -->
+                <div class="settings-section" id="shipping-section" style="display: none;">
+                    <h2 class="section-title">Shipping Addresses</h2>
+                    
+                    <div class="settings-card">
+                        <div id="addresses-container">
+                            <div style="text-align: center; padding: 2rem; color: #666;">
+                                <i class="fas fa-spinner fa-spin" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                                <p>Loading addresses...</p>
+                            </div>
+                        </div>
+                        <button class="btn-primary" onclick="showAddAddressModal()">
+                            <i class="fas fa-plus"></i> Add New Address
+                        </button>
+                    </div>
+                </div>
+ 
+                <!-- Couriers Section -->
+                <div class="settings-section" id="couriers-section" style="display: none;">
+                    <h2 class="section-title">Couriers</h2>
+                    <div class="settings-card">
+                        <p>Choose preferred couriers for your deliveries. Set a default courier if you have one.</p>
+                        <div class="courier-list">
+                            <div class="courier-item">
+                                <div class="courier-icon" aria-hidden="true">
+                                    <img src="JBR7 COURIER IMAGE/Jnt.jpg" alt="JNT" />
+                                </div>
+                                <div class="courier-info">
+                                    <strong>JNT</strong>
+                                    <p class="muted">Reliable domestic courier — quick local deliveries.</p>
+                                </div>
+                                <div class="courier-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultCourier" value="jnt">
+                                        <span>Set Default</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="courier-item">
+                                <div class="courier-icon" aria-hidden="true">
+                                    <img src="JBR7 COURIER IMAGE/Flash.jpg" alt="Flash Express" />
+                                </div>
+                                <div class="courier-info">
+                                    <strong>Flash Express</strong>
+                                    <p class="muted">Fast express shipping option for urgent orders.</p>
+                                </div>
+                                <div class="courier-actions">
+                                    <label class="radio-label">
+                                        <input type="radio" name="defaultCourier" value="flash">
+                                        <span>Set Default</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="margin-top:1rem">
+                            <button class="btn-primary" onclick="saveCourierPreference()">Save Preferences</button>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Help & Support Section -->
+                <div class="settings-section" id="help-section" style="display: none;">
+                    <h2 class="section-title">Help & Support</h2>
+                    
+                    <div class="settings-card">
+                        <div class="help-option" onclick="handleNavigate('contact')">
+                            <i class="fas fa-question-circle"></i>
+                            <div>
+                                <strong>Help Center</strong>
+                                <p>Find answers to common questions</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="help-option" onclick="contactSupport()">
+                            <i class="fas fa-headset"></i>
+                            <div>
+                                <strong>Contact Support</strong>
+                                <p>Get in touch with our team</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="help-option" onclick="viewTerms()">
+                            <i class="fas fa-file-contract"></i>
+                            <div>
+                                <strong>Terms of Service</strong>
+                                <p>Review our terms and conditions</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                        <div class="help-option" onclick="viewPrivacyPolicy()">
+                            <i class="fas fa-shield-alt"></i>
+                            <div>
+                                <strong>Privacy Policy</strong>
+                                <p>Learn how we protect your data</p>
+                            </div>
+                            <i class="fas fa-chevron-right"></i>
+                        </div>
+                    </div>
+
+                    <div class="settings-card">
+                        <h3 class="card-title">About</h3>
+                        <div class="about-info">
+                            <p><strong>Version:</strong> 1.0.0</p>
+                            <p><strong>Last Updated:</strong> December 2024</p>
+                            <p><strong>© 2025 JBR7 Bags Manufacturing</strong></p>
+                        </div>
+                    </div>
+
+                    <div class="settings-card danger-zone">
+                        <h3 class="card-title">Danger Zone</h3>
+                        <button class="btn-danger-outline" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i> Log Out
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Address Modal -->
+    <div id="address-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <h2 id="address-modal-title">Add New Address</h2>
+                <button class="modal-close" onclick="closeAddressModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="address-form">
+                    <input type="hidden" id="address-id" value="">
+                    <input type="hidden" id="address-type" value="home">
+                    
+                    <!-- Address Type Selection (only shown when adding new) -->
+                    <div id="address-type-selection" class="form-group">
+                        <label>Address Type</label>
+                        <div style="display: flex; gap: 1rem;">
+                            <label style="flex: 1; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.3s;">
+                                <input type="radio" name="addressTypeSelect" value="home" checked onchange="switchAddressType('home')" style="margin-right: 0.5rem;">
+                                <i class="fas fa-home" style="font-size: 2rem; color: #006923; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Home</strong>
+                            </label>
+                            <label style="flex: 1; padding: 1rem; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.3s;">
+                                <input type="radio" name="addressTypeSelect" value="office" onchange="switchAddressType('office')" style="margin-right: 0.5rem;">
+                                <i class="fas fa-building" style="font-size: 2rem; color: #3b5d72; display: block; margin-bottom: 0.5rem;"></i>
+                                <strong>Office / Business</strong>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <!-- Home Address Fields -->
+                    <div id="home-fields">
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #333;">Full Name</h3>
+                        <div class="form-row">
+                            <div class="form-group" style="flex: 1;">
+                                <label>First Name <span style="color: red;">*</span></label>
+                                <input type="text" id="first-name" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Middle Name (optional)</label>
+                                <input type="text" id="middle-name">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Last Name <span style="color: red;">*</span></label>
+                                <input type="text" id="last-name" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Office Address Fields -->
+                    <div id="office-fields" style="display: none;">
+                        <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #333;">Recipient Information</h3>
+                        <div class="form-group">
+                            <label>Recipient Name <span style="color: red;">*</span></label>
+                            <input type="text" id="recipient-name" placeholder="Employee Name or Department">
+                        </div>
+                        <div class="form-group">
+                            <label>Company / Office Name <span style="color: red;">*</span></label>
+                            <input type="text" id="company-name" required>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #333;">Contact Information</h3>
+                    <div id="home-contact">
+                        <div class="form-group">
+                            <label>Mobile Number (preferred) <span style="color: red;">*</span></label>
+                            <input type="tel" id="mobile-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Alternate Number (optional)</label>
+                            <input type="tel" id="alternate-number">
+                        </div>
+                    </div>
+                    <div id="office-contact" style="display: none;">
+                        <div class="form-group">
+                            <label>Office Phone Number</label>
+                            <input type="tel" id="office-phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Mobile Number (recommended) <span style="color: red;">*</span></label>
+                            <input type="tel" id="office-mobile-number" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address (optional but recommended)</label>
+                        <input type="email" id="email-address">
+                    </div>
+                    
+                    <!-- Address Fields -->
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 1rem; color: #333;">Complete Address</h3>
+                    <div id="home-address-fields">
+                        <div class="form-group">
+                            <label>House/Unit Number <span style="color: red;">*</span></label>
+                            <input type="text" id="house-unit-number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Street Name <span style="color: red;">*</span></label>
+                            <input type="text" id="street-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Subdivision/Village (if applicable)</label>
+                            <input type="text" id="subdivision-village">
+                        </div>
+                    </div>
+                    <div id="office-address-fields" style="display: none;">
+                        <div class="form-group">
+                            <label>Building Name <span style="color: red;">*</span></label>
+                            <input type="text" id="building-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Floor Number / Unit Number</label>
+                            <input type="text" id="floor-unit-number">
+                        </div>
+                        <div class="form-group">
+                            <label>Street Name <span style="color: red;">*</span></label>
+                            <input type="text" id="office-street-name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Barangay <span style="color: red;">*</span></label>
+                            <input type="text" id="barangay" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>City / Municipality <span style="color: red;">*</span></label>
+                            <input type="text" id="city-municipality" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label>Province / State <span style="color: red;">*</span></label>
+                            <input type="text" id="province-state" required>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label>Postal / ZIP Code <span style="color: red;">*</span></label>
+                            <input type="text" id="postal-zip-code" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Country <span style="color: red;">*</span></label>
+                        <input type="text" id="country" value="Philippines" required>
+                    </div>
+                    
+                    <!-- Location Tracking -->
+                    <div class="form-group">
+                        <label>Location</label>
+                        <button type="button" class="btn-secondary" onclick="getCurrentLocation()" style="width: 100%; margin-bottom: 0.5rem;">
+                            <i class="fas fa-map-marker-alt"></i> Use Current Location
+                        </button>
+                        <input type="text" id="formatted-address" placeholder="Full formatted address will appear here" readonly style="background: #f5f5f5;">
+                        <input type="hidden" id="latitude">
+                        <input type="hidden" id="longitude">
+                    </div>
+                    
+                    <!-- Additional Fields -->
+                    <div id="home-additional" class="form-group">
+                        <label>Landmark or Delivery Notes (optional)</label>
+                        <textarea id="landmark-delivery-notes" rows="3" placeholder="Example: 'Near the barangay hall' or 'Blue gate house'"></textarea>
+                    </div>
+                    <div id="office-additional" style="display: none;">
+                        <div class="form-group">
+                            <label>Office Hours for Delivery</label>
+                            <input type="text" id="office-hours" placeholder="Example: 'Mon–Fri, 9:00 AM – 5:00 PM'">
+                        </div>
+                        <div class="form-group">
+                            <label>Additional Instructions (optional)</label>
+                            <textarea id="additional-instructions" rows="3" placeholder="Security desk procedures, who to contact upon arrival, etc."></textarea>
+                        </div>
+                    </div>
+                    
+                    <!-- Set as Default -->
+                    <div class="form-group" style="margin-top: 1.5rem;">
+                        <label style="display: flex; align-items: center; cursor: pointer;">
+                            <input type="checkbox" id="set-as-default" style="margin-right: 0.5rem;">
+                            Set as default address
+                        </label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                        <button type="button" class="btn-secondary" onclick="closeAddressModal()" style="flex: 1;">Cancel</button>
+                        <button type="submit" class="btn-primary" style="flex: 1;">Save Address</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="jbr7js/user-storage.js"></script>
+    <script src="jbr7js/home.js"></script>
+    <script src="jbr7js/settings.js"></script>
+    <script src="jbr7js/notifications.js"></script>
+</body>
+</html>

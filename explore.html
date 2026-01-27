@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Explore - JBR7 Bags</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/home.css">
+    <link rel="stylesheet" href="/JBR7 CSS/explore.css">
+</head>
+<body>
+
+    <header>
+    <a href="/home.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+        <div class="header-sep" aria-hidden="true"></div>
+        <nav>
+            <a href="#home" onclick="handleNavigate('home')" data-page="home"><i class="fas fa-home"></i> Home</a>
+            <a href="#explore" onclick="handleNavigate('explore')" data-page="explore"><i class="fas fa-compass"></i> Explore</a>
+            <a href="#saved" onclick="handleNavigate('saved')" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="#cart" onclick="handleNavigate('cart')" data-page="cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+            <a href="#contact" onclick="handleNavigate('contact')" data-page="contact"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="#settings" onclick="handleNavigate('settings')" data-page="settings" class="active"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#search" onclick="handleNavigate('search')" data-page="search"><i class="fas fa-search"></i></a>
+            <a href="#notifications" onclick="handleNavigate('notifications')" data-page="notifications"><i class="fas fa-bell"></i></a>
+            <a href="#messages" onclick="handleNavigate('messages')" data-page="messages"><i class="fas fa-comment"></i></a>
+            <a href="#profile" onclick="handleNavigate('profile')" data-page="profile"><i class="fas fa-user-circle"></i></a>
+        </nav>
+    </header>
+
+    <section class="explore-hero">
+        <div class="explore-hero-content">
+            <h1>Explore Our Collection</h1>
+            <p>Discover premium quality bags crafted with care</p>
+        </div>
+    </section>
+
+    <section class="filters">
+        <div class="filter-container">
+                <div class="filter-group">
+                <label><i class="fas fa-filter"></i> Filter By:</label>
+                <select id="categoryFilter" onchange="filterProducts()">
+                    <option value="all">All Categories</option>
+                    <option value="tote">Tote Bag</option>
+                    <option value="backpack">Backpack</option>
+                    <option value="envelop-module">Module and Envelopes</option>
+                    <option value="rvr">RIKI, VANITY, RINGLIGHT bags</option>
+                    <option value="kiddie">Kiddie Bags</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-sort"></i> Sort By:</label>
+                <select id="sortFilter" onchange="sortProducts()">
+                    <option value="featured">Featured</option>
+                    <option value="price-low">Price: Low to High</option>
+                    <option value="price-high">Price: High to Low</option>
+                    <option value="rating">Highest Rated</option>
+                    <option value="newest">Newest</option>
+                </select>
+            </div>
+        </div>
+    </section>
+
+    <section class="products">
+        <div class="products-grid" id="productsGrid">
+            <!-- Product Card 1 -->
+            
+
+            <!-- Product Card 3 -->
+            <div class="product-card" data-category="jute-tote" data-price="55" data-rating="4.6" data-date="2025-01-10">
+                <div class="product-image">
+                    <img src="Tote Bag/Colored.png" alt="Canvas Messenger Bag">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Eco Colored Tote Bag</h3>
+                    <p class="product-description">
+                         <p class="product-description">Tote Bag Katsa White, Black and Colored — lightweight, durable, and perfect for everyday use.</p>
+                    <div class="attr" style="margin-top:0.6rem;">
+                        <div style="font-weight:700;margin-bottom:0.35rem">Available Sizes White (inches):</div>
+                       
+                    </div>
+                    
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                        <span class="rating-percentage" style="display:none;margin-left:0.5rem;color:#6b7280;font-size:0.85rem;font-weight:500;"></span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱55.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 4 -->
+            <div class="product-card" data-category="riki" data-price="850" data-rating="4.7" data-date="2025-01-05">
+                <div class="product-image">
+                    <img src="Riki Bag/Riki.jpg" alt="Minimalist Leather Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Riki Tall Bag</h3>
+                    <p class="product-description">Size: 29x22 x 1.5 inches</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                        <span class="rating-percentage" style="display:none;margin-left:0.5rem;color:#6b7280;font-size:0.85rem;font-weight:500;"></span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱850.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 5 -->
+            <div class="product-card" data-category="ringlight" data-price="500" data-rating="4.9" data-date="2025-01-18">
+                <div class="product-image">
+                    <img src="RingLight/Ringlight.jpg" alt="Weekend Duffel Bag">
+                    <div class="product-badges">
+                        <span class="badge premium">Premium</span>
+                    </div>
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Ring Light Bag</h3>
+                    <p class="product-description">Spacious duffel with premium materials, perfect for weekend getaways</p>
+                    
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱500.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 6 -->
+            <div class="product-card" data-category="backpack" data-price="180" data-rating="4.5" data-date="2025-01-12">
+                <div class="product-image">
+                    <img src="One/ph-11134207-7ras8-m9txs8bfjp3gc0.jpg" alt="Urban Commuter Backpack">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3> Plain Brass Cotton Back Pack</h3>
+                    <p class="product-description">Size: 16.5 x 12 x 4.5 inches Fabric Used: Brass Cotton</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱180.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 7 -->
+            <div class="product-card" data-category="backpack" data-price="180" data-rating="4.8" data-date="2025-01-08">
+                <div class="product-image">
+                    <img src="Two Color/ph-11134207-7rasg-m9ty0a4dge0z1e.jpg" alt="Classic Leather Messenger">
+                    <div class="product-badges">
+                        <span class="badge eco">Eco-Friendly</span>
+                    </div>
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Two Colored Brass Cotton Back Pack</h3>
+                    <p class="product-description">Size: 16.5 x 12 x 4.5 inches Fabric Used: Brass Cotton</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱180.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Card 8 -->
+            <div class="product-card" data-category="vanity" data-price="400" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Mirror Bag/68ba1e35671d997f6eb3ed1c376a4b27.jpg" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Vanity Mirror Bag</h3>
+                    <p class="product-description">Durable canvas tote with reinforced handles and internal pockets</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱400.00</span>
+                    </div>
+                </div>
+            </div>
+
+           
+
+            <div class="product-card" data-category="envelop-module" data-price="70" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Envelope Bag/ablue.png" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Envelope Bags</h3>
+                    <p class="product-description"></p>Size 15*12.5inches</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱70.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="boys-kiddie" data-price="140" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Boys Kiddie Bag/BOYS.jpg" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Boys Kiddie Bag</h3>
+                    <p class="product-description">Sizes: S, M, L</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱140.00</span>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card" data-category="girls-kiddie" data-price="140" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Girls Kiddie Bag/GIRL.jpg" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Girls Kiddie Bag</h3>
+                    <p class="product-description">Sizes: S, M, L</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱140.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card" data-category="backpack" data-price="180" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Katrina Plain/Copy%20of%20Green%20Grey%20Simple%20Modern%20New%20Arrival%20Instagram%20Post%20(1).png" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Katrina Plain</h3>
+                    <p class="product-description">Size: 16.5 x 12 x 4.5 inches Fabric Used: Brass Cotton</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱180.00</span>
+                    </div>
+                </div>
+            </div>
+
+
+<div class="product-card" data-category="backpack" data-price="180" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Katrina Two Colors/1.png" alt="Katrina Two Colors">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Katrina Two Colors </h3>
+                    <p class="product-description">Size: 16.5 x 12 x 4.5 inches Fabric Used: Brass Cotton</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱180.00</span>
+                        
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="product-card" data-category="envelop-module" data-price="90" data-rating="4.6" data-date="2025-01-22">
+                <div class="product-image">
+                    <img src="Module/ph-11134207-7r98r-lxmbqd55abtt7c.avif" alt="Canvas Market Tote">
+                    <button class="save-btn" onclick="toggleSave(this)">
+                        <i class="far fa-bookmark"></i>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <h3>Module Bag</h3>
+                    <p class="product-description">Size 15*12.5*3.5 inches Fabric Used: Poly Rubber and PVC Transparent</p>
+                    <div class="rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                        <span class="rating-number">0.0</span>
+                        <span class="review-count">(0 reviews)</span>
+                    </div>
+                    <div class="product-footer">
+                        <span class="price">₱90.00</span>
+                        
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                    
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    
+    <script src="/jbr7js/user-storage.js"></script>
+    <script src="/jbr7js/home.js"></script>
+    <script src="/jbr7js/explore.js"></script>
+    <script src="/jbr7js/explore-ratings.js"></script>
+    <script src="/jbr7js/notifications.js"></script>
+    <script src="/jbr7js/view-linker.js"></script>
+</body>
+</html>

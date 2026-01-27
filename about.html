@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - JBR7 Bags Manufacturing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: #222;
+        }
+
+        .logo-img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            border: 4px solid #fff;
+            background: #fff;
+        }
+
+        .logo-text h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: #111;
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        /* emphasize the JBR7 part in red similar to the reference */
+        .logo-text h2 span {
+            color: #c50010;
+            display: inline-block;
+            margin-right: 0.2rem;
+        }
+
+        .sub-logo {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: #006923;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .header-sep {
+            width: 2px;
+            height: 40px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        nav {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        nav a.active {
+            background: rgba(255,215,0,0.3);
+            color: #ffd700;
+        }
+
+        /* Cart Hero Section - Matching the cart.css style */
+        .cart-hero {
+            background: linear-gradient(120deg, #006923 0%, #ffffff 100%);
+            padding: 4rem 5%;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .cart-hero-content h1 {
+            font-size: 3rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .cart-hero-content p {
+            font-size: 1.2rem;
+            color: #000000;
+        }
+
+        /* Cart Content Wrapper - Matching the cart.css style */
+        .cart-content-wrapper {
+            padding: 3rem 5%;
+            background-color: #f8f9fa;
+        }
+
+        .about-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Vision & Mission Cards - Using cart item style */
+        .vm-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .vm-card {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 2px solid #e8e8e8;
+            transition: all 0.3s ease;
+            animation: slideInFromLeft 0.6s ease-out;
+        }
+
+        .vm-card:hover {
+            border-color: #a4b18c;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .vm-card-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #a4b18c;
+        }
+
+        .vm-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background-color: #006923;
+            color: white;
+        }
+
+        .vm-card h3 {
+            font-size: 1.8rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .vm-card p {
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        /* Values Section - Matching order summary style */
+        .values-section {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            animation: slideInFromRight 0.6s ease-out;
+        }
+
+        .values-section h2 {
+            font-size: 1.8rem;
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #a4b18c;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .value-item {
+            text-align: center;
+            padding: 2rem;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .value-item:hover {
+            background-color: #e8f5e9;
+            transform: translateY(-5px);
+        }
+
+        .value-item i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #006923;
+        }
+
+        .value-item h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .value-item p {
+            font-size: 0.95rem;
+            color: #666;
+        }
+
+        /* Footer */
+        footer {
+            background:#07649e;
+            color: white;
+            padding: 3rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li span {
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li span:hover {
+            color: #ffd700;
+        }
+
+       .social-icons a {
+    color: #fff;
+    font-size: 1.5rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+        .social-icons span {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+       
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            color: #999;
+        }
+
+        /* Animations */
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes slideInFromRight {
+            0% {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .cart-hero-content h1 {
+                font-size: 2.5rem;
+            }
+
+            .vm-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cart-hero {
+                padding: 2rem 3%;
+            }
+
+            .cart-hero-content h1 {
+                font-size: 1.8rem;
+            }
+
+            .cart-hero-content p {
+                font-size: 0.95rem;
+            }
+
+            .cart-content-wrapper {
+                padding: 2rem 3%;
+            }
+
+            .vm-card {
+                padding: 1.5rem;
+            }
+
+            .vm-card h3 {
+                font-size: 1.4rem;
+            }
+
+            .values-section {
+                padding: 1.5rem;
+            }
+
+            .values-section h2 {
+                font-size: 1.4rem;
+            }
+
+            .values-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cart-hero {
+                padding: 1.5rem 3%;
+            }
+
+            .cart-hero-content h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .cart-hero-content p {
+                font-size: 0.85rem;
+            }
+
+            .cart-content-wrapper {
+                padding: 1.5rem 3%;
+            }
+
+            .vm-card {
+                padding: 1rem;
+            }
+
+            .vm-card h3 {
+                font-size: 1.2rem;
+            }
+
+            .vm-card p {
+                font-size: 0.95rem;
+            }
+
+            .values-section {
+                padding: 1rem;
+            }
+
+            .values-section h2 {
+                font-size: 1.2rem;
+            }
+
+            .value-item {
+                padding: 1.5rem;
+            }
+
+            .value-item i {
+                font-size: 2.5rem;
+            }
+
+            .value-item h4 {
+                font-size: 1.1rem;
+            }
+
+            .value-item p {
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .cart-hero-content h1 {
+                font-size: 1.3rem;
+            }
+
+            .vm-card h3 {
+                font-size: 1.1rem;
+            }
+
+            .vm-card p {
+                font-size: 0.9rem;
+            }
+
+            .values-section h2 {
+                font-size: 1.1rem;
+            }
+
+            .value-item h4 {
+                font-size: 1rem;
+            }
+
+            
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+    <a href="/home.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 Bags" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+        
+       
+    </header>
+
+    <section class="cart-hero">
+        <div class="cart-hero-content">
+            <h1>ABOUT US</h1>
+            <p>Crafting Quality Bags for Education and Beyond</p>
+        </div>
+    </section>
+
+    <div class="cart-content-wrapper">
+        <div class="about-container">
+            <!-- Vision & Mission Cards -->
+            <div class="vm-container">
+                <div class="vm-card">
+                    <div class="vm-card-header">
+                        <div class="vm-icon">
+                            <i class="fas fa-eye"></i>
+                        </div>
+                        <h3>Our Vision</h3>
+                    </div>
+                    <p>To be the trusted supplier of high-quality, affordable school bags for local government units, online sellers, and bulk buyers, recognized for our commitment to durability, craftsmanship, and community impact.</p>
+                </div>
+
+                <div class="vm-card">
+                    <div class="vm-card-header">
+                        <div class="vm-icon">
+                            <i class="fas fa-bullseye"></i>
+                        </div>
+                        <h3>Our Mission</h3>
+                    </div>
+                    <p>At JBR7 Bags Manufacturing, our mission is to supply top-quality school bags that combine affordability with exceptional craftsmanship. We aim to meet the needs of local government units, online sellers, and bulk buyers by providing durable and stylish bags at competitive prices. We are dedicated to delivering reliable products that enhance the lives of students and support educational initiatives. By offering flexible and scalable solutions, we strive to build lasting partnerships and contribute to the success of our clients and the growth of our local community.</p>
+                </div>
+            </div>
+
+            <!-- Values Section -->
+            <div class="values-section">
+                <h2>Our Core Values</h2>
+                <div class="values-grid">
+                    <div class="value-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <h4>Quality</h4>
+                        <p>Every bag is crafted with attention to detail and durability</p>
+                    </div>
+                    <div class="value-item">
+                        <i class="fas fa-dollar-sign"></i>
+                        <h4>Affordability</h4>
+                        <p>Competitive pricing without compromising on quality</p>
+                    </div>
+                    <div class="value-item">
+                        <i class="fas fa-handshake"></i>
+                        <h4>Partnership</h4>
+                        <p>Building lasting relationships with our clients</p>
+                    </div>
+                    <div class="value-item">
+                        <i class="fas fa-heart"></i>
+                        <h4>Community</h4>
+                        <p>Supporting education and local growth initiatives</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function handleNavigate(page) {
+            console.log('Navigating to:', page);
+        }
+
+        function handleFooterNavigate(page) {
+            console.log('Footer navigation:', page);
+        }
+
+        function handleSocialClick(platform) {
+            // Open the same Facebook share link used site-wide
+            if (platform === 'facebook') {
+                window.open('https://www.facebook.com/share/1CMB6249vF/', '_blank');
+                return;
+            }
+            console.log('Social click:', platform);
+        }
+    </script>
+   
+</body>
+</html>

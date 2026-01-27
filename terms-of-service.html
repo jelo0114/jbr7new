@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - JBR7 Bags Manufacturing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f8f9fa;
+        }
+
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            text-decoration: none;
+            color: #222;
+        }
+
+        .logo-img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            border: 4px solid #fff;
+            background: #fff;
+        }
+
+        .logo-text h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 0;
+            color: #111;
+            line-height: 1;
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+
+        .logo-text h2 span {
+            color: #c50010;
+            display: inline-block;
+            margin-right: 0.2rem;
+        }
+
+        .sub-logo {
+            display: block;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: #006923;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .header-sep {
+            width: 2px;
+            height: 40px;
+            background: rgba(255,255,255,0.3);
+        }
+
+        nav {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        nav a:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+
+        nav a.active {
+            background: rgba(255,215,0,0.3);
+            color: #ffd700;
+        }
+
+        /* Cart Hero Section */
+        .cart-hero {
+            background: linear-gradient(120deg, #006923 0%, #ffffff 100%);
+            padding: 4rem 5%;
+            text-align: center;
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .cart-hero-content h1 {
+            font-size: 3rem;
+            color: #000000;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .cart-hero-content p {
+            font-size: 1.2rem;
+            color: #000000;
+        }
+
+        /* Cart Content Wrapper */
+        .cart-content-wrapper {
+            padding: 3rem 5%;
+            background-color: #f8f9fa;
+        }
+
+        .policy-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Policy Cards */
+        .policy-section {
+            background-color: #fff;
+            border-radius: 12px;
+            padding: 2.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 2rem;
+            border: 2px solid #e8e8e8;
+            transition: all 0.3s ease;
+            animation: slideInFromLeft 0.6s ease-out;
+        }
+
+        .policy-section:hover {
+            border-color: #a4b18c;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .policy-section-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #a4b18c;
+        }
+
+        .policy-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background-color: #006923;
+            color: white;
+        }
+
+        .policy-section h2 {
+            font-size: 1.8rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .policy-section h3 {
+            font-size: 1.4rem;
+            color: #333;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section p {
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .policy-section ul li {
+            font-size: 1.05rem;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Footer */
+        footer {
+            background:#07649e;
+            color: white;
+            padding: 3rem 2rem 1rem;
+            margin-top: 3rem;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section h3, .footer-section h4 {
+            color: #ffd700;
+            margin-bottom: 1rem;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section ul li span {
+            color: #ccc;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section ul li span:hover {
+            color: #ffd700;
+        }
+
+       .social-icons a {
+    color: #fff;
+    font-size: 1.5rem;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+        .social-icons span {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+            color: #999;
+        }
+
+        /* Animations */
+        @keyframes slideInFromLeft {
+            0% {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .cart-hero-content h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .cart-hero {
+                padding: 2rem 3%;
+            }
+
+            .cart-hero-content h1 {
+                font-size: 1.8rem;
+            }
+
+            .cart-hero-content p {
+                font-size: 0.95rem;
+            }
+
+            .cart-content-wrapper {
+                padding: 2rem 3%;
+            }
+
+            .policy-section {
+                padding: 1.5rem;
+            }
+
+            .policy-section h2 {
+                font-size: 1.4rem;
+            }
+
+            .policy-section h3 {
+                font-size: 1.2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .cart-hero {
+                padding: 1.5rem 3%;
+            }
+
+            .cart-hero-content h1 {
+                font-size: 1.5rem;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .cart-content-wrapper {
+                padding: 1.5rem 3%;
+            }
+
+            .policy-section {
+                padding: 1rem;
+            }
+
+            .policy-section h2 {
+                font-size: 1.2rem;
+            }
+
+            .policy-section h3 {
+                font-size: 1.1rem;
+            }
+
+            .policy-section p, .policy-section ul li {
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+    <a href="/home.html" class="logo">
+            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 Bags" class="logo-img" onerror="this.style.display='none'">
+            <div class="logo-text">
+                <h2><span>JBR7</span> BAGS</h2>
+                <span class="sub-logo">MANUFACTURING</span>
+            </div>
+        </a>
+    </header>
+
+    <section class="cart-hero">
+        <div class="cart-hero-content">
+            <h1><i class="fas fa-file-contract"></i> TERMS OF SERVICE</h1>
+            <p>Our Terms and Conditions</p>
+        </div>
+    </section>
+
+    <div class="cart-content-wrapper">
+        <div class="policy-container">
+            <div class="policy-section">
+                <div class="policy-section-header">
+                    <div class="policy-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h2>Terms of Service</h2>
+                </div>
+                <p><strong>Last Updated:</strong> January 2025</p>
+                <p>Please read these Terms of Service ("Terms") carefully before using the JBR7 Bags Manufacturing website and services. By accessing or using our services, you agree to be bound by these Terms.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-check-circle"></i> Acceptance of Terms</h3>
+                <p>By accessing and using this website, you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-shopping-cart"></i> Orders and Payment</h3>
+                <p>When you place an order with us, you agree to:</p>
+                <ul>
+                    <li>Provide accurate and complete information</li>
+                    <li>Pay the full amount for your order</li>
+                    <li>Accept that prices may change without notice</li>
+                    <li>Understand that custom orders are final once production begins</li>
+                    <li>Comply with our payment terms and schedules</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-box"></i> Products and Services</h3>
+                <p>We strive to provide accurate product descriptions and images. However:</p>
+                <ul>
+                    <li>Product colors may vary slightly due to monitor settings</li>
+                    <li>We reserve the right to modify product specifications</li>
+                    <li>Custom orders require approval before production</li>
+                    <li>Minimum order quantities apply to custom designs</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-undo"></i> Returns and Refunds</h3>
+                <p>Our return policy includes:</p>
+                <ul>
+                    <li>30-day return window for standard products (unused, with tags)</li>
+                    <li>Custom orders are non-refundable unless defective</li>
+                    <li>Defective items will be replaced or refunded at no cost</li>
+                    <li>Return shipping costs are the customer's responsibility (unless defective)</li>
+                    <li>Refunds processed within 5-10 business days</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-truck"></i> Shipping and Delivery</h3>
+                <p>Shipping terms:</p>
+                <ul>
+                    <li>Delivery times are estimates and not guaranteed</li>
+                    <li>We are not responsible for delays caused by carriers</li>
+                    <li>Risk of loss transfers to you upon delivery</li>
+                    <li>International shipping may be subject to customs fees</li>
+                    <li>You are responsible for providing accurate shipping addresses</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-ban"></i> Prohibited Uses</h3>
+                <p>You agree not to:</p>
+                <ul>
+                    <li>Use our services for any unlawful purpose</li>
+                    <li>Violate any intellectual property rights</li>
+                    <li>Transmit viruses or malicious code</li>
+                    <li>Attempt to gain unauthorized access to our systems</li>
+                    <li>Interfere with or disrupt our services</li>
+                </ul>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-copyright"></i> Intellectual Property</h3>
+                <p>All content on this website, including text, graphics, logos, and images, is the property of JBR7 Bags Manufacturing and is protected by copyright and trademark laws. You may not reproduce, distribute, or create derivative works without our written permission.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-exclamation-triangle"></i> Limitation of Liability</h3>
+                <p>JBR7 Bags Manufacturing shall not be liable for any indirect, incidental, special, or consequential damages arising from your use of our services or products.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-gavel"></i> Governing Law</h3>
+                <p>These Terms shall be governed by and construed in accordance with the laws of the Philippines, without regard to its conflict of law provisions.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-edit"></i> Changes to Terms</h3>
+                <p>We reserve the right to modify these Terms at any time. We will notify users of any material changes by posting the new Terms on this page and updating the "Last Updated" date.</p>
+            </div>
+
+            <div class="policy-section">
+                <h3><i class="fas fa-envelope"></i> Contact Information</h3>
+                <p>If you have questions about these Terms, please contact us:</p>
+                <p><strong>Email:</strong> roquejennylynbatac@gmail.com<br>
+                <strong>Phone:</strong> 09216821649<br>
+                <strong>Address:</strong> 059 Purok 1, Culianin, Plaridel, Bulacan</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>JBR7 BAGS</h3>
+                <p>Manufacturing quality bags since day one.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><span onclick="handleFooterNavigate('about')">About Us</span></li>
+                    <li><span onclick="handleFooterNavigate('products')">Products</span></li>
+                    <li><span onclick="handleFooterNavigate('contact')">Contact</span></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Info</h4>
+                <p>Email: roquejennylynbatac@gmail.com</p>
+                <p>Phone: +639216821649</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <div class="social-icons">
+                    <span onclick="handleSocialClick('facebook')"><i class="fab fa-facebook"></i></span>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 JBR7 Bags Manufacturing. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        function handleNavigate(page) {
+            console.log('Navigating to:', page);
+        }
+
+        function handleFooterNavigate(page) {
+            if (page === 'about') {
+                window.location.href = '/about.html';
+            } else if (page === 'products') {
+                window.location.href = '/explore.html';
+            } else if (page === 'contact') {
+                window.location.href = '/contact.html';
+            }
+        }
+
+        function handleSocialClick(platform) {
+            if (platform === 'facebook') {
+                window.open('https://web.facebook.com/profile.php?id=61557774894148&rdid=6Um97esYK1zmLPMi&share_url=https%3A%2F%2Fweb.facebook.com%2Fshare%2F1CMB6249vF%2F%3F_rdc%3D1%26_rdr%23', '_blank');
+                return;
+            }
+            console.log('Social click:', platform);
+        }
+    </script>
+   
+</body>
+</html>
