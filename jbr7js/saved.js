@@ -1,5 +1,13 @@
 // Saved Items Page Functionality
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Sample product data (in real app, this would come from a database)
 const productData = {
     "Eco Jute Tote Bag": {
@@ -76,7 +84,7 @@ function loadSavedItems() {
         // Attempt to fetch server-synced saved items
         const tryServer = async () => {
             try {
-                const res = await fetch('/jbr7php/get_saved_items.php', { credentials: 'same-origin' });
+                const res = await jbr7Fetch('/api/get_saved_items', '/jbr7php/get_saved_items.php', { credentials: 'same-origin' });
                 if (!res.ok) return null; // not authenticated or server error
                 const j = await res.json();
                 if (j && j.success && Array.isArray(j.items)) {
@@ -229,7 +237,7 @@ function removeSavedItem(itemName) {
     // Try server-side removal first for authenticated users
     (async () => {
         try {
-            const res = await fetch('/jbr7php/delete_saved_item.php', {
+            const res = await jbr7Fetch('/api/delete_saved_item', '/jbr7php/delete_saved_item.php', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
@@ -291,7 +299,7 @@ function clearAllSaved() {
     // clear localStorage to keep the UI responsive.
     (async () => {
         try {
-            const res = await fetch('/jbr7php/delete_all_saved_items.php', {
+            const res = await jbr7Fetch('/api/delete_all_saved_items', '/jbr7php/delete_all_saved_items.php', {
                 method: 'POST',
                 credentials: 'same-origin'
             });

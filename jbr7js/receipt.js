@@ -1,5 +1,13 @@
 // receipt.js - read pendingCheckout from localStorage and render professional receipt
 (function(){
+  // Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+  function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+      if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+      return res;
+    }).catch(() => fetch(phpUrl, options));
+  }
+
   function fmt(n){ return '₱' + Number(n).toFixed(2); }
 
   // Check if pendingCheckout exists
@@ -162,7 +170,7 @@
   function saveReceiptToDatabase(receiptData) {
     console.log('Attempting to save receipt to database...', receiptData);
     
-    fetch('/jbr7php/receipt.php', {
+    jbr7Fetch('/api/receipt', '/jbr7php/receipt.php', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'same-origin',

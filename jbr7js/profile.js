@@ -1,5 +1,13 @@
 // Profile Page Functionality - Updated Version with Better Data Fetching
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Show specific profile section
 function showProfileSection(sectionName) {
     // Hide all sections
@@ -44,7 +52,7 @@ function showProfileSection(sectionName) {
 async function fetchSessionAndPopulateProfile() {
     try {
         console.debug('profile.js: requesting /jbr7php/profile.php');
-        const response = await fetch('/jbr7php/profile.php', {
+        const response = await jbr7Fetch('/api/profile', '/jbr7php/profile.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -294,7 +302,7 @@ async function removeSavedItem(encodedTitle, buttonEl) {
     if (!confirm(`Remove "${title}" from saved items?`)) return;
     
     try {
-        const response = await fetch('/jbr7php/delete_saved_item.php', {
+        const response = await jbr7Fetch('/api/delete_saved_item', '/jbr7php/delete_saved_item.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
@@ -408,7 +416,7 @@ window.editAvatar = function() {
             formData.append('photo', file);
             
             try {
-                const response = await fetch('/jbr7php/upload_profile_photo.php', {
+                const response = await jbr7Fetch('/api/upload_profile_photo', '/jbr7php/upload_profile_photo.php', {
                     method: 'POST',
                     body: formData,
                     credentials: 'same-origin'
@@ -549,7 +557,7 @@ function handleLogout() {
         
         sessionStorage.clear();
 
-        fetch('/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
+        jbr7Fetch('/api/logout', '/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
             .finally(() => setTimeout(() => { window.location.href = 'index.html'; }, 600));
     }
 }
@@ -618,7 +626,7 @@ async function loadUserReviews() {
     container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading reviews...</p>';
     
     try {
-        const response = await fetch('/jbr7php/get_user_reviews.php', {
+        const response = await jbr7Fetch('/api/get_user_reviews', '/jbr7php/get_user_reviews.php', {
             credentials: 'same-origin'
         });
         

@@ -1,5 +1,13 @@
 // Explore Page Functionality
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Product mapping to match view.html PRODUCTS array
 const PRODUCT_MAP = {
     'Eco Colored Tote Bag': { id: '7', slug: 'eco-colored-tote' },
@@ -281,7 +289,7 @@ function toggleSave(button) {
         // Try server save for authenticated users. If not authenticated, server returns 401 and we silently keep localStorage.
         try {
             const payload = { title: productName, image: productImage, price: productPrice };
-            fetch('/jbr7php/save_item.php', {
+            jbr7Fetch('/api/save_item', '/jbr7php/save_item.php', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
@@ -313,7 +321,7 @@ function toggleSave(button) {
         // Try server-side removal
         try {
             const payload = { title: productName };
-            fetch('/jbr7php/delete_saved_item.php', {
+            jbr7Fetch('/api/delete_saved_item', '/jbr7php/delete_saved_item.php', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },

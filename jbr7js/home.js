@@ -1,5 +1,13 @@
 // Navigation functionality for JBR7 Bags
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Lightweight messenger stub so header can call messages before the full messenger is initialized.
 // It records an intent and will forward to the real implementation when available.
 if (!window.JBR7Messenger) {
@@ -35,8 +43,8 @@ function handleNavigate(page) {
     // Navigate to different pages
     switch(page) {
         case 'home':
-            // Use the PHP locator when available so pages served through PHP resolve correctly
-            window.location.href = '/jbr7php/home.php';
+            // Prefer static HTML for deployments (PHP may not exist)
+            window.location.href = '/home.html';
             break;
         case 'explore':
             window.location.href = 'explore.html';
@@ -238,7 +246,7 @@ document.addEventListener('DOMContentLoaded', function() {
         logoLink.addEventListener('click', async function (e) {
             e.preventDefault();
             try {
-                const res = await fetch('/jbr7php/session_user.php', { credentials: 'same-origin' });
+                const res = await jbr7Fetch('/api/session_user', '/jbr7php/session_user.php', { credentials: 'same-origin' });
                 if (res && res.ok) {
                     // Logged in: keep behavior as home link
                     window.location.href = '/home.html';
@@ -257,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Fetch session info and update header elements so pages can remain plain HTML
 async function initHeaderFromServer() {
     try {
-        const res = await fetch('/jbr7php/session_user.php', { credentials: 'same-origin' });
+        const res = await jbr7Fetch('/api/session_user', '/jbr7php/session_user.php', { credentials: 'same-origin' });
         if (!res.ok) return; // not authenticated or server error
         const j = await res.json().catch(() => null);
         if (!j || !j.success || !j.user) return;
@@ -689,7 +697,10 @@ async function initHeaderFromServer() {
                 return;
             }
             
-            const response = await fetch(`/jbr7php/search_all.php?q=${encodeURIComponent(query)}&type=all`);
+            const response = await jbr7Fetch(
+                `/api/search_all?q=${encodeURIComponent(query)}&type=all`,
+                `/jbr7php/search_all.php?q=${encodeURIComponent(query)}&type=all`
+            );
             const data = await response.json();
             
             if (!data.success) {

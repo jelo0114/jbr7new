@@ -1,5 +1,13 @@
 // JavaScript file for JBR7 Bags Manufacturing
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Open modal and switch to specific tab
 function openModal(type) {
     const modal = document.getElementById('authModal');
@@ -63,7 +71,7 @@ function togglePassword(inputId, icon) {
 
 async function isLandingUserAuthenticated() {
     try {
-        const res = await fetch('/jbr7php/session_user.php', { credentials: 'same-origin' });
+        const res = await jbr7Fetch('/api/session_user', '/jbr7php/session_user.php', { credentials: 'same-origin' });
         return res.ok;
     } catch (err) {
         console.warn('index.js auth check failed, treating as guest', err);

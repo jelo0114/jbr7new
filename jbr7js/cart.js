@@ -1,5 +1,13 @@
 // Cart Page Functionality - UPDATED with color selection for all products
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 let cartItems = [];
 
 // Size-to-price mapping for Eco Jute Tote
@@ -538,7 +546,7 @@ async function checkout() {
     
     // Validate that user has at least one shipping address
     try {
-        const addressResponse = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const addressResponse = await jbr7Fetch('/api/get_shipping_addresses', '/jbr7php/get_shipping_addresses.php', {
             credentials: 'same-origin'
         });
         const addressData = await addressResponse.json();
@@ -618,7 +626,7 @@ const items = itemsToCheckout.map(it => ({
     // Get default shipping address
     let shippingAddress = null;
     try {
-        const addressResponse = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const addressResponse = await jbr7Fetch('/api/get_shipping_addresses', '/jbr7php/get_shipping_addresses.php', {
             credentials: 'same-origin'
         });
         const addressData = await addressResponse.json();
@@ -659,7 +667,7 @@ const items = itemsToCheckout.map(it => ({
     // Show loading notification
     showNotification('Saving order to database...', 'info');
     
-    fetch('/jbr7php/save_order.php', {
+    jbr7Fetch('/api/save_order', '/jbr7php/save_order.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
@@ -677,7 +685,7 @@ const items = itemsToCheckout.map(it => ({
             console.log('Order saved to database:', data.order_id, data.order_number);
             
             // Create push notification for order placement
-            fetch('/jbr7php/create_order_notification.php', {
+            jbr7Fetch('/api/create_order_notification', '/jbr7php/create_order_notification.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'same-origin',
@@ -704,13 +712,13 @@ const items = itemsToCheckout.map(it => ({
             .catch(e => console.error('Failed to create notification:', e));
             
             setTimeout(() => {
-                fetch('/jbr7php/update_order_status.php', { credentials: 'same-origin' })
+                jbr7Fetch('/api/update_order_status', '/jbr7php/update_order_status.php', { credentials: 'same-origin' })
                     .then(r => r.json())
                     .then(d => console.log('Status update (shipped):', d))
                     .catch(e => console.error('Status update failed', e));
             }, 91000);
             setTimeout(() => {
-                fetch('/jbr7php/update_order_status.php', { credentials: 'same-origin' })
+                jbr7Fetch('/api/update_order_status', '/jbr7php/update_order_status.php', { credentials: 'same-origin' })
                     .then(r => r.json())
                     .then(d => console.log('Status update (delivered):', d))
                     .catch(e => console.error('Status update failed', e));
@@ -755,7 +763,7 @@ async function loadDefaultPaymentAndCourier() {
     
     // Try to load from database first
     try {
-        const response = await fetch('/jbr7php/get_user_preferences.php', {
+        const response = await jbr7Fetch('/api/get_user_preferences', '/jbr7php/get_user_preferences.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {

@@ -1,5 +1,13 @@
 // Settings Page Functionality - Updated to use profile.php
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 // Show specific settings section
 function showSettingsSection(sectionName) {
     const sections = document.querySelectorAll('.settings-section');
@@ -32,7 +40,7 @@ function showSettingsSection(sectionName) {
 async function loadUserData() {
     try {
         console.log('settings.js: Loading user data from profile.php');
-        const response = await fetch('/jbr7php/profile.php', {
+        const response = await jbr7Fetch('/api/profile', '/jbr7php/profile.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -115,7 +123,7 @@ async function saveAccountInfo() {
     }
     
     try {
-        const response = await fetch('/jbr7php/update_account.php', {
+        const response = await jbr7Fetch('/api/update_account', '/jbr7php/update_account.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -166,7 +174,7 @@ async function changePassword() {
     }
     
     try {
-        const response = await fetch('/jbr7php/change_password.php', {
+        const response = await jbr7Fetch('/api/change_password', '/jbr7php/change_password.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -227,7 +235,7 @@ async function loadLoginHistory() {
     `;
     
     try {
-        const response = await fetch('/jbr7php/get_login_history.php', {
+        const response = await jbr7Fetch('/api/get_login_history', '/jbr7php/get_login_history.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -342,8 +350,16 @@ async function downloadUserData() {
     
     try {
         // Open in new window - it will auto-trigger print dialog for PDF save
-        const url = '/jbr7php/download_user_data.php';
-        const newWindow = window.open(url, '_blank', 'width=800,height=600');
+        const apiUrl = '/api/download_user_data';
+        const phpUrl = '/jbr7php/download_user_data.php';
+        let urlToOpen = apiUrl;
+        try {
+            const probe = await fetch(apiUrl, { method: 'HEAD', credentials: 'same-origin' });
+            if (probe.status === 404 || probe.status === 405) urlToOpen = phpUrl;
+        } catch (e) {
+            urlToOpen = phpUrl;
+        }
+        const newWindow = window.open(urlToOpen, '_blank', 'width=800,height=600');
         
         if (!newWindow) {
             showNotification('Please allow pop-ups to download your data', 'error');
@@ -378,7 +394,7 @@ async function deleteAccount() {
     showNotification('Deleting account...', 'info');
     
     try {
-        const response = await fetch('/jbr7php/delete_account.php', {
+        const response = await jbr7Fetch('/api/delete_account', '/jbr7php/delete_account.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -426,7 +442,7 @@ async function savePaymentPreference() {
     
     // Save to database
     try {
-        const response = await fetch('/jbr7php/save_user_preferences.php', {
+        const response = await jbr7Fetch('/api/save_user_preferences', '/jbr7php/save_user_preferences.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -479,7 +495,7 @@ async function loadAddresses() {
     `;
     
     try {
-        const response = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const response = await jbr7Fetch('/api/get_shipping_addresses', '/jbr7php/get_shipping_addresses.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -719,7 +735,7 @@ async function removeAddress(addressId) {
     }
     
     try {
-        const response = await fetch('/jbr7php/delete_shipping_address.php', {
+        const response = await jbr7Fetch('/api/delete_shipping_address', '/jbr7php/delete_shipping_address.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -745,7 +761,7 @@ async function removeAddress(addressId) {
 // Set default address
 async function setDefaultAddress(addressId) {
     try {
-        const response = await fetch('/jbr7php/set_default_address.php', {
+        const response = await jbr7Fetch('/api/set_default_address', '/jbr7php/set_default_address.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -884,7 +900,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             try {
-                const response = await fetch('/jbr7php/save_shipping_address.php', {
+                const response = await jbr7Fetch('/api/save_shipping_address', '/jbr7php/save_shipping_address.php', {
                     method: 'POST',
                     credentials: 'same-origin',
                     headers: {
@@ -934,7 +950,7 @@ async function saveCourierPreference() {
     
     // Save to database
     try {
-        const response = await fetch('/jbr7php/save_user_preferences.php', {
+        const response = await jbr7Fetch('/api/save_user_preferences', '/jbr7php/save_user_preferences.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
@@ -999,7 +1015,7 @@ function logout() {
         
         sessionStorage.clear();
 
-        fetch('/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
+        jbr7Fetch('/api/logout', '/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
             .finally(() => {
                 setTimeout(() => {
                     window.location.href = 'index.html';
@@ -1066,7 +1082,7 @@ if (!document.querySelector('#notification-styles')) {
 async function loadSavedPreferences() {
     // Try to load from database first, then fallback to localStorage
     try {
-        const response = await fetch('/jbr7php/get_user_preferences.php', {
+        const response = await jbr7Fetch('/api/get_user_preferences', '/jbr7php/get_user_preferences.php', {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -1123,7 +1139,7 @@ async function loadSavedPreferences() {
 // Load notification preferences from server
 async function loadNotificationPreferences() {
     try {
-        const response = await fetch('/jbr7php/get_notification_preference.php', {
+        const response = await jbr7Fetch('/api/get_notification_preference', '/jbr7php/get_notification_preference.php', {
             method: 'GET',
             credentials: 'same-origin'
         });
@@ -1167,7 +1183,7 @@ async function togglePushNotification(type, checkbox) {
         console.log('Sending request:', requestData);
         
         // FIXED: Added leading slash to path
-        const response = await fetch('/jbr7php/update_notification_preference.php', {
+        const response = await jbr7Fetch('/api/update_notification_preference', '/jbr7php/update_notification_preference.php', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {

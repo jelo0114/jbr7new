@@ -1,9 +1,17 @@
 // explore-ratings.js
 // Fetches and displays ratings from database for explore.html
 
+// Prefer /api/* routes (Supabase/Vercel) but fall back to PHP (XAMPP)
+function jbr7Fetch(apiUrl, phpUrl, options) {
+    return fetch(apiUrl, options).then(res => {
+        if (res.status === 404 || res.status === 405) return fetch(phpUrl, options);
+        return res;
+    }).catch(() => fetch(phpUrl, options));
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Fetch items with ratings from database
-    fetch('/jbr7php/get_items.php', {
+    jbr7Fetch('/api/get_items', '/jbr7php/get_items.php', {
         credentials: 'same-origin'
     })
     .then(response => {
