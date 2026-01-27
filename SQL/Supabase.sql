@@ -243,4 +243,4 @@ SET
   description = EXCLUDED.description,
   price       = EXCLUDED.price,
   image       = EXCLUDED.image,
-  category    = EXCLUDED.category;
+  category    = EXCLUDED.category;  
