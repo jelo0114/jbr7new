@@ -601,9 +601,8 @@ let REVIEWS = [];
                 return;
             }
             
-            const response = await fetch('/jbr7php/submit_review_new.php', {
+            const response = await apiFetch('/api/submit_review', {
                 method: 'POST',
-                credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     item_title: productTitle,
@@ -665,12 +664,12 @@ async function loadProductReviews(productTitle){
         const normalizedTitle = productTitle.trim();
         console.log('Loading reviews for product:', normalizedTitle);
         
-        const response = await fetch('/jbr7php/get_product_reviews.php?product=' + encodeURIComponent(normalizedTitle), {
+        const response = await apiFetch('/api/get_product_reviews?product=' + encodeURIComponent(normalizedTitle), {
             credentials: 'same-origin'
         });
         
         console.log('Review fetch response status:', response.status);
-        console.log('Review fetch URL:', '/jbr7php/get_product_reviews.php?product=' + encodeURIComponent(normalizedTitle));
+        console.log('Review fetch URL:', '/api/get_product_reviews?product=' + encodeURIComponent(normalizedTitle));
         
         if(!response.ok) {
             console.error('Response not OK:', response.status);
@@ -1259,9 +1258,18 @@ function updateRatingSummary(summary){
         const showReview = qParam('review') === 'true';
         const orderItemId = qParam('order_item_id');
         
+        // Helper: add user id header for API calls
+        function apiFetch(url, options) {
+            const opts = options || {};
+            const headers = opts.headers ? { ...opts.headers } : {};
+            const uid = sessionStorage.getItem('jbr7_user_id');
+            if (uid) headers['X-User-Id'] = uid;
+            return fetch(url, { ...opts, headers });
+        }
+
         if(showReview || orderItemId){
             // Show review form for authenticated users
-            fetch('/jbr7php/check_auth.php', { credentials: 'same-origin' })
+            apiFetch('/api/check_auth', { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
                     if(data.authenticated){

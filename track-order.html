@@ -73,6 +73,14 @@
   </div>
 
   <script>
+  // Helper: add user id header for API calls
+  function apiFetch(url, options) {
+    const opts = options || {};
+    const headers = opts.headers ? { ...opts.headers } : {};
+    const uid = sessionStorage.getItem('jbr7_user_id');
+    if (uid) headers['X-User-Id'] = uid;
+    return fetch(url, { ...opts, headers });
+  }
     // Parse query params
     function qs(name) { const p = new URLSearchParams(location.search); return p.get(name); }
     const orderId = qs('order_id');
@@ -82,7 +90,7 @@
     // Load order data from database if order_id is provided
     let orderData = null;
     if (orderId) {
-      fetch(`/jbr7php/get_orders.php`, { credentials: 'same-origin' })
+      apiFetch(`/api/get_orders`, { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
           if (data.success && data.orders) {

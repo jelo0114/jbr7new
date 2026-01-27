@@ -302,15 +302,20 @@
               
     
     
-    <script src="jbr7js/user-storage.js"></script>
-    <script src="jbr7js/home.js"></script>
-    <script src="jbr7js/profile.js"></script>
-    <script src="jbr7js/notifications.js"></script>
-    <script src="jbr7js/view-linker.js"></script>
+    <!-- jbr7js files were removed; inline scripts below handle profile behavior -->
 
     <script>
         let currentStatusFilter = 'all';
         let allOrders = [];
+
+        // Helper: add user id header for API calls
+        function apiFetch(url, options) {
+            const opts = options || {};
+            const headers = opts.headers ? { ...opts.headers } : {};
+            const uid = sessionStorage.getItem('jbr7_user_id');
+            if (uid) headers['X-User-Id'] = uid;
+            return fetch(url, { ...opts, headers });
+        }
 
         // Load orders from database
         async function loadOrders(status = null) {
@@ -318,9 +323,9 @@
             container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</p>';
 
             try {
-                const url = status ? `/jbr7php/get_orders.php?status=${status}` : '/jbr7php/get_orders.php';
+                const url = status ? `/api/get_orders?status=${status}` : '/api/get_orders';
                 console.log('Fetching orders from:', url);
-                const response = await fetch(url, { credentials: 'same-origin' });
+                const response = await apiFetch(url, { credentials: 'same-origin' });
                 
                 if (!response.ok) {
                     const errorText = await response.text();
@@ -474,10 +479,9 @@
             if (!confirm('Are you sure you want to cancel this order?')) return;
 
             try {
-                const response = await fetch('/jbr7php/cancel_order.php', {
+                const response = await apiFetch('/api/cancel_order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    credentials: 'same-origin',
                     body: JSON.stringify({ order_id: orderId })
                 });
 
@@ -520,7 +524,7 @@
 
         // Update order status periodically
         setInterval(() => {
-            fetch('/jbr7php/update_order_status.php', { credentials: 'same-origin' })
+            apiFetch('/api/update_order_status', { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && (data.updated.shipped > 0 || data.updated.delivered > 0)) {
@@ -536,7 +540,7 @@
             if (!reviewsList) return;
             
             try {
-                const response = await fetch('/jbr7php/get_user_reviews.php', {
+                const response = await apiFetch('/api/get_user_reviews', {
                     credentials: 'same-origin'
                 });
                 
@@ -643,7 +647,7 @@
         // Load user activities and points
         async function loadUserActivities() {
             try {
-                const response = await fetch('/jbr7php/get_user_activities.php', {
+                const response = await apiFetch('/api/get_user_activities', {
                     credentials: 'same-origin'
                 });
                 
