@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -21,9 +23,8 @@ $userId = (int)$_SESSION['user_id'];
 $input = json_decode(file_get_contents('php://input'), true);
 $password = $input['password'] ?? '';
 
-// $pdo is now available from config/database.php
-
 try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     
     // Verify password if provided
     if (!empty($password)) {

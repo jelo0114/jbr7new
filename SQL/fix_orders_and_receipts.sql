@@ -61,8 +61,4 @@ CREATE TABLE receipts (
 -- ALTER TABLE receipts ADD CONSTRAINT fk_receipts_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
 -- ALTER TABLE receipts ADD CONSTRAINT fk_receipts_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL;
 
--- Verify table structure
 SELECT 'Setup complete! Orders table updated and receipts table created.' AS result;
-
--- Show receipts table structure
-DESCRIBE receipts;

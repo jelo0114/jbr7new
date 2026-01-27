@@ -18,13 +18,30 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 try {
-    // Check if table has new structure (PostgreSQL compatible)
-    $tableCheck = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'reviews' AND column_name = 'product_title')");
-    $hasNewStructure = $tableCheck->fetchColumn();
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    exit;
+}
+
+try {
+    // Check if table has new structure
+    $tableCheck = $pdo->query("SHOW COLUMNS FROM reviews LIKE 'product_title'");
+    $hasNewStructure = $tableCheck->rowCount() > 0;
     
     if ($hasNewStructure) {
         // Get reviews with product info from items table

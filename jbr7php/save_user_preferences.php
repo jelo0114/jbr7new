@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -29,11 +31,11 @@ if (!$input) {
 $defaultPayment = isset($input['default_payment']) ? trim($input['default_payment']) : null;
 $defaultCourier = isset($input['default_courier']) ? trim($input['default_courier']) : null;
 
-// $pdo is now available from config/database.php
-
 try {
-    // Check if preferences exist and get current values (PostgreSQL uses payment_method and courier_service)
-    $checkStmt = $pdo->prepare('SELECT payment_method, courier_service FROM user_preferences WHERE user_id = :user_id LIMIT 1');
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    
+    // Check if preferences exist and get current values
+    $checkStmt = $pdo->prepare('SELECT default_payment, default_courier FROM user_preferences WHERE user_id = :user_id LIMIT 1');
     $checkStmt->execute([':user_id' => $userId]);
     $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
     
@@ -43,12 +45,12 @@ try {
         $updateParams = [':user_id' => $userId];
         
         if (isset($input['default_payment'])) {
-            $updateFields[] = 'payment_method = :payment';
+            $updateFields[] = 'default_payment = :payment';
             $updateParams[':payment'] = $defaultPayment;
         }
         
         if (isset($input['default_courier'])) {
-            $updateFields[] = 'courier_service = :courier';
+            $updateFields[] = 'default_courier = :courier';
             $updateParams[':courier'] = $defaultCourier;
         }
         
@@ -61,9 +63,9 @@ try {
             $updateStmt->execute($updateParams);
         }
     } else {
-        // Insert new preferences - use provided values or null (PostgreSQL uses payment_method and courier_service)
+        // Insert new preferences - use provided values or null
         $insertStmt = $pdo->prepare('
-            INSERT INTO user_preferences (user_id, payment_method, courier_service)
+            INSERT INTO user_preferences (user_id, default_payment, default_courier)
             VALUES (:user_id, :payment, :courier)
         ');
         $insertStmt->execute([

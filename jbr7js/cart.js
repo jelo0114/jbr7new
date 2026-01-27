@@ -56,10 +56,6 @@ document.addEventListener('DOMContentLoaded', function() {
     updateSummary();
     // Load default preferences from database/localStorage
     loadDefaultPaymentAndCourier();
-    // Load user coupons
-    loadUserCoupons().then(() => {
-        loadAppliedCoupon();
-    });
 });
 
 // Load cart from localStorage (user-specific)
@@ -485,61 +481,16 @@ function clearCart() {
 // Update cart summary
 function updateSummary() {
     const anySelected = cartItems.some(it => !!it.selected);
-    // Calculate original subtotal (before discount)
-    const originalSubtotal = cartItems.reduce((sum, item) => {
+    const subtotal = cartItems.reduce((sum, item) => {
         const price = parseFloat(String(item.price).replace(/[^0-9\.\-]/g, '')) || 0;
         if (anySelected && !item.selected) return sum;
         return sum + (price * item.quantity);
     }, 0);
     
-    // Calculate discount if coupon is applied
-    let discount = 0;
-    let discountAmount = 0;
-    if (appliedCoupon && appliedCoupon.discount_percentage) {
-        discount = appliedCoupon.discount_percentage;
-        // Discount is calculated from original subtotal
-        discountAmount = (originalSubtotal * discount / 100);
-    }
-    
-    // Calculate subtotal after discount
-    const subtotalAfterDiscount = originalSubtotal - discountAmount;
-    
-    // Shipping is calculated based on original subtotal (not discounted)
-    const shipping = originalSubtotal > 50 ? 0 : 0.00;
-    
-    // Total = original subtotal - discount + shipping
-    const total = originalSubtotal - discountAmount + shipping;
+    const shipping = subtotal > 50 ? 0 : 0.00;
+    const total = subtotal + shipping;
 
-    console.log('Summary calculation:', {
-        originalSubtotal,
-        discountAmount,
-        shipping,
-        total
-    });
-
-    // Display original subtotal
-    document.getElementById('subtotal').textContent = `₱${originalSubtotal.toFixed(2)}`;
-    
-    // Show discount row if coupon is applied
-    const summaryDetails = document.querySelector('.summary-details');
-    let discountRow = document.getElementById('discount-row');
-    if (discount > 0 && discountAmount > 0) {
-        if (!discountRow) {
-            discountRow = document.createElement('div');
-            discountRow.id = 'discount-row';
-            discountRow.className = 'summary-row discount-row';
-            discountRow.style.color = '#4caf50';
-            const subtotalEl = document.getElementById('subtotal').parentElement;
-            subtotalEl.parentNode.insertBefore(discountRow, subtotalEl.nextSibling);
-        }
-        discountRow.innerHTML = `
-            <span>Discount (${discount}%):</span>
-            <span>-₱${discountAmount.toFixed(2)}</span>
-        `;
-    } else if (discountRow) {
-        discountRow.remove();
-    }
-    
+    document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
     document.getElementById('shipping').textContent = shipping === 0 ? 'FREE' : `₱${shipping.toFixed(2)}`;
     document.getElementById('total').textContent = `₱${total.toFixed(2)}`;
     
@@ -552,251 +503,29 @@ function updateSummary() {
     if (countEl) countEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''} in your cart`;
 }
 
-// Load user coupons for dropdown
-let userCoupons = [];
-let allUserCoupons = []; // Store all coupons (active, used, expired)
-let appliedCoupon = null;
-
-async function loadUserCoupons() {
-    try {
-        const response = await fetch('/jbr7php/get_user_coupons.php', {
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            console.error('Failed to fetch coupons');
-            return;
-        }
-
-        const data = await response.json();
-
-        if (data.success) {
-            // Store all coupons for display
-            allUserCoupons = data.coupons || [];
-            // Store active coupons for applying
-            userCoupons = data.active_coupons || [];
-            console.log('Loaded coupons:', {
-                total: allUserCoupons.length,
-                active: userCoupons.length,
-                all: allUserCoupons
-            });
-            populateCouponDropdown();
-        } else {
-            console.error('Failed to load coupons:', data.error);
-        }
-    } catch (error) {
-        console.error('Error loading coupons:', error);
-    }
-}
-
-// Populate coupon dropdown with ALL coupons
-function populateCouponDropdown() {
-    const couponSelect = document.getElementById('coupon-select');
-    if (!couponSelect) {
-        console.error('Coupon select element not found!');
+// Apply promo code
+function applyPromoCode() {
+    const promoInput = document.getElementById('promo-input');
+    const promoCode = promoInput.value.trim().toUpperCase();
+    
+    if (promoCode === '') {
+        showNotification('Please enter a promo code', 'info');
         return;
     }
-
-    console.log('Populating coupon dropdown with', allUserCoupons.length, 'coupons');
-
-    // Clear existing options except the first option
-    while (couponSelect.options.length > 1) {
-        couponSelect.remove(1);
-    }
-
-    if (allUserCoupons.length === 0) {
-        console.log('No coupons to display');
-        const option = document.createElement('option');
-        option.value = '';
-        option.textContent = 'No coupons available';
-        option.disabled = true;
-        couponSelect.appendChild(option);
-        return;
-    }
-
-    // Group coupons by status
-    const activeCoupons = allUserCoupons.filter(c => c.status === 'active');
-    const usedCoupons = allUserCoupons.filter(c => c.status === 'used');
-    const expiredCoupons = allUserCoupons.filter(c => c.status === 'expired');
-
-    // Add active coupons first
-    if (activeCoupons.length > 0) {
-        const groupLabel = document.createElement('option');
-        groupLabel.value = '';
-        groupLabel.textContent = '─── Active Coupons ───';
-        groupLabel.disabled = true;
-        groupLabel.style.fontWeight = 'bold';
-        groupLabel.style.backgroundColor = '#e8f5e9';
-        couponSelect.appendChild(groupLabel);
-
-        activeCoupons.forEach(coupon => {
-            const option = document.createElement('option');
-            option.value = coupon.coupon_code;
-            option.textContent = `${coupon.discount_percentage}% Off - ${coupon.coupon_code} (Expires: ${formatCouponDate(coupon.expires_at)})`;
-            option.dataset.discount = coupon.discount_percentage;
-            option.dataset.status = 'active';
-            option.style.color = '#4caf50';
-            couponSelect.appendChild(option);
-        });
-    }
-
-    // Add used coupons
-    if (usedCoupons.length > 0) {
-        const groupLabel = document.createElement('option');
-        groupLabel.value = '';
-        groupLabel.textContent = '─── Used Coupons ───';
-        groupLabel.disabled = true;
-        groupLabel.style.fontWeight = 'bold';
-        groupLabel.style.backgroundColor = '#f5f5f5';
-        couponSelect.appendChild(groupLabel);
-
-        usedCoupons.forEach(coupon => {
-            const option = document.createElement('option');
-            option.value = coupon.coupon_code;
-            option.textContent = `${coupon.discount_percentage}% Off - ${coupon.coupon_code} (Used: ${formatCouponDate(coupon.used_at)})`;
-            option.dataset.discount = coupon.discount_percentage;
-            option.dataset.status = 'used';
-            option.disabled = true; // Disable used coupons
-            option.style.color = '#9e9e9e';
-            option.style.fontStyle = 'italic';
-            couponSelect.appendChild(option);
-        });
-    }
-
-    // Add expired coupons
-    if (expiredCoupons.length > 0) {
-        const groupLabel = document.createElement('option');
-        groupLabel.value = '';
-        groupLabel.textContent = '─── Expired Coupons ───';
-        groupLabel.disabled = true;
-        groupLabel.style.fontWeight = 'bold';
-        groupLabel.style.backgroundColor = '#fff3e0';
-        couponSelect.appendChild(groupLabel);
-
-        expiredCoupons.forEach(coupon => {
-            const option = document.createElement('option');
-            option.value = coupon.coupon_code;
-            option.textContent = `${coupon.discount_percentage}% Off - ${coupon.coupon_code} (Expired: ${formatCouponDate(coupon.expires_at)})`;
-            option.dataset.discount = coupon.discount_percentage;
-            option.dataset.status = 'expired';
-            option.disabled = true; // Disable expired coupons
-            option.style.color = '#ff9800';
-            option.style.fontStyle = 'italic';
-            couponSelect.appendChild(option);
-        });
-    }
-}
-
-// Format coupon expiration date
-function formatCouponDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-// Apply selected coupon
-function applyCoupon() {
-    const couponSelect = document.getElementById('coupon-select');
-    const removeBtn = document.getElementById('remove-coupon-btn');
-    const couponInfo = document.getElementById('applied-coupon-info');
-    const couponText = document.getElementById('applied-coupon-text');
-
-    if (!couponSelect || couponSelect.value === '') {
-        removeCoupon();
-        return;
-    }
-
-    const selectedOption = couponSelect.options[couponSelect.selectedIndex];
-    const couponStatus = selectedOption.dataset.status;
-    const couponCode = couponSelect.value;
-
-    // Check if coupon is active
-    if (couponStatus !== 'active') {
-        if (couponStatus === 'used') {
-            showNotification('This coupon has already been used', 'error');
-        } else if (couponStatus === 'expired') {
-            showNotification('This coupon has expired', 'error');
-        } else {
-            showNotification('This coupon is not available', 'error');
-        }
-        couponSelect.value = appliedCoupon ? appliedCoupon.code : '';
-        return;
-    }
-
-    const discountPercentage = parseInt(selectedOption.dataset.discount);
-
-    appliedCoupon = {
-        code: couponCode,
-        discount_percentage: discountPercentage
+    
+    const promoCodes = {
+        'JBR10': { type: 'percentage', value: 10, message: '10% discount applied!' },
+        'FREESHIP': { type: 'shipping', value: 0, message: 'Free shipping applied!' },
+        'SAVE20': { type: 'percentage', value: 20, message: '20% discount applied!' },
+        'WELCOME15': { type: 'percentage', value: 15, message: '15% welcome discount applied!' }
     };
-
-    console.log('✅ Coupon applied:', appliedCoupon);
-
-    localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
-
-    // Show coupon info
-    couponText.textContent = `${discountPercentage}% discount applied (${couponCode})`;
-    couponInfo.style.display = 'block';
-    removeBtn.style.display = 'block';
-
-    showNotification(`${discountPercentage}% discount coupon applied!`, 'success');
     
-    // Recalculate totals with discount
-    updateSummary();
-}
-
-// Remove applied coupon
-function removeCoupon() {
-    console.log('Removing coupon, current appliedCoupon:', appliedCoupon);
-    appliedCoupon = null;
-    localStorage.removeItem('appliedCoupon');
-
-    const couponSelect = document.getElementById('coupon-select');
-    const removeBtn = document.getElementById('remove-coupon-btn');
-    const couponInfo = document.getElementById('applied-coupon-info');
-
-    if (couponSelect) couponSelect.value = '';
-    if (removeBtn) removeBtn.style.display = 'none';
-    if (couponInfo) couponInfo.style.display = 'none';
-
-    showNotification('Coupon removed', 'info');
-    
-    // Recalculate totals without discount
-    updateSummary();
-}
-
-// Load applied coupon from localStorage on page load
-function loadAppliedCoupon() {
-    const saved = localStorage.getItem('appliedCoupon');
-    if (saved) {
-        try {
-            appliedCoupon = JSON.parse(saved);
-            // Verify coupon is still valid
-            const coupon = userCoupons.find(c => c.coupon_code === appliedCoupon.code);
-            if (coupon && coupon.status === 'active') {
-                const couponSelect = document.getElementById('coupon-select');
-                if (couponSelect) {
-                    couponSelect.value = appliedCoupon.code;
-                    // Don't call applyCoupon() here as it will trigger updateSummary
-                    // Just set the UI and update summary
-                    const removeBtn = document.getElementById('remove-coupon-btn');
-                    const couponInfo = document.getElementById('applied-coupon-info');
-                    const couponText = document.getElementById('applied-coupon-text');
-                    
-                    if (removeBtn) removeBtn.style.display = 'block';
-                    if (couponInfo) couponInfo.style.display = 'block';
-                    if (couponText) couponText.textContent = `${appliedCoupon.discount_percentage}% discount applied (${appliedCoupon.code})`;
-                    
-                    updateSummary();
-                }
-            } else {
-                localStorage.removeItem('appliedCoupon');
-                appliedCoupon = null;
-                updateSummary();
-            }
-        } catch (e) {
-            console.error('Error loading applied coupon:', e);
-            localStorage.removeItem('appliedCoupon');
-        }
+    if (promoCodes[promoCode]) {
+        showNotification(promoCodes[promoCode].message, 'success');
+        localStorage.setItem('appliedPromo', promoCode);
+        promoInput.value = '';
+    } else {
+        showNotification('Invalid promo code. Try JBR10 or FREESHIP', 'info');
     }
 }
 
@@ -860,24 +589,13 @@ async function checkout() {
         return;
     }
     
-    // Calculate original subtotal (before discount)
     const subtotal = cartItems.reduce((sum, item) => {
         const price = parseFloat(String(item.price).replace(/[^0-9\.\-]/g, '')) || 0;
         if (anySelected && !item.selected) return sum;
         return sum + (price * item.quantity);
     }, 0);
-    
-    // Shipping is calculated based on original subtotal (not discounted)
     const shipping = subtotal > 50 ? 0 : 5.99;
-    
-    // Calculate discount if coupon is applied
-    let discountAmount = 0;
-    if (appliedCoupon && appliedCoupon.discount_percentage) {
-        discountAmount = (subtotal * appliedCoupon.discount_percentage / 100);
-    }
-    
-    // Total = original subtotal - discount + shipping
-    const total = +(subtotal - discountAmount + shipping).toFixed(2);
+    const total = +(subtotal + shipping).toFixed(2);
 
     const customerEmail = localStorage.getItem('jbr7_customer_email') || localStorage.getItem('customerEmail') || '';
     const customerPhone = localStorage.getItem('jbr7_customer_phone') || localStorage.getItem('customerPhone') || '';
@@ -912,22 +630,13 @@ const items = itemsToCheckout.map(it => ({
         console.error('Error fetching shipping address:', error);
     }
 
-    // Get coupon code if applied
-    const couponCode = appliedCoupon ? appliedCoupon.code : null;
-    
-    // finalTotal is already calculated above: subtotal - discountAmount + shipping
-    const finalTotal = total;
-
     const checkoutData = {
         orderId,
         timestamp: new Date().toISOString(),
         items,
-        subtotal: +subtotal.toFixed(2), // Original subtotal before discount
-        discount: discountAmount > 0 ? +discountAmount.toFixed(2) : 0,
-        discount_percentage: appliedCoupon ? appliedCoupon.discount_percentage : 0,
-        coupon_code: couponCode,
+        subtotal: +subtotal.toFixed(2),
         shipping: +shipping.toFixed(2),
-        total: +finalTotal.toFixed(2), // Total = subtotal - discount + shipping
+        total: +total.toFixed(2),
         payment: paymentMethod,
         courier: courierService,
         customerEmail,
@@ -966,50 +675,6 @@ const items = itemsToCheckout.map(it => ({
     .then(data => {
         if (data.success) {
             console.log('Order saved to database:', data.order_id, data.order_number);
-            
-            // SAVE RECEIPT IMMEDIATELY AFTER ORDER IS SAVED
-            console.log('💾 Saving receipt to database immediately...');
-            console.log('💾 Receipt data being sent:', {
-                orderId: checkoutData.orderId,
-                itemsCount: checkoutData.items ? checkoutData.items.length : 0,
-                total: checkoutData.total,
-                hasShippingAddress: !!checkoutData.shippingAddress
-            });
-            
-            fetch('/jbr7php/receipt.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify(checkoutData)
-            })
-            .then(receiptResponse => {
-                console.log('📥 Receipt save response status:', receiptResponse.status, receiptResponse.statusText);
-                if (!receiptResponse.ok) {
-                    return receiptResponse.text().then(text => {
-                        console.error('❌ Receipt save HTTP error:', text);
-                        console.error('❌ Full error response:', receiptResponse);
-                        throw new Error(`HTTP ${receiptResponse.status}: ${text}`);
-                    });
-                }
-                return receiptResponse.json();
-            })
-            .then(receiptData => {
-                console.log('📥 Receipt save response data:', receiptData);
-                if (receiptData.success) {
-                    console.log('✅ Receipt saved to database! Receipt ID:', receiptData.receipt_id);
-                    // Update checkoutData with receipt_id
-                    checkoutData.receipt_id = receiptData.receipt_id;
-                    checkoutData.from_database = true;
-                    localStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
-                } else {
-                    console.error('❌ Receipt save failed:', receiptData.error);
-                    console.error('❌ Full error data:', receiptData);
-                }
-            })
-            .catch(receiptError => {
-                console.error('❌ Error saving receipt:', receiptError);
-                console.error('❌ Error stack:', receiptError.stack);
-            });
             
             // Create push notification for order placement
             fetch('/jbr7php/create_order_notification.php', {
@@ -1054,8 +719,7 @@ const items = itemsToCheckout.map(it => ({
             // Only redirect to receipt if save was successful
             showNotification('Order saved successfully! Redirecting to receipt...', 'success');
             setTimeout(() => {
-                // Pass order number in URL so receipt can fetch from database
-                window.location.href = 'receipt.html?order_number=' + encodeURIComponent(data.order_number);
+                window.location.href = 'receipt.html';
             }, 800);
         } else {
             console.error('Failed to save order:', data.error);

@@ -109,19 +109,12 @@
                 </div>
 
                 <div class="promo-section">
-                    <h3>Apply Coupon</h3>
-                    <div class="coupon-dropdown-group">
-                        <select id="coupon-select" onchange="applyCoupon()">
-                            <option value="">Select a coupon...</option>
-                            <!-- Coupons will be populated by JavaScript -->
-                        </select>
-                        <button class="remove-coupon-btn" id="remove-coupon-btn" onclick="removeCoupon()" style="display: none;">
-                            <i class="fas fa-times"></i> Remove
+                    <h3>Have a promo code?</h3>
+                    <div class="promo-input-group">
+                        <input type="text" id="promo-input" placeholder="Enter code">
+                        <button class="apply-promo-btn" onclick="applyPromoCode()">
+                            <i class="fas fa-tag"></i> Apply
                         </button>
-                    </div>
-                    <div id="applied-coupon-info" style="display: none; margin-top: 0.8rem; padding: 0.8rem; background: #e8f5e9; border-radius: 6px; font-size: 0.9rem;">
-                        <i class="fas fa-check-circle" style="color: #4caf50;"></i>
-                        <span id="applied-coupon-text"></span>
                     </div>
                 </div>
 

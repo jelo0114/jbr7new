@@ -18,12 +18,9 @@ if (!empty($data['title'])) {
 }
 if ($title === '') { http_response_code(400); echo json_encode(['success'=>false,'error'=>'Missing title']); exit; }
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
-
-// $pdo is now available from config/database.php
-
+$DB_HOST = '127.0.0.1'; $DB_NAME='jbr7_db'; $DB_USER='root'; $DB_PASS='';
 try{
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     $stmt = $pdo->prepare('DELETE FROM saved_items WHERE user_id = :uid AND title = :title');
     $stmt->execute([':uid'=>$_SESSION['user_id'], ':title'=>$title]);
     echo json_encode(['success'=>true]);

@@ -2,9 +2,6 @@
 header('Content-Type: application/json; charset=utf-8');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
-
 // Simple session endpoint used by the client header and profile page.
 if (empty($_SESSION['user_id'])) {
     http_response_code(401);
@@ -12,8 +9,16 @@ if (empty($_SESSION['user_id'])) {
     exit;
 }
 
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
+
 try {
-    // $pdo is now available from config/database.php
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 
     $userId = (int)$_SESSION['user_id'];
     $stmt = $pdo->prepare('SELECT id, username, email, created_at, COALESCE(points,0) AS points FROM users WHERE id = :id LIMIT 1');

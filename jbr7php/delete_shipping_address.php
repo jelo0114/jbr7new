@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -28,9 +30,8 @@ if (!isset($input['id'])) {
 
 $addressId = (int)$input['id'];
 
-// $pdo is now available from config/database.php
-
 try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     
     // Verify ownership and delete
     $deleteStmt = $pdo->prepare('DELETE FROM shipping_addresses WHERE id = :id AND user_id = :user_id');

@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -28,9 +30,8 @@ if (!isset($input['id'])) {
 
 $addressId = (int)$input['id'];
 
-// $pdo is now available from config/database.php
-
 try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     
     // Verify ownership
     $checkStmt = $pdo->prepare('SELECT id FROM shipping_addresses WHERE id = :id AND user_id = :user_id LIMIT 1');
@@ -42,12 +43,12 @@ try {
         exit;
     }
     
-    // Unset all other defaults for this user (PostgreSQL uses TRUE/FALSE)
-    $unsetStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = FALSE WHERE user_id = :user_id');
+    // Unset all other defaults for this user
+    $unsetStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = 0 WHERE user_id = :user_id');
     $unsetStmt->execute([':user_id' => $userId]);
     
-    // Set this address as default (PostgreSQL uses TRUE/FALSE)
-    $setStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = TRUE WHERE id = :id AND user_id = :user_id');
+    // Set this address as default
+    $setStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = 1 WHERE id = :id AND user_id = :user_id');
     $setStmt->execute([':id' => $addressId, ':user_id' => $userId]);
     
     echo json_encode([

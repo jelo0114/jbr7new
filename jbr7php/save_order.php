@@ -7,8 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
@@ -38,7 +40,20 @@ if (empty($input['orderId']) || empty($input['items']) || !is_array($input['item
     jsonError('Missing required fields', 400);
 }
 
-// $pdo is now available from config/database.php
+try {
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    error_log('save_order.php - DB connect error: ' . $e->getMessage());
+    jsonError('Database unavailable', 500);
+}
 
 try {
     $pdo->beginTransaction();
@@ -57,11 +72,11 @@ try {
         $shippingAddressJson = json_encode($input['shippingAddress']);
     }
 
-    // Check if shipping_address column exists (PostgreSQL compatible)
+    // Check if shipping_address column exists, if not, create order without it
     $hasShippingAddress = false;
     try {
-        $checkCol = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'orders' AND column_name = 'shipping_address')");
-        $hasShippingAddress = $checkCol->fetchColumn();
+        $checkCol = $pdo->query("SHOW COLUMNS FROM orders LIKE 'shipping_address'");
+        $hasShippingAddress = ($checkCol->rowCount() > 0);
     } catch (PDOException $e) {
         error_log('save_order.php - Could not check shipping_address column: ' . $e->getMessage());
     }
@@ -118,35 +133,11 @@ try {
 
     $orderId = (int)$pdo->lastInsertId();
 
-    // Mark coupon as used if one was applied
-    if (!empty($input['coupon_code'])) {
-        try {
-            $checkCouponsTable = $pdo->query("SHOW TABLES LIKE 'user_coupons'");
-            if ($checkCouponsTable->rowCount() > 0) {
-                $markCouponStmt = $pdo->prepare('
-                    UPDATE user_coupons 
-                    SET is_used = TRUE, used_at = NOW() 
-                    WHERE user_id = :user_id 
-                    AND coupon_code = :coupon_code 
-                    AND is_used = FALSE
-                    AND expires_at >= NOW()
-                ');
-                $markCouponStmt->execute([
-                    ':user_id' => $userId,
-                    ':coupon_code' => $input['coupon_code']
-                ]);
-            }
-        } catch (PDOException $e) {
-            // Don't fail order if coupon marking fails
-            error_log('save_order.php - Failed to mark coupon as used: ' . $e->getMessage());
-        }
-    }
-
     // Award 100 points for order activity
     try {
-        // Check if points column exists (PostgreSQL compatible)
-        $checkPoints = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'points')");
-        if ($checkPoints->fetchColumn()) {
+        // Check if points column exists
+        $checkPoints = $pdo->query("SHOW COLUMNS FROM users LIKE 'points'");
+        if ($checkPoints->rowCount() > 0) {
             $pointsStmt = $pdo->prepare('
                 UPDATE users 
                 SET points = COALESCE(points, 0) + 100 

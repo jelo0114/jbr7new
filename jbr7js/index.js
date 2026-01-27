@@ -56,3 +56,41 @@ function togglePassword(inputId, icon) {
         icon.classList.add('fa-eye-slash');
     }
 }
+
+// -----------------------------
+// Auth guard for landing page
+// -----------------------------
+
+async function isLandingUserAuthenticated() {
+    try {
+        const res = await fetch('/jbr7php/session_user.php', { credentials: 'same-origin' });
+        return res.ok;
+    } catch (err) {
+        console.warn('index.js auth check failed, treating as guest', err);
+        return false;
+    }
+}
+
+function redirectLandingToSignin(redirectTo = 'home.html') {
+    const url = `signin.html?redirect=${encodeURIComponent(redirectTo)}`;
+    window.location.href = url;
+}
+
+async function handleLandingAuthClick(event) {
+    event.preventDefault();
+    const el = event.currentTarget;
+    const href = el.getAttribute('href') || 'home.html';
+    const ok = await isLandingUserAuthenticated();
+    if (ok) {
+        window.location.href = href;
+    } else {
+        redirectLandingToSignin(href);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Any element tagged with data-requires-auth will be protected
+    document.querySelectorAll('[data-requires-auth]').forEach(el => {
+        el.addEventListener('click', handleLandingAuthClick);
+    });
+});

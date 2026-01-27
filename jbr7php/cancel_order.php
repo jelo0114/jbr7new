@@ -7,8 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
@@ -35,9 +37,17 @@ if (empty($input['order_id'])) {
 
 $orderId = (int)$input['order_id'];
 
-// $pdo is now available from config/database.php
-
 try {
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
     error_log('cancel_order.php - DB connect error: ' . $e->getMessage());
     jsonError('Database unavailable', 500);
 }

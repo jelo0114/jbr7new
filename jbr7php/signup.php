@@ -5,19 +5,26 @@ session_start();
 $isAjax = (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') || (strpos($_SERVER['HTTP_ACCEPT'] ?? '', 'application/json') !== false);
 if ($isAjax) header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
-// $pdo is now available from config/database.php
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
+
+try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'DB connection failed']);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     if ($isAjax) {
         http_response_code(405);
-        echo json_encode(['success' => false, 'error' => 'Method not allowed. Use POST to sign up.']);
+        echo json_encode(['success' => false, 'error' => 'Method not allowed']);
         exit;
     }
-    // For GET requests, redirect to signup page
-    // Use 307 Temporary Redirect to preserve method (though we're redirecting anyway)
-    header('Location: /signup.html', true, 307);
+    header('Location: /signup.html');
     exit;
 }
 

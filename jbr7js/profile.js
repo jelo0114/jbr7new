@@ -37,9 +37,6 @@ function showProfileSection(sectionName) {
         if (typeof loadUserActivities === 'function') {
             loadUserActivities();
         }
-        if (typeof loadUserCoupons === 'function') {
-            loadUserCoupons();
-        }
     }
 }
 
@@ -786,178 +783,20 @@ function viewRewards() {
     showProfileSection('rewards');
 }
 
-// Reward tiers mapping
-const REWARD_TIERS = {
-    10: { points: 300, name: '10% Off' },
-    20: { points: 600, name: '20% Off' },
-    30: { points: 900, name: '30% Off' },
-    50: { points: 1300, name: '50% Off' }
-};
-
 function redeemPoints() {
-    showNotification('Select a reward to redeem your points', 'info');
+    showNotification('Opening rewards redemption...', 'info');
 }
 
-// Claim reward - now accepts discount percentage
-async function claimReward(discountPercentage) {
-    if (!REWARD_TIERS[discountPercentage]) {
-        showNotification('Invalid reward tier', 'error');
-        return;
+function claimReward(pointsCost) {
+    const currentPoints = 2450;
+    
+    if (currentPoints >= pointsCost) {
+        if (confirm(`Redeem ${pointsCost} points for this reward?`)) {
+            showNotification(`Reward claimed! ${pointsCost} points deducted.`, 'success');
+        }
+    } else {
+        showNotification(`You need ${pointsCost - currentPoints} more points for this reward`, 'info');
     }
-
-    const tier = REWARD_TIERS[discountPercentage];
-    const pointsCost = tier.points;
-    const rewardName = tier.name;
-
-    // Get current user points
-    try {
-        const response = await fetch('/jbr7php/session_user.php', {
-            credentials: 'same-origin'
-        });
-        const data = await response.json();
-        
-        if (!data.success || !data.user) {
-            showNotification('Unable to fetch your points', 'error');
-            return;
-        }
-
-        const currentPoints = data.user.points || 0;
-
-        if (currentPoints < pointsCost) {
-            const needed = pointsCost - currentPoints;
-            showNotification(`You need ${needed} more points for this reward`, 'info');
-            return;
-        }
-
-        if (!confirm(`Redeem ${pointsCost} points for ${rewardName} coupon?\n\nYou will have ${currentPoints - pointsCost} points remaining.`)) {
-            return;
-        }
-
-        // Show loading
-        showNotification('Redeeming coupon...', 'info');
-
-        // Redeem coupon
-        const redeemResponse = await fetch('/jbr7php/redeem_coupon.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ discount_percentage: discountPercentage })
-        });
-
-        const redeemData = await redeemResponse.json();
-
-        if (redeemData.success) {
-            showNotification(redeemData.message, 'success');
-            // Reload user points and coupons
-            await loadUserActivities();
-            await loadUserCoupons();
-        } else {
-            showNotification(redeemData.error || 'Failed to redeem coupon', 'error');
-        }
-
-    } catch (error) {
-        console.error('Error redeeming coupon:', error);
-        showNotification('Error redeeming coupon. Please try again.', 'error');
-    }
-}
-
-// Load and display user's redeemed coupons
-async function loadUserCoupons() {
-    try {
-        const response = await fetch('/jbr7php/get_user_coupons.php', {
-            credentials: 'same-origin'
-        });
-
-        if (!response.ok) {
-            console.error('Failed to fetch coupons');
-            return;
-        }
-
-        const data = await response.json();
-
-        if (!data.success) {
-            console.error('Error fetching coupons:', data.error);
-            return;
-        }
-
-        const coupons = data.coupons || [];
-        const couponsSection = document.getElementById('redeemed-coupons-section');
-        const couponsList = document.getElementById('redeemed-coupons-list');
-
-        if (!couponsSection || !couponsList) {
-            return;
-        }
-
-        if (coupons.length === 0) {
-            couponsSection.style.display = 'none';
-            return;
-        }
-
-        couponsSection.style.display = 'block';
-        couponsList.innerHTML = '';
-
-        coupons.forEach(coupon => {
-            const status = coupon.status; // 'active', 'used', 'expired'
-            const expiresDate = new Date(coupon.expires_at);
-            const now = new Date();
-            const isExpired = expiresDate < now;
-            const isUsed = coupon.is_used;
-
-            let statusClass = '';
-            let statusText = '';
-            if (isUsed) {
-                statusClass = 'used';
-                statusText = 'Used';
-            } else if (isExpired) {
-                statusClass = 'expired';
-                statusText = 'Expired';
-            } else {
-                statusClass = 'active';
-                statusText = 'Active';
-            }
-
-            const couponCard = document.createElement('div');
-            couponCard.className = `redeemed-coupon-card ${statusClass}`;
-            couponCard.innerHTML = `
-                <div class="coupon-header">
-                    <div class="coupon-discount">${coupon.discount_percentage}% OFF</div>
-                    <div class="coupon-status ${statusClass}">${statusText}</div>
-                </div>
-                <div class="coupon-code">${coupon.coupon_code}</div>
-                <div class="coupon-details">
-                    <div class="coupon-detail-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Expires: ${formatDate(expiresDate)}</span>
-                    </div>
-                    ${isUsed && coupon.used_at ? `
-                    <div class="coupon-detail-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Used: ${formatDate(new Date(coupon.used_at))}</span>
-                    </div>
-                    ` : ''}
-                    <div class="coupon-detail-item">
-                        <i class="fas fa-coins"></i>
-                        <span>Cost: ${coupon.points_cost} points</span>
-                    </div>
-                </div>
-            `;
-            couponsList.appendChild(couponCard);
-        });
-
-    } catch (error) {
-        console.error('Error loading coupons:', error);
-    }
-}
-
-// Format date helper
-function formatDate(date) {
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
 }
 
 // Helper functions

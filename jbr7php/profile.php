@@ -7,8 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
@@ -27,15 +29,29 @@ if (empty($_SESSION['user_id'])) {
 
 $userId = (int)$_SESSION['user_id'];
 
-// $pdo is now available from config/database.php
+// Connect to database
+try {
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    error_log('profile.php - DB connect error: ' . $e->getMessage());
+    jsonError('Database unavailable', 500);
+}
 
 try {
-    // Check if phone and profile_picture columns exist in users table (PostgreSQL compatible)
-    $stmt = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'phone')");
-    $phoneColumnExists = $stmt->fetchColumn();
+    // Check if phone and profile_picture columns exist in users table
+    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'phone'");
+    $phoneColumnExists = $stmt->fetch() !== false;
     
-    $stmt = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'profile_picture')");
-    $profilePictureColumnExists = $stmt->fetchColumn();
+    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'profile_picture'");
+    $profilePictureColumnExists = $stmt->fetch() !== false;
 
     // Build SELECT query based on column existence
     $selectFields = ['id', 'username', 'email', 'created_at', 'COALESCE(points, 0) AS points'];

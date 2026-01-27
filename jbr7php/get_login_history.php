@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -17,12 +19,12 @@ if (!isset($_SESSION['user_id'])) {
 
 $userId = (int)$_SESSION['user_id'];
 
-// $pdo is now available from config/database.php
-
 try {
-    // Check if login_history table exists (PostgreSQL compatible)
-    $tableCheck = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'login_history')");
-    if (!$tableCheck->fetchColumn()) {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
+    
+    // Check if login_history table exists
+    $tableCheck = $pdo->query("SHOW TABLES LIKE 'login_history'");
+    if ($tableCheck->rowCount() === 0) {
         // Table doesn't exist, return empty history with a message
         echo json_encode([
             'success' => true,

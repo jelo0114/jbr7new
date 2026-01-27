@@ -13,10 +13,36 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+// Load config directly - check multiple locations
+$config_loaded = false;
+$possible_paths = [
+    __DIR__ . '/config.php',
+    __DIR__ . '/../config.php',
+    __DIR__ . '/../../config.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/config.php',
+    $_SERVER['DOCUMENT_ROOT'] . '/jbr7php/config.php'
+];
 
-// $pdo is now available from config/database.php
+foreach ($possible_paths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        error_log("Config loaded from: " . $path);
+        $config_loaded = true;
+        break;
+    }
+}
+
+if (!$config_loaded) {
+    error_log("Config.php not found. Searched: " . implode(', ', $possible_paths));
+    echo json_encode(['success' => false, 'error' => 'Configuration file not found']);
+    exit;
+}
+
+// Check if PDO connection exists
+if (!isset($pdo)) {
+    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    exit;
+}
 
 $user_id = $_SESSION['user_id'];
 

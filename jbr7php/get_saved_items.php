@@ -3,12 +3,9 @@ header('Content-Type: application/json; charset=utf-8');
 session_start();
 if (empty($_SESSION['user_id'])) { http_response_code(401); echo json_encode(['success'=>false,'error'=>'Not authenticated']); exit; }
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
-
-// $pdo is now available from config/database.php
-
+$DB_HOST = '127.0.0.1'; $DB_NAME='jbr7_db'; $DB_USER='root'; $DB_PASS='';
 try{
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
     $stmt = $pdo->prepare('SELECT id, title, price, metadata, created_at FROM saved_items WHERE user_id = :uid ORDER BY created_at DESC');
     $stmt->execute([':uid' => $_SESSION['user_id']]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

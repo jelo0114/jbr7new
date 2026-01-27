@@ -7,8 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
@@ -23,60 +25,71 @@ function jsonError(string $message, int $code = 500): void {
 // This endpoint can be called by admin or automated system
 // For now, allow any authenticated user (you can add admin check later)
 
-// $pdo is now available from config/database.php
+try {
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    error_log('update_order_status.php - DB connect error: ' . $e->getMessage());
+    jsonError('Database unavailable', 500);
+}
 
 try {
     // Find orders that need status updates
     // Processing -> Shipped (90 seconds / 1:30 minutes after created)
-    // PostgreSQL uses EXTRACT(EPOCH FROM ...) instead of TIMESTAMPDIFF
     $shippedStmt = $pdo->prepare('
         UPDATE orders o
-        SET status = \'shipped\',
-            status_updated_at = NOW(),
-            shipped_at = NOW()
-        WHERE status = \'processing\'
-          AND EXTRACT(EPOCH FROM (NOW() - o.created_at)) >= 90
+        SET o.status = "shipped",
+            o.status_updated_at = NOW(),
+            o.shipped_at = NOW()
+        WHERE o.status = "processing"
+          AND TIMESTAMPDIFF(SECOND, o.created_at, NOW()) >= 90
     ');
     $shippedStmt->execute();
     $shippedCount = $shippedStmt->rowCount();
 
-    // Update order_items status to shipped (PostgreSQL JOIN syntax)
+    // Update order_items status to shipped
     if ($shippedCount > 0) {
         $pdo->exec('
             UPDATE order_items oi
-            SET status = \'shipped\',
-                status_updated_at = NOW()
-            FROM orders o
-            WHERE oi.order_id = o.id
-              AND o.status = \'shipped\'
-              AND oi.status = \'processing\'
+            INNER JOIN orders o ON oi.order_id = o.id
+            SET oi.status = "shipped",
+                oi.status_updated_at = NOW(),
+                oi.shipped_at = NOW()
+            WHERE o.status = "shipped"
+              AND oi.status = "processing"
         ');
     }
 
     // Shipped -> Delivered (90 seconds / 1:30 minutes after shipped)
-    // PostgreSQL uses EXTRACT(EPOCH FROM ...) instead of TIMESTAMPDIFF
     $deliveredStmt = $pdo->prepare('
-        UPDATE orders
-        SET status = \'delivered\',
-            status_updated_at = NOW(),
-            delivered_at = NOW()
-        WHERE status = \'shipped\'
-          AND shipped_at IS NOT NULL
-          AND EXTRACT(EPOCH FROM (NOW() - shipped_at)) >= 90
+        UPDATE orders o
+        SET o.status = "delivered",
+            o.status_updated_at = NOW(),
+            o.delivered_at = NOW()
+        WHERE o.status = "shipped"
+          AND o.shipped_at IS NOT NULL
+          AND TIMESTAMPDIFF(SECOND, o.shipped_at, NOW()) >= 90
     ');
     $deliveredStmt->execute();
     $deliveredCount = $deliveredStmt->rowCount();
 
-    // Update order_items status to delivered (PostgreSQL JOIN syntax)
+    // Update order_items status to delivered
     if ($deliveredCount > 0) {
         $pdo->exec('
             UPDATE order_items oi
-            SET status = \'delivered\',
-                status_updated_at = NOW()
-            FROM orders o
-            WHERE oi.order_id = o.id
-              AND o.status = \'delivered\'
-              AND oi.status = \'shipped\'
+            INNER JOIN orders o ON oi.order_id = o.id
+            SET oi.status = "delivered",
+                oi.status_updated_at = NOW(),
+                oi.delivered_at = NOW()
+            WHERE o.status = "delivered"
+              AND oi.status = "shipped"
         ');
     }
 

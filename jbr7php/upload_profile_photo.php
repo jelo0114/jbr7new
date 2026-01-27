@@ -74,13 +74,26 @@ if (!move_uploaded_file($file['tmp_name'], $filepath)) {
     exit;
 }
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+// Database connection
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 try {
-    // Check if profile_picture column exists (PostgreSQL compatible)
-    $stmt = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'profile_picture')");
-    $columnExists = $stmt->fetchColumn();
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+    
+    // Check if profile_picture column exists
+    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'profile_picture'");
+    $columnExists = $stmt->rowCount() > 0;
     
     if (!$columnExists) {
         // Add column if it doesn't exist

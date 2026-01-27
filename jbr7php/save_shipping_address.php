@@ -5,8 +5,10 @@
 session_start();
 header('Content-Type: application/json; charset=utf-8');
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 // Check authentication
 if (!isset($_SESSION['user_id'])) {
@@ -34,18 +36,15 @@ if (!in_array($addressType, ['home', 'office'])) {
     exit;
 }
 
-// $pdo is now available from config/database.php
-
 try {
+    $pdo = new PDO("mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4", $DB_USER, $DB_PASS, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
     
     $addressId = isset($input['id']) ? (int)$input['id'] : null;
-    // PostgreSQL accepts both 1/0 and TRUE/FALSE for BOOLEAN, but TRUE/FALSE is clearer
-    $isDefault = isset($input['is_default']) && $input['is_default'] ? true : false;
+    $isDefault = isset($input['is_default']) && $input['is_default'] ? 1 : 0;
     
     // If setting as default, unset other defaults for this user
-    // PostgreSQL uses TRUE/FALSE instead of 1/0 for BOOLEAN
     if ($isDefault) {
-        $unsetDefaultStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = FALSE WHERE user_id = :user_id');
+        $unsetDefaultStmt = $pdo->prepare('UPDATE shipping_addresses SET is_default = 0 WHERE user_id = :user_id');
         $unsetDefaultStmt->execute([':user_id' => $userId]);
     }
     

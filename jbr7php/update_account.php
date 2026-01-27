@@ -4,8 +4,10 @@ header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Credentials: true');
 session_start();
 
-// Use centralized database connection
-require_once __DIR__ . '/../config/database.php';
+$DB_HOST = '127.0.0.1';
+$DB_NAME = 'jbr7_db';
+$DB_USER = 'root';
+$DB_PASS = '';
 
 function jsonResponse(array $data, int $code = 200): void {
     http_response_code($code);
@@ -26,7 +28,21 @@ if (!$input) {
     jsonResponse(['success' => false, 'error' => 'Invalid input'], 400);
 }
 
-// $pdo is now available from config/database.php
+// Connect to database
+try {
+    $pdo = new PDO(
+        "mysql:host={$DB_HOST};dbname={$DB_NAME};charset=utf8mb4",
+        $DB_USER,
+        $DB_PASS,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        ]
+    );
+} catch (PDOException $e) {
+    error_log('update_account.php - DB connect error: ' . $e->getMessage());
+    jsonResponse(['success' => false, 'error' => 'Database unavailable'], 500);
+}
 
 try {
     // Validate input
@@ -49,9 +65,9 @@ try {
         jsonResponse(['success' => false, 'error' => 'Email already in use'], 400);
     }
 
-    // Check if phone column exists in users table (PostgreSQL compatible)
-    $stmt = $pdo->query("SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'phone')");
-    $phoneColumnExists = $stmt->fetchColumn();
+    // Check if phone column exists in users table
+    $stmt = $pdo->query("SHOW COLUMNS FROM users LIKE 'phone'");
+    $phoneColumnExists = $stmt->fetch() !== false;
 
     // Update user information
     if ($phoneColumnExists) {

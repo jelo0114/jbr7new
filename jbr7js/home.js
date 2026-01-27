@@ -228,8 +228,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
     // initialize header using server session (if available)
     if (typeof initHeaderFromServer === 'function') initHeaderFromServer();
+
+    // Logo auth logic: if user is not logged in and clicks the logo, go back to landing (index.html)
+    const logoLink = document.querySelector('header .logo[data-logo-home]');
+    if (logoLink) {
+        logoLink.addEventListener('click', async function (e) {
+            e.preventDefault();
+            try {
+                const res = await fetch('/jbr7php/session_user.php', { credentials: 'same-origin' });
+                if (res && res.ok) {
+                    // Logged in: keep behavior as home link
+                    window.location.href = '/home.html';
+                } else {
+                    // Not logged in: send to index landing page
+                    window.location.href = '/index.html';
+                }
+            } catch (err) {
+                // On error, be safe and send to landing
+                window.location.href = '/index.html';
+            }
+        });
+    }
 });
 
 // Fetch session info and update header elements so pages can remain plain HTML

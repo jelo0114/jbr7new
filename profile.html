@@ -111,10 +111,6 @@
                         <i class="fas fa-box"></i>
                         <span>My Orders</span>
                     </button>
-                    <button class="profile-menu-item" onclick="showProfileSection('wishlist')" data-section="wishlist">
-                        <i class="fas fa-heart"></i>
-                        <span>Wishlist</span>
-                    </button>
                     <button class="profile-menu-item" onclick="showProfileSection('reviews')" data-section="reviews">
                         <i class="fas fa-star"></i>
                         <span>My Reviews</span>
@@ -172,25 +168,13 @@
     </div>
 </div>
 
-<!-- Wishlist Section -->
-<div class="profile-section" id="wishlist-section">
-    <div class="section-header">
-        <h2>My Wishlist</h2>
-        <button class="btn-text" onclick="clearWishlist()">Clear All</button>
-    </div>
-
-    <div class="wishlist-grid">
-        <!-- Items will be populated by JavaScript -->
-    </div>
-</div>
-
 <!-- Reviews Section -->
 <div class="profile-section" id="reviews-section">
     <div class="section-header">
         <h2>My Reviews</h2>
     </div>
 
-    <div class="reviews-list" id="userReviewsList">
+    <div class="reviews-list section-scroll" id="userReviewsList">
         <p style="text-align: center; padding: 2rem; color: #6b7280;">Loading reviews...</p>
     </div>
 </div>
@@ -201,76 +185,71 @@
         <h2>Rewards & Points</h2>
     </div>
 
-    <div class="rewards-summary">
-        <div class="rewards-card-large">
-            <div class="rewards-icon">
-                <i class="fas fa-trophy"></i>
-            </div>
-            <h3>2,450 Points</h3>
-            <p>Available to redeem</p>
-            <button class="btn-primary" onclick="redeemPoints()">Redeem Points</button>
-        </div>
-    </div>
-
-    <div class="rewards-available">
-        <h3>Available Rewards</h3>
-        <div class="rewards-grid">
-            <div class="reward-item">
-                <div class="reward-icon"><i class="fas fa-tag"></i></div>
-                <h4>10% Off Coupon</h4>
-                <p class="reward-cost">300 points</p>
-                <button class="btn-secondary" onclick="claimReward(10)">Redeem</button>
-            </div>
-            <div class="reward-item">
-                <div class="reward-icon"><i class="fas fa-percent"></i></div>
-                <h4>20% Off Coupon</h4>
-                <p class="reward-cost">600 points</p>
-                <button class="btn-secondary" onclick="claimReward(20)">Redeem</button>
-            </div>
-            <div class="reward-item">
-                <div class="reward-icon"><i class="fas fa-percent"></i></div>
-                <h4>30% Off Coupon</h4>
-                <p class="reward-cost">900 points</p>
-                <button class="btn-secondary" onclick="claimReward(30)">Redeem</button>
-            </div>
-            <div class="reward-item">
-                <div class="reward-icon"><i class="fas fa-gift"></i></div>
-                <h4>50% Off Coupon</h4>
-                <p class="reward-cost">1300 points</p>
-                <button class="btn-secondary" onclick="claimReward(50)">Redeem</button>
+    <div class="section-scroll rewards-scroll">
+        <div class="rewards-summary">
+            <div class="rewards-card-large">
+                <div class="rewards-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h3>2,450 Points</h3>
+                <p>Available to redeem</p>
+                <button class="btn-primary" onclick="redeemPoints()">Redeem Points</button>
             </div>
         </div>
-    </div>
-
-    <div class="redeemed-coupons-section" id="redeemed-coupons-section" style="display: none;">
-        <h3>My Redeemed Coupons</h3>
-        <div class="redeemed-coupons-list" id="redeemed-coupons-list">
-            <!-- Redeemed coupons will be populated by JavaScript -->
-        </div>
-    </div>
-
-    <div class="points-history">
-        <h3>Points History</h3>
-        <div class="history-item">
-            <div class="history-info">
-                <strong>Order Purchase</strong>
-                <span>December 20, 2024</span>
+        
+        <div class="rewards-available">
+            <h3>Available Rewards</h3>
+            <div class="rewards-grid">
+                <div class="reward-item">
+                    <div class="reward-icon"><i class="fas fa-tag"></i></div>
+                    <h4>10% Off Coupon</h4>
+                    <p class="reward-cost">500 points</p>
+                    <button class="btn-secondary" onclick="claimReward(500)">Claim</button>
+                </div>
+                <div class="reward-item">
+                    <div class="reward-icon"><i class="fas fa-shipping-fast"></i></div>
+                    <h4>Free Shipping</h4>
+                    <p class="reward-cost">300 points</p>
+                    <button class="btn-secondary" onclick="claimReward(300)">Claim</button>
+                </div>
+                <div class="reward-item">
+                    <div class="reward-icon"><i class="fas fa-percent"></i></div>
+                    <h4>20% Off Coupon</h4>
+                    <p class="reward-cost">1000 points</p>
+                    <button class="btn-secondary" onclick="claimReward(1000)">Claim</button>
+                </div>
+                <div class="reward-item">
+                    <div class="reward-icon"><i class="fas fa-gift"></i></div>
+                    <h4>Free Custom Logo</h4>
+                    <p class="reward-cost">800 points</p>
+                    <button class="btn-secondary" onclick="claimReward(800)">Claim</button>
+                </div>
             </div>
-            <span class="points-earned">+150 pts</span>
         </div>
-        <div class="history-item">
-            <div class="history-info">
-                <strong>Product Review</strong>
-                <span>December 21, 2024</span>
+        
+        <div class="points-history">
+            <h3>Points History</h3>
+            <div class="history-item">
+                <div class="history-info">
+                    <strong>Order Purchase</strong>
+                    <span>December 20, 2024</span>
+                </div>
+                <span class="points-earned">+150 pts</span>
             </div>
-            <span class="points-earned">+50 pts</span>
-        </div>
-        <div class="history-item">
-            <div class="history-info">
-                <strong>Redeemed: 10% Off Coupon</strong>
-                <span>December 18, 2024</span>
+            <div class="history-item">
+                <div class="history-info">
+                    <strong>Product Review</strong>
+                    <span>December 21, 2024</span>
+                </div>
+                <span class="points-earned">+50 pts</span>
             </div>
-            <span class="points-redeemed">-500 pts</span>
+            <div class="history-item">
+                <div class="history-info">
+                    <strong>Redeemed: 10% Off Coupon</strong>
+                    <span>December 18, 2024</span>
+                </div>
+                <span class="points-redeemed">-500 pts</span>
+            </div>
         </div>
     </div>
 </div>
@@ -281,7 +260,7 @@
         <h2>Recent Activity</h2>
     </div>
 
-    <div class="activity-timeline" id="activityList">
+    <div class="activity-timeline section-scroll" id="activityList">
         <p style="text-align: center; padding: 2rem; color: #6b7280;">Loading activities...</p>
     </div>
 </div>
