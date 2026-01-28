@@ -76,7 +76,7 @@
             return;
         }
 
-        fetch('/api/signup', {  // Change from './api/signup' to '/api/signup'
+        fetch('lib/api/signup.js', {  // Change from './api/signup' to '/api/signup'
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, email, password })
