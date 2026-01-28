@@ -1,4 +1,9 @@
-// Profile Page Functionality - Updated Version with Better Data Fetching
+// Profile Page Functionality - Updated Version with API Integration
+
+// Get user ID from session storage
+function getUserId() {
+    return sessionStorage.getItem('jbr7_user_id');
+}
 
 // Show specific profile section
 function showProfileSection(sectionName) {
@@ -42,9 +47,17 @@ function showProfileSection(sectionName) {
 
 // Fetch session info and populate profile page
 async function fetchSessionAndPopulateProfile() {
+    const userId = getUserId();
+    
+    if (!userId) {
+        console.warn('No user ID found, redirecting to login');
+        window.location.href = '/login.html';
+        return;
+    }
+
     try {
-        console.debug('profile.js: requesting /jbr7php/profile.php');
-        const response = await fetch('/jbr7php/profile.php', {
+        console.debug('profile.js: requesting profile data for user:', userId);
+        const response = await fetch(`/api/get?action=profile&userId=${userId}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -64,16 +77,16 @@ async function fetchSessionAndPopulateProfile() {
             // Try to read error message
             try {
                 const txt = await response.text();
-                console.warn('profile.php returned non-ok:', response.status, txt);
+                console.warn('API returned non-ok:', response.status, txt);
             } catch (e) {
-                console.warn('profile.php error:', response.status);
+                console.warn('API error:', response.status);
             }
             populateGuestProfile();
             return;
         }
 
         const data = await response.json();
-        console.debug('profile.js: profile.php json', data);
+        console.debug('profile.js: API json response', data);
 
         if (!data || !data.success || !data.user) {
             console.error('Invalid response format:', data);
@@ -213,7 +226,6 @@ function formatMemberSince(dateString) {
 }
 
 // Populate wishlist section
-// Populate wishlist section
 function populateWishlist(items) {
     const wishlistGrid = document.querySelector('.wishlist-grid');
     if (!wishlistGrid) return;
@@ -287,21 +299,32 @@ function populateOrders(orders) {
     });
 }
 
-// Remove saved item
+// Remove saved item - Updated to use API
 async function removeSavedItem(encodedTitle, buttonEl) {
     const title = decodeURIComponent(encodedTitle);
+    const userId = getUserId();
+    
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
     
     if (!confirm(`Remove "${title}" from saved items?`)) return;
     
     try {
-        const response = await fetch('/jbr7php/delete_saved_item.php', {
+        const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title })
+            body: JSON.stringify({ 
+                action: 'delete-saved-item',
+                userId: userId,
+                title: title 
+            })
         });
 
-        if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
             const row = buttonEl && buttonEl.closest ? buttonEl.closest('.wishlist-item') : null;
             if (row) {
                 row.style.opacity = '0';
@@ -549,8 +572,8 @@ function handleLogout() {
         
         sessionStorage.clear();
 
-        fetch('/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
-            .finally(() => setTimeout(() => { window.location.href = 'index.html'; }, 600));
+        // No need to call PHP logout, just redirect
+        setTimeout(() => { window.location.href = 'index.html'; }, 600);
     }
 }
 
@@ -610,15 +633,21 @@ function leaveReview(productTitle, productId) {
     }
 }
 
-// Load user reviews
+// Load user reviews - Updated to use API
 async function loadUserReviews() {
     const container = document.getElementById('userReviewsList');
     if (!container) return;
     
+    const userId = getUserId();
+    if (!userId) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Please log in to view your reviews.</p>';
+        return;
+    }
+    
     container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading reviews...</p>';
     
     try {
-        const response = await fetch('/jbr7php/get_user_reviews.php', {
+        const response = await fetch(`/api/get?action=user-reviews&userId=${userId}`, {
             credentials: 'same-origin'
         });
         
@@ -634,16 +663,6 @@ async function loadUserReviews() {
                 const reviewItem = document.createElement('div');
                 reviewItem.className = 'review-item';
                 reviewItem.style.cssText = 'padding: 1rem; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 1rem; background: #fff;';
-                
-                // Generate stars
-                let stars = '';
-                for (let i = 1; i <= 5; i++) {
-                    if (i <= review.rating) {
-                        stars += '<i class="fas fa-star" style="color: #fbbf24;"></i>';
-                    } else {
-                        stars += '<i class="far fa-star" style="color: #d1d5db;"></i>';
-                    }
-                }
                 
                 // Get product details for View Product link
                 let productTitle = (review.product_title || review.item_title || 'Unknown Product').trim();
@@ -796,6 +815,65 @@ function claimReward(pointsCost) {
         }
     } else {
         showNotification(`You need ${pointsCost - currentPoints} more points for this reward`, 'info');
+    }
+}
+
+// Load user activities - Updated to use API
+async function loadUserActivities() {
+    const userId = getUserId();
+    if (!userId) return;
+
+    try {
+        const response = await fetch(`/api/get?action=user-activities&userId=${userId}`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) throw new Error('Failed to fetch activities');
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update points display
+            const pointsEl = document.querySelector('.loyalty-points h3');
+            if (pointsEl) {
+                pointsEl.textContent = data.points.toLocaleString();
+            }
+            
+            const rewardsPointsEl = document.querySelector('.rewards-card-large h3');
+            if (rewardsPointsEl) {
+                rewardsPointsEl.textContent = data.points.toLocaleString() + ' Points';
+            }
+            
+            // Render activities
+            const activityList = document.getElementById('activityList');
+            if (activityList && data.activities) {
+                if (data.activities.length === 0) {
+                    activityList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No activities yet.</p>';
+                } else {
+                    activityList.innerHTML = '';
+                    data.activities.forEach(activity => {
+                        const activityItem = document.createElement('div');
+                        activityItem.className = 'activity-item';
+                        
+                        const iconClass = activity.type === 'order' ? 'added' : 'reviewed';
+                        const icon = activity.type === 'order' ? 'fa-cart-plus' : 'fa-star';
+                        
+                        activityItem.innerHTML = `
+                            <div class="activity-icon ${iconClass}">
+                                <i class="fas ${icon}"></i>
+                            </div>
+                            <div class="activity-content">
+                                <strong>${activity.description}</strong>
+                                <span class="activity-time">${activity.time_ago}</span>
+                            </div>
+                            <div class="activity-points">+${activity.points} pts</div>
+                        `;
+                        activityList.appendChild(activityItem);
+                    });
+                }
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load activities:', e);
     }
 }
 
