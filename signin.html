@@ -30,7 +30,7 @@
         <!-- Single-mode auth: Sign In only -->
         <h2 style="text-align:center;margin-bottom:12px;color:#333;font-size:1.35rem">Sign In</h2>
 
-    <form id="signin-form" action="/api/signin" method="POST">
+    <form id="signin-form">
             <div class="form-group">
                 <label>Email address</label>
                 <input type="email" name="email" placeholder="Enter your email address" required>
@@ -81,15 +81,19 @@
             submitBtn.textContent = 'Signing in...';
             errorDiv.style.display = 'none';
             
-            // Submit via API
-            fetch('/api/signin', {
+            // FIXED: Submit via consolidated API
+            fetch('/api/actions', {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ email, password })
+                body: JSON.stringify({ 
+                    action: 'signin',
+                    email, 
+                    password 
+                })
             })
             .then(response => {
                 if (response.ok) {
