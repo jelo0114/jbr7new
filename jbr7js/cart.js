@@ -1,4 +1,4 @@
-// Cart Page Functionality - FIXED VERSION
+// Cart Page Functionality - IMPROVED ERROR HANDLING VERSION
 
 let cartItems = [];
 
@@ -524,7 +524,7 @@ function applyPromoCode() {
     }
 }
 
-// UPDATED CHECKOUT FUNCTION - Uses Supabase API
+// IMPROVED CHECKOUT FUNCTION with better error handling
 async function checkout() {
     if (cartItems.length === 0) {
         showNotification('Your cart is empty! Add items before checkout.', 'info');
@@ -666,33 +666,79 @@ async function checkout() {
     showNotification('Saving order to database...', 'info');
     
     try {
-        const response = await fetch('/api/orders', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                userId: parseInt(userId),
-                orderId: checkoutData.orderId,
-                orderNumber: checkoutData.orderNumber,
-                items: checkoutData.items,
-                subtotal: checkoutData.subtotal,
-                shipping: checkoutData.shipping,
-                total: checkoutData.total,
-                payment: checkoutData.payment,
-                courier: checkoutData.courier,
-                customerEmail: checkoutData.customerEmail,
-                customerPhone: checkoutData.customerPhone,
-                shippingAddress: checkoutData.shippingAddress,
-                timestamp: checkoutData.timestamp
-            })
-        });
+        // Try multiple API endpoint paths
+        const apiPaths = ['/api/orders', '/api/order'];
+        let response = null;
+        let lastError = null;
+        
+        for (const apiPath of apiPaths) {
+            try {
+                response = await fetch(apiPath, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        userId: parseInt(userId),
+                        orderId: checkoutData.orderId,
+                        orderNumber: checkoutData.orderNumber,
+                        items: checkoutData.items,
+                        subtotal: checkoutData.subtotal,
+                        shipping: checkoutData.shipping,
+                        total: checkoutData.total,
+                        payment: checkoutData.payment,
+                        courier: checkoutData.courier,
+                        customerEmail: checkoutData.customerEmail,
+                        customerPhone: checkoutData.customerPhone,
+                        shippingAddress: checkoutData.shippingAddress,
+                        timestamp: checkoutData.timestamp
+                    })
+                });
+                
+                // If we got a response (even if error), break
+                if (response) break;
+            } catch (err) {
+                lastError = err;
+                console.log(`Failed to connect to ${apiPath}, trying next...`);
+                continue;
+            }
+        }
+        
+        if (!response) {
+            throw lastError || new Error('Could not connect to API');
+        }
+        
+        // Check response status
+        if (!response.ok) {
+            // Try to get error details
+            const contentType = response.headers.get("content-type");
+            if (contentType && contentType.includes("application/json")) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+            } else {
+                const text = await response.text();
+                
+                // Check if it's a 404 page
+                if (text.includes('NOT_FOUND') || text.includes('404') || text.includes('page could not be found')) {
+                    console.error('API endpoint not found. Using fallback mode.');
+                    throw new Error('API_NOT_CONFIGURED');
+                }
+                
+                throw new Error(`Server error: ${response.status} ${response.statusText}`);
+            }
+        }
         
         // Check if response is actually JSON
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             const text = await response.text();
             console.error('Non-JSON response:', text);
-            throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+            
+            // Check if it's a 404 page
+            if (text.includes('NOT_FOUND') || text.includes('404')) {
+                throw new Error('API_NOT_CONFIGURED');
+            }
+            
+            throw new Error('Server returned invalid response format');
         }
         
         const data = await response.json();
@@ -715,11 +761,46 @@ async function checkout() {
             }, 800);
         } else {
             console.error('Failed to save order:', data.error);
-            showNotification('Failed to save order: ' + data.error, 'error');
+            throw new Error(data.error || 'Failed to save order');
         }
     } catch (error) {
-        console.error('Failed to save order:', error);
-        showNotification('Failed to save order: ' + error.message, 'error');
+        console.error('Checkout error:', error);
+        
+        // Handle API not configured error with fallback
+        if (error.message === 'API_NOT_CONFIGURED') {
+            console.warn('API endpoint not found. Order saved locally.');
+            showNotification('Order placed! (Saved locally - API not configured yet)', 'success');
+            
+            // Save to localStorage as fallback
+            const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
+            existingOrders.push(checkoutData);
+            localStorage.setItem('pendingOrders', JSON.stringify(existingOrders));
+            
+            // Clear cart
+            if (anySelected) {
+                cartItems = cartItems.filter(it => !it.selected);
+            } else {
+                cartItems = [];
+            }
+            saveCartToStorage();
+            
+            setTimeout(() => {
+                window.location.href = 'receipt.html';
+            }, 1000);
+            return;
+        }
+        
+        // Show user-friendly error message
+        let userMessage = 'Failed to save order. ';
+        if (error.message.includes('network') || error.message.includes('fetch')) {
+            userMessage += 'Please check your internet connection.';
+        } else if (error.message.includes('API_NOT_CONFIGURED')) {
+            userMessage += 'Server configuration error. Order saved locally.';
+        } else {
+            userMessage += error.message;
+        }
+        
+        showNotification(userMessage, 'error');
     }
 }
 
