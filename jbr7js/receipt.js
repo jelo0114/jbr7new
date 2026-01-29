@@ -163,6 +163,7 @@
       return;
     }
     
+    // Payload for /api/receipts or /api/receipt (Supabase-style)
     const receiptPayload = {
       userId: parseInt(userId),
       receiptData: {
@@ -176,49 +177,57 @@
         raw_response: receiptData
       }
     };
+
+    // Payload for /jbr7php/receipt.php (flat keys, session auth)
+    const phpReceiptPayload = {
+      orderId: receiptData.orderId || receiptData.orderNumber,
+      orderNumber: receiptData.orderNumber || receiptData.orderId,
+      total: receiptData.total,
+      subtotal: receiptData.subtotal,
+      shipping: receiptData.shipping,
+      payment: receiptData.payment,
+      courier: receiptData.courier,
+      customerEmail: receiptData.customerEmail,
+      customerPhone: receiptData.customerPhone,
+      shippingAddress: receiptData.shippingAddress,
+      timestamp: receiptData.timestamp
+    };
     
-    // Try multiple endpoints in order
     const endpoints = [
-      '/api/receipts',
-      '/api/receipt',
-      '/jbr7php/receipt.php'
+      { url: '/api/receipts', body: receiptPayload },
+      { url: '/api/receipt', body: receiptPayload },
+      { url: '/jbr7php/receipt.php', body: phpReceiptPayload }
     ];
     
     let saved = false;
     
-    for (const endpoint of endpoints) {
+    for (const { url: endpoint, body } of endpoints) {
       try {
-        console.log(`Trying endpoint: ${endpoint}`);
-        
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',
-          body: JSON.stringify(receiptPayload)
+          body: JSON.stringify(body)
         });
-
-        console.log(`${endpoint} response status:`, response.status);
 
         if (response.ok) {
           const contentType = response.headers.get("content-type");
-          
           if (contentType && contentType.includes("application/json")) {
             const data = await response.json();
-            console.log(`${endpoint} response data:`, data);
-
             if (data.success) {
-              console.log(`✅ Receipt saved successfully via ${endpoint}! Receipt ID:`, data.receipt_id);
+              console.log('Receipt saved successfully via', endpoint);
               saved = true;
               break;
             }
           }
         }
-        
-        // If this endpoint failed, try next one
-        console.log(`${endpoint} failed, trying next...`);
-        
+        // 404 / NOT_FOUND expected when API routes are not deployed — try next
+        if (response.status === 404) continue;
       } catch (error) {
-        console.error(`Error with ${endpoint}:`, error);
+        // Network or parse error — try next endpoint (don't log 404 as error)
+        if (error.message && !error.message.includes('404')) {
+          console.warn('Receipt save attempt failed for', endpoint, error.message);
+        }
         continue;
       }
     }

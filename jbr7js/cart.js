@@ -665,79 +665,96 @@ async function checkout() {
     localStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
     showNotification('Saving order to database...', 'info');
     
+    const orderPayload = {
+        userId: parseInt(userId),
+        orderId: checkoutData.orderId,
+        orderNumber: checkoutData.orderNumber,
+        items: checkoutData.items,
+        subtotal: checkoutData.subtotal,
+        shipping: checkoutData.shipping,
+        total: checkoutData.total,
+        payment: checkoutData.payment,
+        courier: checkoutData.courier,
+        customerEmail: checkoutData.customerEmail,
+        customerPhone: checkoutData.customerPhone,
+        shippingAddress: checkoutData.shippingAddress,
+        timestamp: checkoutData.timestamp
+    };
+
+    // PHP expects orderId (not orderNumber) and same keys; session supplies userId
+    const phpOrderPayload = {
+        orderId: checkoutData.orderId,
+        orderNumber: checkoutData.orderNumber,
+        items: checkoutData.items,
+        subtotal: checkoutData.subtotal,
+        shipping: checkoutData.shipping,
+        total: checkoutData.total,
+        payment: checkoutData.payment,
+        courier: checkoutData.courier,
+        customerEmail: checkoutData.customerEmail,
+        customerPhone: checkoutData.customerPhone,
+        shippingAddress: checkoutData.shippingAddress,
+        timestamp: checkoutData.timestamp
+    };
+
     try {
-        // Try multiple API endpoint paths
-        const apiPaths = ['/api/orders', '/api/order'];
+        // Try API routes first, then PHP backend
+        const apiAttempts = [
+            { path: '/api/orders', body: orderPayload },
+            { path: '/api/order', body: orderPayload },
+            { path: '/jbr7php/save_order.php', body: phpOrderPayload }
+        ];
         let response = null;
         let lastError = null;
         
-        for (const apiPath of apiPaths) {
+        for (const { path: apiPath, body } of apiAttempts) {
             try {
                 response = await fetch(apiPath, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'same-origin',
-                    body: JSON.stringify({
-                        userId: parseInt(userId),
-                        orderId: checkoutData.orderId,
-                        orderNumber: checkoutData.orderNumber,
-                        items: checkoutData.items,
-                        subtotal: checkoutData.subtotal,
-                        shipping: checkoutData.shipping,
-                        total: checkoutData.total,
-                        payment: checkoutData.payment,
-                        courier: checkoutData.courier,
-                        customerEmail: checkoutData.customerEmail,
-                        customerPhone: checkoutData.customerPhone,
-                        shippingAddress: checkoutData.shippingAddress,
-                        timestamp: checkoutData.timestamp
-                    })
+                    body: JSON.stringify(body)
                 });
                 
-                // If we got a response (even if error), break
-                if (response) break;
+                if (response.ok) {
+                    const ct = response.headers.get("content-type");
+                    if (ct && ct.includes("application/json")) {
+                        break;
+                    }
+                }
+                if (response.status === 404) {
+                    response = null;
+                    continue;
+                }
+                if (!response.ok) {
+                    lastError = new Error(`HTTP ${response.status}`);
+                    continue;
+                }
+                break;
             } catch (err) {
                 lastError = err;
-                console.log(`Failed to connect to ${apiPath}, trying next...`);
+                response = null;
                 continue;
             }
         }
         
-        if (!response) {
-            throw lastError || new Error('Could not connect to API');
-        }
-        
-        // Check response status
-        if (!response.ok) {
-            // Try to get error details
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-            } else {
+        if (!response || !response.ok) {
+            const ct = response ? response.headers.get("content-type") : null;
+            if (response && (!ct || !ct.includes("application/json"))) {
                 const text = await response.text();
-                
-                // Check if it's a 404 page
                 if (text.includes('NOT_FOUND') || text.includes('404') || text.includes('page could not be found')) {
-                    console.error('API endpoint not found. Using fallback mode.');
                     throw new Error('API_NOT_CONFIGURED');
                 }
-                
-                throw new Error(`Server error: ${response.status} ${response.statusText}`);
             }
+            throw lastError || new Error('API_NOT_CONFIGURED');
         }
         
-        // Check if response is actually JSON
         const contentType = response.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             const text = await response.text();
-            console.error('Non-JSON response:', text);
-            
-            // Check if it's a 404 page
             if (text.includes('NOT_FOUND') || text.includes('404')) {
                 throw new Error('API_NOT_CONFIGURED');
             }
-            
             throw new Error('Server returned invalid response format');
         }
         
