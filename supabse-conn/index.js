@@ -1,33 +1,6 @@
 // Central Supabase connection helpers for migrating PHP endpoints
 // Folder: supabse-conn
-// These functions are meant to replace the raw MySQL/PHP logic
-// using the schema defined in SQL/Supabase.sql.
-//
-// Usage (in a Vercel/Node API route):
-//   import {
-//     getItemsWithRatings,
-//     getSavedItems,
-//     saveOrderWithItems,
-//     getOrdersForUser,
-//     getShippingAddresses,
-//     getUserPreferences,
-//     setUserPreferences,
-//     getNotificationPreference,
-//     setNotificationPreference,
-//     createOrderNotification,
-//     getProductReviews,
-//     submitReview,
-//     getUserActivities,
-//     getUserProfile,
-//     getUserReviews,
-//   } from '../supabse-conn/index';
-//
-//   import { supabase } from '../lib/supabaseClient';
-//
-// All functions below assume that:
-// - auth is handled by your API route (you know the user_id there)
-// - environment variables NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
-//   are correctly configured (and SUPABASE_SERVICE_ROLE_KEY for privileged ops).
+// UPDATED VERSION - Handles missing profile_picture column gracefully
 
 import { supabase } from '../lib/supabaseClient';
 
@@ -531,18 +504,44 @@ export async function getUserActivities(userId) {
 
 // -----------------------------
 // USER PROFILE (NEW - for profile page)
+// UPDATED: Doesn't require profile_picture column
 // -----------------------------
 
 export async function getUserProfile(userId) {
   try {
     console.log('Fetching profile for userId:', userId);
 
-    // Get user profile
-    const { data: profile, error: profileError } = await supabase
+    // Try to get profile with profile_picture first
+    let profile;
+    let profileError;
+    
+    // First attempt: with profile_picture
+    const result = await supabase
       .from('users')
       .select('id, username, email, points, created_at, profile_picture')
       .eq('id', userId)
       .single();
+    
+    profile = result.data;
+    profileError = result.error;
+    
+    // If profile_picture column doesn't exist, try without it
+    if (profileError && profileError.message.includes('profile_picture')) {
+      console.log('profile_picture column not found, fetching without it');
+      const fallbackResult = await supabase
+        .from('users')
+        .select('id, username, email, points, created_at')
+        .eq('id', userId)
+        .single();
+      
+      profile = fallbackResult.data;
+      profileError = fallbackResult.error;
+      
+      // Add profile_picture as null
+      if (profile) {
+        profile.profile_picture = null;
+      }
+    }
 
     if (profileError) {
       console.error('Profile fetch error:', profileError);
