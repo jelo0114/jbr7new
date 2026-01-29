@@ -319,366 +319,174 @@
 
         // Load orders from database
         async function loadOrders(status = null) {
-            const container = document.getElementById('ordersList');
-            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</p>';
+    const container = document.getElementById('ordersList');
+    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</p>';
 
-            try {
-                const url = status ? `/api/get_orders?status=${status}` : '/api/get_orders';
-                console.log('Fetching orders from:', url);
-                const response = await apiFetch(url, { credentials: 'same-origin' });
-                
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error('Failed to load orders:', response.status, errorText);
-                    container.innerHTML = `<p style="text-align: center; padding: 2rem; color: #dc2626;">Failed to load orders (${response.status}). Please check if you are logged in.</p>`;
-                    return;
-                }
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!userId) {
+        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #dc2626;">Please log in to view orders.</p>';
+        return;
+    }
 
-                const data = await response.json();
-                console.log('Orders data received:', data);
-                
-                if (data.success && data.orders) {
-                    allOrders = data.orders;
-                    if (data.orders.length === 0) {
-                        container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No orders found. Start shopping to see your orders here!</p>';
-                    } else {
-                        renderOrders(data.orders);
-                    }
-                } else {
-                    console.warn('No orders in response:', data);
-                    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No orders found.</p>';
-                }
-            } catch (e) {
-                console.error('Failed to load orders', e);
-                container.innerHTML = `<p style="text-align: center; padding: 2rem; color: #dc2626;">Error loading orders: ${e.message}</p>`;
-            }
+    try {
+        // FIXED: Changed endpoint
+        const url = status ? `/api/get?action=orders&userId=${userId}&status=${status}` : `/api/get?action=orders&userId=${userId}`;
+        console.log('Fetching orders from:', url);
+        const response = await fetch(url, { credentials: 'same-origin' });
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Failed to load orders:', response.status, errorText);
+            container.innerHTML = `<p style="text-align: center; padding: 2rem; color: #dc2626;">Failed to load orders (${response.status}). Please check if you are logged in.</p>`;
+            return;
         }
 
-        // Render orders
-        function renderOrders(orders) {
-            const container = document.getElementById('ordersList');
-            if (orders.length === 0) {
-                container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No orders found.</p>';
+        const data = await response.json();
+        console.log('Orders data received:', data);
+        
+        if (data.success && data.orders) {
+            allOrders = data.orders;
+            if (data.orders.length === 0) {
+                container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No orders found. Start shopping to see your orders here!</p>';
+            } else {
+                renderOrders(data.orders);
+            }
+        } else {
+            console.warn('No orders in response:', data);
+            container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No orders found.</p>';
+        }
+    } catch (e) {
+        console.error('Failed to load orders', e);
+        container.innerHTML = `<p style="text-align: center; padding: 2rem; color: #dc2626;">Error loading orders: ${e.message}</p>`;
+    }
+}
+
+// 2. REPLACE cancelOrder function (around line 487)
+async function cancelOrder(orderId) {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!userId) {
+        alert('Please log in first');
+        return;
+    }
+
+    try {
+        // FIXED: Changed endpoint and payload
+        const response = await fetch('/api/post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                action: 'cancel-order',
+                userId: userId,
+                orderId: orderId 
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert('Order cancelled successfully');
+            loadOrders(currentStatusFilter === 'all' ? null : currentStatusFilter);
+        } else {
+            alert(data.error || 'Failed to cancel order');
+        }
+    } catch (e) {
+        console.error('Failed to cancel order', e);
+        alert('Failed to cancel order');
+    }
+}
+
+// 3. REMOVE the setInterval that calls /api/update_order_status (around line 527)
+// DELETE or COMMENT OUT this entire block:
+/*
+setInterval(() => {
+    apiFetch('/api/update_order_status', { credentials: 'same-origin' })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success && (data.updated.shipped > 0 || data.updated.delivered > 0)) {
+                loadOrders(currentStatusFilter === 'all' ? null : currentStatusFilter);
+            }
+        })
+        .catch(e => console.error('Status update failed', e));
+}, 5000);
+*/
+
+// 4. REPLACE loadUserReviews function (around line 539)
+async function loadUserReviews() {
+    const reviewsList = document.getElementById('userReviewsList');
+    if (!reviewsList) return;
+
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!userId) {
+        reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Please log in to view your reviews.</p>';
+        return;
+    }
+    
+    try {
+        // FIXED: Changed endpoint
+        const response = await fetch(`/api/get?action=user-reviews&userId=${userId}`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Please log in to view your reviews.</p>';
                 return;
             }
-
-            container.innerHTML = '';
-            orders.forEach(order => {
-                const statusClass = order.status === 'delivered' ? 'delivered' : 
-                                  order.status === 'shipped' ? 'shipped' : 
-                                  order.status === 'processing' ? 'processing' : '';
-
-                const date = new Date(order.created_at).toLocaleDateString('en-US', { 
-                    year: 'numeric', month: 'long', day: 'numeric' 
-                });
-
-                // Create order wrapper for all items in this order
-                const orderWrapper = document.createElement('div');
-                orderWrapper.className = 'order-wrapper';
-                orderWrapper.style.cssText = 'margin-bottom: 2rem; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1.5rem; background: #fff;';
-
-                // Order header (shared for all items)
-                const orderHeader = document.createElement('div');
-                orderHeader.className = 'order-header';
-                orderHeader.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid #f3f4f6;';
-                orderHeader.innerHTML = `
-                    <div class="order-id">
-                        <strong style="font-size: 1.1rem; color: #111;">Order #${order.order_number}</strong>
-                        <span class="order-date" style="display: block; color: #6b7280; font-size: 0.9rem; margin-top: 0.25rem;">${date}</span>
-                        <span style="display: block; color: #6b7280; font-size: 0.85rem; margin-top: 0.25rem;">Total: ₱${parseFloat(order.total).toFixed(2)}</span>
-                    </div>
-                    <span class="order-status ${statusClass}" style="padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; text-transform: capitalize; 
-                        ${order.status === 'delivered' ? 'background: #d1fae5; color: #065f46;' : 
-                          order.status === 'shipped' ? 'background: #dbeafe; color: #1e40af;' : 
-                          'background: #fef3c7; color: #92400e;'}">${order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
-                `;
-                orderWrapper.appendChild(orderHeader);
-
-                // Order items
-                const itemsContainer = document.createElement('div');
-                itemsContainer.className = 'order-items-container';
-                itemsContainer.style.cssText = 'display: flex; flex-direction: column; gap: 1rem;';
-
-                order.items.forEach((item, index) => {
-                    const orderItem = document.createElement('div');
-                    orderItem.className = 'order-item';
-                    orderItem.style.cssText = 'display: flex; gap: 1rem; padding: 1rem; background: #f9fafb; border-radius: 8px; align-items: center;';
-
-                    let actionsHTML = '';
-                    const itemImage = item.item_image || '';
-                    const itemName = item.item_name || '';
-                    const itemPrice = item.item_price || 0;
-                    const viewUrl = `view.html?title=${encodeURIComponent(itemName)}&price=${itemPrice}&img=${encodeURIComponent(itemImage)}&desc=${encodeURIComponent(itemName)}&from=profile`;
-                    
-                    if (order.status === 'delivered') {
-                        actionsHTML = `
-                            <a class="btn-secondary view-btn" href="${viewUrl}" style="padding: 0.5rem 1rem; margin-right: 0.5rem; text-decoration: none; display: inline-block; background: #fff; border: 2px solid #006923; color: #006923; border-radius: 6px;">View Details</a>
-                            <button class="btn-primary" onclick="leaveReview(${item.id}, '${itemName.replace(/'/g, "\\'")}', '${itemImage.replace(/'/g, "\\'")}', ${itemPrice})" style="padding: 0.5rem 1rem; background: #006923; color: white; border: none; border-radius: 6px; cursor: pointer;">Leave Review</button>
-                        `;
-                    } else if (order.status === 'shipped') {
-                        actionsHTML = `
-                            <a class="btn-secondary" href="track-order.html?order_id=${order.id}&order_number=${encodeURIComponent(order.order_number)}&from=profile" style="padding: 0.5rem 1rem; margin-right: 0.5rem; text-decoration: none; display: inline-block; background: #fff; border: 2px solid #006923; color: #006923; border-radius: 6px;">
-                                <i class="fas fa-map-marker-alt"></i> Track Order
-                            </a>
-                            <a class="btn-secondary view-btn" href="${viewUrl}" style="padding: 0.5rem 1rem; text-decoration: none; display: inline-block; background: #fff; border: 2px solid #006923; color: #006923; border-radius: 6px;">View Details</a>
-                        `;
-                    } else if (order.status === 'processing') {
-                        actionsHTML = `
-                            <a class="btn-secondary view-btn" href="${viewUrl}" style="padding: 0.5rem 1rem; margin-right: 0.5rem; text-decoration: none; display: inline-block; background: #fff; border: 2px solid #006923; color: #006923; border-radius: 6px;">View Details</a>
-                            ${order.can_cancel ? `<button class="btn-danger" onclick="cancelOrder(${order.id})" style="padding: 0.5rem 1rem; background: #dc2626; color: white; border: none; border-radius: 6px; cursor: pointer;">Cancel Order</button>` : ''}
-                        `;
-                    }
-
-                    orderItem.innerHTML = `
-                        <img src="${item.item_image || 'totebag.avif'}" alt="${item.item_name}" 
-                             style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px; border: 1px solid #e5e7eb;" 
-                             onerror="this.src='totebag.avif'">
-                        <div style="flex: 1;">
-                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem; color: #111;">${item.item_name}</h3>
-                            <p style="margin: 0 0 0.5rem 0; color: #6b7280; font-size: 0.9rem;">
-                                Quantity: ${item.quantity}${item.size ? ' | Size: ' + item.size : ''}${item.color ? ' | Color: ' + item.color : ''}
-                            </p>
-                            <p style="margin: 0; font-size: 1.1rem; font-weight: 700; color: #006923;">₱${parseFloat(item.line_total).toFixed(2)}</p>
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-end;">
-                            ${actionsHTML}
-                        </div>
-                    `;
-                    itemsContainer.appendChild(orderItem);
-                });
-
-                orderWrapper.appendChild(itemsContainer);
-                container.appendChild(orderWrapper);
-            });
-        }
-
-        // Filter orders by status
-        function filterOrders(status) {
-            currentStatusFilter = status;
-            
-            // Update button styles
-            ['All', 'Processing', 'Shipped', 'Delivered'].forEach(s => {
-                const btn = document.getElementById('filter' + s);
-                if (btn) {
-                    btn.classList.remove('btn-primary');
-                    btn.classList.add('btn-secondary');
-                }
-            });
-            
-            const activeBtn = document.getElementById('filter' + (status === 'all' ? 'All' : status.charAt(0).toUpperCase() + status.slice(1)));
-            if (activeBtn) {
-                activeBtn.classList.remove('btn-secondary');
-                activeBtn.classList.add('btn-primary');
-            }
-
-            loadOrders(status === 'all' ? null : status);
-        }
-
-        // Cancel order
-        async function cancelOrder(orderId) {
-            if (!confirm('Are you sure you want to cancel this order?')) return;
-
-            try {
-                const response = await apiFetch('/api/cancel_order', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ order_id: orderId })
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    alert('Order cancelled successfully');
-                    loadOrders(currentStatusFilter === 'all' ? null : currentStatusFilter);
-                } else {
-                    alert(data.error || 'Failed to cancel order');
-                }
-            } catch (e) {
-                console.error('Failed to cancel order', e);
-                alert('Failed to cancel order');
-            }
-        }
-
-        // Leave review - pass all necessary data to view.html
-        function leaveReview(orderItemId, itemName, itemImage, itemPrice) {
-            // Open view.html with product and show review form
-            if (itemName) {
-                const encodedTitle = encodeURIComponent(itemName);
-                window.location.href = `view.html?title=${encodedTitle}&review=true`;
-            } else {
-                showNotification('Product information not available', 'info');
-            }
+            throw new Error('Failed to fetch reviews');
         }
         
-        // Old leaveReview function (keeping for compatibility)
-        function leaveReviewOld(orderItemId, itemName, itemImage, itemPrice) {
-            const params = new URLSearchParams({
-                title: itemName,
-                price: itemPrice,
-                img: itemImage || '',
-                desc: itemName,
-                order_item_id: orderItemId,
-                from: 'profile'
-            });
-            window.location.href = `view.html?${params.toString()}`;
+        const data = await response.json();
+        if (data.success && data.reviews) {
+            renderUserReviews(data.reviews);
+        } else {
+            reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No reviews yet.</p>';
         }
+    } catch (e) {
+        console.error('Failed to load reviews:', e);
+        reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #dc2626;">Failed to load reviews.</p>';
+    }
+}
 
-        // Update order status periodically
-        setInterval(() => {
-            apiFetch('/api/update_order_status', { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(data => {
-                    if (data.success && (data.updated.shipped > 0 || data.updated.delivered > 0)) {
-                        loadOrders(currentStatusFilter === 'all' ? null : currentStatusFilter);
-                    }
-                })
-                .catch(e => console.error('Status update failed', e));
-        }, 5000); // Check every 5 seconds
+// 5. REPLACE loadUserActivities function (around line 636)
+async function loadUserActivities() {
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!userId) return;
 
-        // Load user reviews
-        async function loadUserReviews() {
-            const reviewsList = document.getElementById('userReviewsList');
-            if (!reviewsList) return;
-            
-            try {
-                const response = await apiFetch('/api/get_user_reviews', {
-                    credentials: 'same-origin'
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Please log in to view your reviews.</p>';
-                        return;
-                    }
-                    throw new Error('Failed to fetch reviews');
-                }
-                
-                const data = await response.json();
-                if (data.success && data.reviews) {
-                    renderUserReviews(data.reviews);
-                } else {
-                    reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No reviews yet.</p>';
-                }
-            } catch (e) {
-                console.error('Failed to load reviews:', e);
-                reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #dc2626;">Failed to load reviews.</p>';
+    try {
+        // FIXED: Changed endpoint
+        const response = await fetch(`/api/get?action=user-activities&userId=${userId}`, {
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            if (response.status === 401) {
+                return; // Not authenticated
             }
+            throw new Error('Failed to fetch activities');
         }
-
-        function renderUserReviews(reviews) {
-            const reviewsList = document.getElementById('userReviewsList');
-            if (!reviewsList) return;
-            
-            if (reviews.length === 0) {
-                reviewsList.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">No reviews yet.</p>';
-                return;
+        
+        const data = await response.json();
+        if (data.success) {
+            // Update points display
+            const pointsEl = document.querySelector('.loyalty-points h3');
+            if (pointsEl) {
+                pointsEl.textContent = data.points.toLocaleString();
             }
             
-            reviewsList.innerHTML = '';
-            reviews.forEach(review => {
-                const reviewItem = document.createElement('div');
-                reviewItem.className = 'review-item';
-                
-                // Get product details - use product_title as primary, fallback to item_title
-                let productTitle = (review.product_title || review.item_title || 'Unknown Product').trim();
-                let productPrice = parseFloat(review.item_price) || 0;
-                let productImage = (review.item_image || 'totebag.avif').trim();
-                
-                // Ensure we never have "undefined" as a string
-                if (productTitle === 'undefined' || productTitle === '' || !productTitle) {
-                    productTitle = 'Unknown Product';
-                }
-                if (productImage === 'undefined' || productImage === '') {
-                    productImage = 'totebag.avif';
-                }
-                
-                // Debug logging
-                if (productTitle === 'Unknown Product') {
-                    console.warn('Review missing product title:', review);
-                }
-                if (productPrice === 0) {
-                    console.log('Review price is 0 for:', productTitle, 'review data:', review);
-                }
-                
-                // Generate stars with half-star support
-                const rating = parseFloat(review.rating) || 0;
-                const fullStars = Math.floor(rating);
-                const hasHalfStar = (rating % 1) >= 0.5;
-                let stars = '';
-                for (let i = 0; i < 5; i++) {
-                    if (i < fullStars) {
-                        stars += '<i class="fas fa-star" style="color: #fbbf24;"></i>';
-                    } else if (i === fullStars && hasHalfStar) {
-                        stars += '<i class="fas fa-star-half-alt" style="color: #fbbf24;"></i>';
-                    } else {
-                        stars += '<i class="far fa-star" style="color: #d1d5db;"></i>';
-                    }
-                }
-                
-                // Escape HTML to prevent XSS
-                const escapeHtml = (text) => {
-                    if (!text) return '';
-                    const div = document.createElement('div');
-                    div.textContent = text;
-                    return div.innerHTML;
-                };
-                
-                reviewItem.innerHTML = `
-                    <div class="review-product">
-                        <img src="${productImage}" alt="${escapeHtml(productTitle)}" onerror="this.src='totebag.avif'">
-                        <div>
-                            <h3>${escapeHtml(productTitle)}</h3>
-                            <p class="review-date">Reviewed on ${review.date}</p>
-                        </div>
-                    </div>
-                    <div class="review-rating">
-                        ${stars}
-                    </div>
-                    <p class="review-text">"${escapeHtml(review.comment || 'No comment provided.')}"</p>
-                    <div class="review-actions">
-                        <a href="view.html?title=${encodeURIComponent(productTitle)}&price=${productPrice}&img=${encodeURIComponent(productImage)}&from=profile" class="btn-text">
-                            <i class="fas fa-eye"></i> View Product
-                        </a>
-                    </div>
-                `;
-                reviewsList.appendChild(reviewItem);
-            });
-        }
-
-        // Load user activities and points
-        async function loadUserActivities() {
-            try {
-                const response = await apiFetch('/api/get_user_activities', {
-                    credentials: 'same-origin'
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401) {
-                        return; // Not authenticated
-                    }
-                    throw new Error('Failed to fetch activities');
-                }
-                
-                const data = await response.json();
-                if (data.success) {
-                    // Update points display
-                    const pointsEl = document.querySelector('.loyalty-points h3');
-                    if (pointsEl) {
-                        pointsEl.textContent = data.points.toLocaleString();
-                    }
-                    
-                    // Update rewards section points
-                    const rewardsPointsEl = document.querySelector('.rewards-card-large h3');
-                    if (rewardsPointsEl) {
-                        rewardsPointsEl.textContent = data.points.toLocaleString() + ' Points';
-                    }
-                    
-                    // Update activity history
-                    renderActivities(data.activities || []);
-                }
-            } catch (e) {
-                console.error('Failed to load activities:', e);
+            // Update rewards section points
+            const rewardsPointsEl = document.querySelector('.rewards-card-large h3');
+            if (rewardsPointsEl) {
+                rewardsPointsEl.textContent = data.points.toLocaleString() + ' Points';
             }
+            
+            // Update activity history
+            renderActivities(data.activities || []);
         }
+    } catch (e) {
+        console.error('Failed to load activities:', e);
+    }
+}
 
         function renderActivities(activities) {
             const activityList = document.getElementById('activityList');
