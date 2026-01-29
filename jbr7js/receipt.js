@@ -1,113 +1,211 @@
-(async function () {
-  // Helpers
-  function qs(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
+// pages/api/receipts.js
+import { supabase } from '../../lib/supabaseClient';
+
+export default async function handler(req, res) {
+  if (req.method !== 'GET' && req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
-
-  function formatCurrency(v) {
-    if (v == null) return '₱0.00';
-    return new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(v);
-  }
-
-  function setText(id, txt) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = txt || '';
-  }
-
-  // Read query params: receiptId, orderId, userId
-  const receiptId = qs('receiptId') || qs('receipt_id') || null;
-  const orderId = qs('orderId') || qs('order_id') || null;
-  const userId = qs('userId') || qs('user_id') || null;
-
-  if (!receiptId && !orderId && !userId) {
-    document.getElementById('receiptRoot').innerHTML = '<p style="padding:1rem;color:#b00">No receiptId, orderId or userId provided in the URL.</p>';
-    return;
-  }
-
-  // Build URL
-  const params = new URLSearchParams();
-  if (receiptId) params.set('receiptId', receiptId);
-  else if (orderId) params.set('orderId', orderId);
-  else params.set('userId', userId);
-
-  const apiUrl = `/api/receipts?${params.toString()}`;
 
   try {
-    const resp = await fetch(apiUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-    if (!resp.ok) {
-      const errBody = await resp.json().catch(()=>({ error: resp.statusText }));
-      throw new Error(errBody.error || `HTTP ${resp.status}`);
+    if (req.method === 'GET') {
+      return await handleGetReceipts(req, res);
+    } else {
+      return await handleSaveReceipt(req, res);
     }
-    const payload = await resp.json();
-    if (!payload.success || !payload.data) {
-      throw new Error(payload.error || 'Empty response');
-    }
-
-    // payload.data may be an object (single) or array
-    let receipt = payload.data;
-    if (Array.isArray(receipt)) {
-      if (receipt.length === 0) throw new Error('No receipts found');
-      // If multiple, pick the most recent (assuming created_at exists)
-      receipt = receipt.sort((a,b)=> new Date(b.created_at || 0) - new Date(a.created_at || 0))[0];
-    }
-
-    // Map DB fields to UI - adjust these mappings if your DB uses different names
-    // Common fields used here: order_number, created_at, payment_provider, courier, items (array), subtotal, shipping, total,
-    // shipping_name, shipping_phone, shipping_address_line1, shipping_address_line2, shipping_city, shipping_province, shipping_postal_code, shipping_country
-    const r = receipt;
-    const raw = r.receipt_data || r.raw_response || r.metadata || r; // fallback if nested
-
-    // Order / meta
-    setText('orderId', `Order: ${raw.order_number || r.order_number || r.order_id || ''}`);
-    setText('orderDate', raw.created_at || r.created_at ? `Date: ${new Date(raw.created_at || r.created_at).toLocaleString()}` : '');
-
-    setText('payment', `Payment: ${raw.payment_provider || r.payment_provider || raw.provider || ''}`);
-    setText('courier', `Courier: ${raw.courier || r.courier || raw.shipping_method || ''}`);
-
-    // Items: expect raw.items or r.items as array of { name, unit_price, qty, line_total }
-    const items = raw.items || r.items || [];
-    const tbody = document.querySelector('#itemsTable tbody');
-    tbody.innerHTML = '';
-    let subtotal = 0;
-    items.forEach(it => {
-      const name = it.name || it.title || it.product_name || '';
-      const unit = (it.unit_price != null) ? formatCurrency(Number(it.unit_price)) : (it.unit || '');
-      const qty = it.qty != null ? it.qty : (it.quantity != null ? it.quantity : 1);
-      const line = (it.line_total != null) ? Number(it.line_total) : (it.unit_price != null ? Number(it.unit_price) * qty : 0);
-      subtotal += line;
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${name}</td><td class="right">${unit}</td><td class="right">${qty}</td><td class="right">${formatCurrency(line)}</td>`;
-      tbody.appendChild(tr);
+  } catch (error) {
+    console.error('Receipts API Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error'
     });
-
-    // Totals - fallback to computed if not present
-    const shippingAmt = raw.shipping != null ? Number(raw.shipping) : (r.shipping != null ? Number(r.shipping) : 0);
-    const totalAmt = raw.total != null ? Number(raw.total) : (r.total != null ? Number(r.total) : (subtotal + shippingAmt));
-
-    setText('subtotal', formatCurrency(raw.subtotal != null ? Number(raw.subtotal) : subtotal));
-    setText('shipping', formatCurrency(shippingAmt));
-    setText('total', formatCurrency(totalAmt));
-
-    // Customer contact
-    setText('custContact', raw.customer_email || r.customer_email || (raw.customer && raw.customer.email) || '');
-
-    // Shipping address parts
-    setText('shippingName', (raw.shipping_name || raw.recipient_name || r.shipping_name || '') );
-    setText('shippingPhone', (raw.shipping_phone || r.shipping_phone || r.recipient_phone || '') );
-    setText('shippingAddressLine1', (raw.shipping_address_line1 || raw.address_line1 || r.address_line1 || '') );
-    setText('shippingAddressLine2', (raw.shipping_address_line2 || raw.address_line2 || r.address_line2 || '') );
-    setText('shippingCityProvince', [raw.shipping_city || r.shipping_city, raw.shipping_province || r.shipping_province].filter(Boolean).join(', '));
-    setText('shippingPostalCode', raw.shipping_postal_code || r.shipping_postal_code || '');
-    setText('shippingCountry', raw.shipping_country || r.shipping_country || '');
-
-    // Back button behavior
-    document.getElementById('backBtn').addEventListener('click', ()=> {
-      window.location.href = '/';
-    });
-
-  } catch (err) {
-    console.error('Receipt load error:', err);
-    document.getElementById('receiptRoot').innerHTML = `<p style="padding:1rem;color:#b00">Error loading receipt: ${err.message}</p>`;
   }
-})();
+}
+
+async function handleGetReceipts(req, res) {
+  const { userId, orderId, receiptId } = req.query;
+
+  if (!userId && !orderId && !receiptId) {
+    return res.status(400).json({ error: 'userId, orderId, or receiptId is required' });
+  }
+
+  try {
+    let query;
+
+    if (receiptId) {
+      query = supabase.from('receipts').select('*').eq('id', receiptId).single();
+      const { data, error } = await query;
+      if (error) throw error;
+      return res.status(200).json({ success: true, data });
+    }
+
+    if (orderId) {
+      // orderId may be an order id (UUID) or an order_number; try to detect format
+      // If it looks like a UUID, query receipts.order_id; otherwise try to resolve order_number -> id
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      let dbOrderId = null;
+
+      if (uuidRegex.test(orderId)) {
+        dbOrderId = orderId;
+      } else {
+        const { data: orderData, error: orderError } = await supabase
+          .from('orders')
+          .select('id')
+          .eq('order_number', orderId)
+          .limit(1)
+          .single();
+
+        if (orderError && orderError.code !== 'PGRST116') { // single() returns 406 or similar when not found; handle generically
+          // If not found, we will treat dbOrderId as null
+          console.warn('Order lookup error by order_number:', orderError.message || orderError);
+        } else if (orderData && orderData.id) {
+          dbOrderId = orderData.id;
+        }
+      }
+
+      if (!dbOrderId) {
+        return res.status(404).json({ success: false, error: 'Order not found' });
+      }
+
+      const { data, error } = await supabase
+        .from('receipts')
+        .select('*')
+        .eq('order_id', dbOrderId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return res.status(200).json({ success: true, data });
+    }
+
+    // userId path - return all receipts for user, newest first
+    const { data, error } = await supabase
+      .from('receipts')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return res.status(200).json({ success: true, data });
+  } catch (error) {
+    console.error('Get receipts error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to get receipts' });
+  }
+}
+
+async function handleSaveReceipt(req, res) {
+  const { userId, receiptData } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+  if (!receiptData || typeof receiptData !== 'object') {
+    return res.status(400).json({ error: 'receiptData is required and must be an object' });
+  }
+
+  try {
+    // Resolve order: receiptData may contain orderId (UUID) or orderNumber
+    let dbOrderId = null;
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (receiptData.orderId && uuidRegex.test(receiptData.orderId)) {
+      // Verify order exists
+      const { data: orderById, error: orderByIdErr } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('id', receiptData.orderId)
+        .limit(1)
+        .single();
+
+      if (!orderByIdErr && orderById && orderById.id) dbOrderId = orderById.id;
+    }
+
+    if (!dbOrderId && receiptData.orderNumber) {
+      const { data: orderByNumber, error: orderByNumberErr } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('order_number', receiptData.orderNumber)
+        .limit(1)
+        .single();
+
+      if (!orderByNumberErr && orderByNumber && orderByNumber.id) dbOrderId = orderByNumber.id;
+    }
+
+    if (!dbOrderId) {
+      console.error('Could not find order for receipt');
+      return res.status(404).json({ success: false, error: 'Order not found for this receipt' });
+    }
+
+    // Check for existing receipt for this order (you may allow multiple receipts if supporting partial payments)
+    const { data: existingReceipt, error: existingError } = await supabase
+      .from('receipts')
+      .select('id, status, payment_provider_id')
+      .eq('order_id', dbOrderId)
+      .limit(1)
+      .single();
+
+    // Prepare receipt payload for insert/update. Map common fields if present.
+    const payload = {
+      user_id: userId,
+      order_id: dbOrderId,
+      payment_provider: receiptData.payment_provider || receiptData.provider || null,
+      payment_provider_id: receiptData.payment_provider_id || receiptData.provider_id || receiptData.chargeId || null,
+      amount: typeof receiptData.amount === 'number' ? receiptData.amount : receiptData.total || null,
+      currency: receiptData.currency || 'USD',
+      status: receiptData.status || 'succeeded',
+      captured_at: receiptData.captured_at ? new Date(receiptData.captured_at) : null,
+      raw_response: receiptData.raw_response || receiptData
+    };
+
+    // Remove null keys to avoid inserting explicit nulls where not needed
+    Object.keys(payload).forEach((k) => {
+      if (payload[k] === null) delete payload[k];
+    });
+
+    if (existingReceipt && existingReceipt.id) {
+      // Update existing receipt
+      const { data, error } = await supabase
+        .from('receipts')
+        .update({
+          ...payload,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existingReceipt.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Receipt updated successfully',
+        receipt_id: data.id,
+        data
+      });
+    } else {
+      // Insert new receipt
+      const { data, error } = await supabase
+        .from('receipts')
+        .insert({
+          ...payload,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Receipt saved successfully',
+        receipt_id: data.id,
+        data
+      });
+    }
+  } catch (error) {
+    console.error('Save receipt error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to save receipt'
+    });
+  }
+}
