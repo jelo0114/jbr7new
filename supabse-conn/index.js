@@ -668,6 +668,20 @@ export async function getUserReviews(userId) {
   }
 }
 
+export async function saveShippingAddress(userId, addressData) {
+  // Remove API-only fields before inserting into DB
+  const { action, userId: _ignoreUserId, ...cleanData } = addressData;
+
+  const { error } = await supabase
+    .from('shipping_addresses')
+    .insert({
+      user_id: userId,
+      ...cleanData
+    });
+
+  if (error) throw error;
+}
+
 // -----------------------------
 // HELPER FUNCTIONS
 // -----------------------------
