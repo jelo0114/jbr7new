@@ -18,6 +18,8 @@
 //     getProductReviews,
 //     submitReview,
 //     getUserActivities,
+//     getUserProfile,
+//     getUserReviews,
 //   } from '../supabse-conn/index';
 //
 //   import { supabase } from '../lib/supabaseClient';
@@ -462,16 +464,223 @@ export async function logUserActivity(userId, { activity_type, description, poin
 }
 
 export async function getUserActivities(userId) {
-  const { data, error } = await supabase
-    .from('user_activities')
-    .select('*')
-    .eq('user_id', userId)
-    .order('created_at', { ascending: false });
+  try {
+    // Get user points
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('points')
+      .eq('id', userId)
+      .single();
 
-  if (error) {
-    throw new Error(`getUserActivities failed: ${error.message}`);
+    if (userError) throw userError;
+
+    // Get recent activities (orders and reviews)
+    const { data: recentOrders } = await supabase
+      .from('orders')
+      .select('order_number, created_at, total')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    const { data: recentReviews } = await supabase
+      .from('reviews')
+      .select('product_title, created_at, rating')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Combine and format activities
+    const activities = [];
+    
+    if (recentOrders) {
+      recentOrders.forEach(order => {
+        activities.push({
+          type: 'order',
+          description: `Order #${order.order_number}`,
+          time_ago: formatTimeAgo(order.created_at),
+          date: new Date(order.created_at).toLocaleDateString(),
+          points: 150
+        });
+      });
+    }
+
+    if (recentReviews) {
+      recentReviews.forEach(review => {
+        activities.push({
+          type: 'review',
+          description: `Reviewed ${review.product_title}`,
+          time_ago: formatTimeAgo(review.created_at),
+          date: new Date(review.created_at).toLocaleDateString(),
+          points: 50
+        });
+      });
+    }
+
+    // Sort by date
+    activities.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    return {
+      points: userData.points || 0,
+      activities: activities
+    };
+  } catch (error) {
+    console.error('getUserActivities error:', error);
+    throw error;
   }
-
-  return data || [];
 }
 
+// -----------------------------
+// USER PROFILE (NEW - for profile page)
+// -----------------------------
+
+export async function getUserProfile(userId) {
+  try {
+    console.log('Fetching profile for userId:', userId);
+
+    // Get user profile
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('id, username, email, points, created_at, profile_picture')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Profile fetch error:', profileError);
+      throw profileError;
+    }
+
+    console.log('Profile fetched:', profile);
+
+    // Get orders count
+    const { count: ordersCount, error: ordersCountError } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (ordersCountError) {
+      console.error('Orders count error:', ordersCountError);
+    }
+
+    // Get saved items count
+    const { count: savedCount, error: savedCountError } = await supabase
+      .from('saved_items')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (savedCountError) {
+      console.error('Saved items count error:', savedCountError);
+    }
+
+    // Get reviews count
+    const { count: reviewsCount, error: reviewsCountError } = await supabase
+      .from('reviews')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId);
+
+    if (reviewsCountError) {
+      console.error('Reviews count error:', reviewsCountError);
+    }
+
+    // Get actual saved items for the wishlist
+    const { data: savedItemsData, error: savedItemsError } = await supabase
+      .from('saved_items')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (savedItemsError) {
+      console.error('Saved items fetch error:', savedItemsError);
+    }
+
+    // Format saved items
+    const formattedSavedItems = (savedItemsData || []).map(item => ({
+      title: item.title,
+      price: item.price,
+      metadata: item.metadata || {
+        image: item.image || 'totebag.avif'
+      }
+    }));
+
+    // Get recent orders for display
+    const { data: recentOrdersData, error: recentOrdersError } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (recentOrdersError) {
+      console.error('Recent orders fetch error:', recentOrdersError);
+    }
+
+    console.log('Stats:', { ordersCount, savedCount, reviewsCount });
+
+    return {
+      user: {
+        username: profile.username,
+        email: profile.email,
+        points: profile.points || 0,
+        created_at: profile.created_at,
+        profile_picture: profile.profile_picture || null
+      },
+      stats: {
+        orders: ordersCount || 0,
+        saved: savedCount || 0,
+        reviews: reviewsCount || 0,
+        favorites: 0
+      },
+      items: formattedSavedItems,
+      orders: recentOrdersData || []
+    };
+  } catch (error) {
+    console.error('getUserProfile error:', error);
+    throw error;
+  }
+}
+
+// -----------------------------
+// USER REVIEWS (NEW - for profile page)
+// -----------------------------
+
+export async function getUserReviews(userId) {
+  try {
+    const { data: userReviews, error: userReviewsError } = await supabase
+      .from('reviews')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (userReviewsError) throw userReviewsError;
+
+    // Format reviews with date
+    const formattedReviews = userReviews.map(review => ({
+      ...review,
+      date: new Date(review.created_at).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      })
+    }));
+
+    return formattedReviews;
+  } catch (error) {
+    console.error('getUserReviews error:', error);
+    throw error;
+  }
+}
+
+// -----------------------------
+// HELPER FUNCTIONS
+// -----------------------------
+
+function formatTimeAgo(dateString) {
+  const date = new Date(dateString);
+  const now = new Date();
+  const seconds = Math.floor((now - date) / 1000);
+
+  if (seconds < 60) return 'Just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return date.toLocaleDateString();
+}
