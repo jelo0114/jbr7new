@@ -5,13 +5,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Explore - JBR7 Bags</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="/home.css">
-    <link rel="stylesheet" href="/JBR7 CSS/explore.css">
+    <link rel="stylesheet" href="home.css">
+    <link rel="stylesheet" href="JBR7 CSS/explore.css">
 </head>
 <body>
 
     <header>
-    <a href="/home.html" class="logo">
+    <a href="home.html" class="logo">
             <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-img" onerror="this.style.display='none'">
             <div class="logo-text">
                 <h2><span>JBR7</span> BAGS</h2>
@@ -20,16 +20,16 @@
         </a>
         <div class="header-sep" aria-hidden="true"></div>
         <nav>
-            <a href="#home" onclick="handleNavigate('home')" data-page="home"><i class="fas fa-home"></i> Home</a>
-            <a href="#explore" onclick="handleNavigate('explore')" data-page="explore"><i class="fas fa-compass"></i> Explore</a>
-            <a href="#saved" onclick="handleNavigate('saved')" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
-            <a href="#cart" onclick="handleNavigate('cart')" data-page="cart"><i class="fas fa-shopping-cart"></i> Cart</a>
-            <a href="#contact" onclick="handleNavigate('contact')" data-page="contact"><i class="fas fa-envelope"></i> Contact Us</a>
-            <a href="#settings" onclick="handleNavigate('settings')" data-page="settings" class="active"><i class="fas fa-cog"></i> Settings</a>
-            <a href="#search" onclick="handleNavigate('search')" data-page="search"><i class="fas fa-search"></i></a>
-            <a href="#notifications" onclick="handleNavigate('notifications')" data-page="notifications"><i class="fas fa-bell"></i></a>
-            <a href="#messages" onclick="handleNavigate('messages')" data-page="messages"><i class="fas fa-comment"></i></a>
-            <a href="#profile" onclick="handleNavigate('profile')" data-page="profile"><i class="fas fa-user-circle"></i></a>
+            <a href="home.html" onclick="handleNavigate('home'); return false;" data-page="home"><i class="fas fa-home"></i> Home</a>
+            <a href="explore.html" onclick="handleNavigate('explore'); return false;" data-page="explore" class="active"><i class="fas fa-compass"></i> Explore</a>
+            <a href="saved.html" onclick="handleNavigate('saved'); return false;" data-page="saved"><i class="fas fa-bookmark"></i> Saved</a>
+            <a href="cart.html" onclick="handleNavigate('cart'); return false;" data-page="cart"><i class="fas fa-shopping-cart"></i> Cart</a>
+            <a href="contact.html" onclick="handleNavigate('contact'); return false;" data-page="contact"><i class="fas fa-envelope"></i> Contact Us</a>
+            <a href="settings.html" onclick="handleNavigate('settings'); return false;" data-page="settings"><i class="fas fa-cog"></i> Settings</a>
+            <a href="#" onclick="handleNavigate('search'); return false;" data-page="search"><i class="fas fa-search"></i></a>
+            <a href="#" onclick="handleNavigate('notifications'); return false;" data-page="notifications"><i class="fas fa-bell"></i></a>
+            <a href="#" onclick="handleNavigate('messages'); return false;" data-page="messages"><i class="fas fa-comment"></i></a>
+            <a href="profile.html" onclick="handleNavigate('profile'); return false;" data-page="profile"><i class="fas fa-user-circle"></i></a>
         </nav>
     </header>
 
@@ -434,11 +434,11 @@
     </footer>
     
     
-    <script src="/jbr7js/user-storage.js"></script>
-    <script src="/jbr7js/home.js"></script>
-    <script src="/jbr7js/explore.js"></script>
-    <script src="/jbr7js/explore-ratings.js"></script>
-    <script src="/jbr7js/notifications.js"></script>
-    <script src="/jbr7js/view-linker.js"></script>
+    <script src="jbr7js/user-storage.js"></script>
+    <script src="jbr7js/home.js"></script>
+    <script src="jbr7js/explore.js"></script>
+    <script src="jbr7js/explore-ratings.js"></script>
+    <script src="jbr7js/notifications.js"></script>
+    <script src="jbr7js/view-linker.js"></script>
 </body>
 </html>

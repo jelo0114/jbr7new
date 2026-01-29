@@ -32,11 +32,10 @@ function handleNavigate(page) {
         clickedLink.classList.add('active');
     }
     
-    // Navigate to different pages
+    // Navigate to different pages (relative paths so nav works from any base URL or file://)
     switch(page) {
         case 'home':
-            // Use the PHP locator when available so pages served through PHP resolve correctly
-            window.location.href = '/jbr7php/home.php';
+            window.location.href = 'home.html';
             break;
         case 'explore':
             window.location.href = 'explore.html';
@@ -78,9 +77,7 @@ function handleNavigate(page) {
             }
             break;
         case 'profile':
-            // Open the client-side profile page which will fetch session data from PHP
-            // This keeps pages HTML-first and lets `profile.js` populate the placeholders
-            window.location.href = '/profile.html';
+            window.location.href = 'profile.html';
             break;
         default:
             console.log('Page not found:', page);
