@@ -1,4 +1,4 @@
-// Settings Page Functionality - Updated to use Next.js API routes
+// Settings Page Functionality - Updated to use Next.js API with Supabase
 
 // Get user ID from session storage
 function getUserId() {
@@ -92,20 +92,26 @@ function populateAccountForm(user) {
     if (fullNameInput) {
         fullNameInput.value = user.username || '';
         console.log('Set fullName to:', user.username);
+    } else {
+        console.warn('fullName input not found');
     }
     
     if (emailInput) {
         emailInput.value = user.email || '';
         console.log('Set email to:', user.email);
+    } else {
+        console.warn('email input not found');
     }
     
     if (phoneInput) {
         phoneInput.value = user.phone || '';
         console.log('Set phone to:', user.phone);
+    } else {
+        console.warn('phone input not found');
     }
 }
 
-// Save account information - TODO: Implement API endpoint
+// Save account information - Updated to use API
 async function saveAccountInfo() {
     const fullName = document.getElementById('fullName')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
@@ -139,7 +145,7 @@ async function saveAccountInfo() {
             body: JSON.stringify({
                 action: 'update-account',
                 userId,
-                fullName,
+                username: fullName,
                 email,
                 phone
             })
@@ -160,7 +166,7 @@ async function saveAccountInfo() {
     }
 }
 
-// Change password - TODO: Implement API endpoint
+// Change password - Updated to use API
 async function changePassword() {
     const currentPassword = document.querySelector('input[placeholder="Enter current password"]')?.value;
     const newPassword = document.querySelector('input[placeholder="Enter new password"]')?.value;
@@ -236,11 +242,22 @@ function enable2FA() {
     showNotification('Two-factor authentication setup coming soon', 'info');
 }
 
-// Load login history - TODO: Implement API endpoint
+// Load and display login history - Updated for API (placeholder)
 async function loadLoginHistory() {
     const container = document.getElementById('loginHistoryContainer');
     if (!container) return;
     
+    const userId = getUserId();
+    if (!userId) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #666;">
+                <p>Please log in to view login history</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Show loading state
     container.innerHTML = `
         <div class="loading-spinner" style="text-align: center; padding: 2rem;">
             <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #006923;"></i>
@@ -248,7 +265,7 @@ async function loadLoginHistory() {
         </div>
     `;
     
-    // Show placeholder for now
+    // Placeholder - implement when backend endpoint is ready
     setTimeout(() => {
         container.innerHTML = `
             <div style="text-align: center; padding: 2rem; color: #666;">
@@ -263,14 +280,20 @@ function viewFullHistory() {
     loadLoginHistory();
 }
 
-// Download user data as PDF - TODO: Implement API endpoint
+// Download user data as PDF - Updated for API (placeholder)
 async function downloadUserData() {
+    const userId = getUserId();
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
+    
     showNotification('Data export feature coming soon', 'info');
 }
 
-// Delete account - TODO: Implement API endpoint
+// Delete account - Updated to use API
 async function deleteAccount() {
-    const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone!');
+    const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete:\n\n- Your account\n- All orders\n- All saved items\n- All reviews\n- All activity history\n\nThis cannot be reversed!');
     
     if (!confirmed) {
         return;
@@ -308,8 +331,14 @@ async function deleteAccount() {
         
         if (data.success) {
             showNotification('Account deleted successfully', 'success');
+            
+            // Clear all local storage
+            if (typeof UserStorage !== 'undefined' && UserStorage) {
+                UserStorage.clearUserData();
+            }
             localStorage.clear();
             sessionStorage.clear();
+            
             setTimeout(() => {
                 window.location.href = '/index.html';
             }, 2000);
@@ -318,11 +347,11 @@ async function deleteAccount() {
         }
     } catch (error) {
         console.error('Error deleting account:', error);
-        showNotification('Failed to delete account', 'info');
+        showNotification('Failed to delete account. Please try again.', 'info');
     }
 }
 
-// Payment Functions
+// Payment Functions - Updated to use API
 async function savePaymentPreference() {
     const selected = document.querySelector('input[name="defaultPayment"]:checked');
     if (!selected) {
@@ -545,6 +574,18 @@ function switchAddressType(type) {
         document.getElementById('office-address-fields').style.display = 'none';
         document.getElementById('home-additional').style.display = 'block';
         document.getElementById('office-additional').style.display = 'none';
+        
+        // Update required fields
+        document.getElementById('first-name').required = true;
+        document.getElementById('last-name').required = true;
+        document.getElementById('mobile-number').required = true;
+        document.getElementById('house-unit-number').required = true;
+        document.getElementById('street-name').required = true;
+        document.getElementById('office-mobile-number').required = false;
+        document.getElementById('building-name').required = false;
+        document.getElementById('office-street-name').required = false;
+        document.getElementById('recipient-name').required = false;
+        document.getElementById('company-name').required = false;
     } else {
         document.getElementById('home-fields').style.display = 'none';
         document.getElementById('office-fields').style.display = 'block';
@@ -554,6 +595,18 @@ function switchAddressType(type) {
         document.getElementById('office-address-fields').style.display = 'block';
         document.getElementById('home-additional').style.display = 'none';
         document.getElementById('office-additional').style.display = 'block';
+        
+        // Update required fields
+        document.getElementById('first-name').required = false;
+        document.getElementById('last-name').required = false;
+        document.getElementById('mobile-number').required = false;
+        document.getElementById('house-unit-number').required = false;
+        document.getElementById('street-name').required = false;
+        document.getElementById('office-mobile-number').required = true;
+        document.getElementById('building-name').required = true;
+        document.getElementById('office-street-name').required = true;
+        document.getElementById('recipient-name').required = true;
+        document.getElementById('company-name').required = true;
     }
 }
 
@@ -571,17 +624,20 @@ function editAddress(addressId) {
     document.getElementById('address-id').value = addressId;
     document.getElementById('address-type').value = address.address_type;
     
+    // Switch to correct type
     switchAddressType(address.address_type);
     
-    // Fill form fields based on address type
+    // Fill form fields
     if (address.address_type === 'home') {
         document.getElementById('first-name').value = address.first_name || '';
         document.getElementById('middle-name').value = address.middle_name || '';
         document.getElementById('last-name').value = address.last_name || '';
         document.getElementById('mobile-number').value = address.mobile_number || '';
+        document.getElementById('alternate-number').value = address.alternate_number || '';
         document.getElementById('house-unit-number').value = address.house_unit_number || '';
         document.getElementById('street-name').value = address.street_name || '';
         document.getElementById('subdivision-village').value = address.subdivision_village || '';
+        document.getElementById('landmark-delivery-notes').value = address.landmark_delivery_notes || '';
     } else {
         document.getElementById('recipient-name').value = address.recipient_name || '';
         document.getElementById('company-name').value = address.company_name || '';
@@ -592,34 +648,260 @@ function editAddress(addressId) {
         if (document.getElementById('office-street-name')) {
             document.getElementById('office-street-name').value = address.street_name || '';
         }
+        document.getElementById('office-hours').value = address.office_hours || '';
+        document.getElementById('additional-instructions').value = address.additional_instructions || '';
     }
     
     // Common fields
+    document.getElementById('email-address').value = address.email_address || '';
     document.getElementById('barangay').value = address.barangay || '';
     document.getElementById('city-municipality').value = address.city_municipality || '';
     document.getElementById('province-state').value = address.province_state || '';
     document.getElementById('postal-zip-code').value = address.postal_zip_code || '';
     document.getElementById('country').value = address.country || 'Philippines';
+    document.getElementById('formatted-address').value = address.formatted_address || '';
+    document.getElementById('latitude').value = address.latitude || '';
+    document.getElementById('longitude').value = address.longitude || '';
     document.getElementById('set-as-default').checked = address.is_default == 1;
     
     document.getElementById('address-modal').style.display = 'flex';
 }
 
-// Remove address - TODO: Implement API endpoint
+// Remove address - Updated to use API
 async function removeAddress(addressId) {
     if (!confirm('Are you sure you want to delete this address?')) {
         return;
     }
     
-    showNotification('Delete address feature coming soon', 'info');
+    const userId = getUserId();
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/post', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                action: 'delete-address',
+                userId,
+                id: addressId 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Address deleted successfully', 'success');
+            loadAddresses();
+        } else {
+            showNotification(data.error || 'Failed to delete address', 'info');
+        }
+    } catch (error) {
+        console.error('Error deleting address:', error);
+        showNotification('Failed to delete address', 'info');
+    }
 }
 
-// Set default address - TODO: Implement API endpoint
+// Set default address - Updated to use API
 async function setDefaultAddress(addressId) {
-    showNotification('Set default address feature coming soon', 'info');
+    const userId = getUserId();
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/post', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+                action: 'set-default-address',
+                userId,
+                id: addressId 
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showNotification('Default address updated', 'success');
+            loadAddresses();
+        } else {
+            showNotification(data.error || 'Failed to set default address', 'info');
+        }
+    } catch (error) {
+        console.error('Error setting default address:', error);
+        showNotification('Failed to set default address', 'info');
+    }
 }
 
-// Courier Functions
+// Get current location
+function getCurrentLocation() {
+    if (!navigator.geolocation) {
+        showNotification('Geolocation is not supported by your browser', 'info');
+        return;
+    }
+    
+    showNotification('Getting your location...', 'info');
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            
+            // Reverse geocode to get address
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
+                const data = await response.json();
+                
+                if (data && data.address) {
+                    const addr = data.address;
+                    const formatted = data.display_name || '';
+                    document.getElementById('formatted-address').value = formatted;
+                    
+                    // Auto-fill form fields if empty
+                    if (!document.getElementById('barangay').value && addr.suburb) {
+                        document.getElementById('barangay').value = addr.suburb;
+                    }
+                    if (!document.getElementById('city-municipality').value && addr.city) {
+                        document.getElementById('city-municipality').value = addr.city;
+                    }
+                    if (!document.getElementById('province-state').value && addr.state) {
+                        document.getElementById('province-state').value = addr.state;
+                    }
+                    if (!document.getElementById('postal-zip-code').value && addr.postcode) {
+                        document.getElementById('postal-zip-code').value = addr.postcode;
+                    }
+                    if (!document.getElementById('street-name').value && addr.road) {
+                        document.getElementById('street-name').value = addr.road;
+                        if (document.getElementById('office-street-name')) {
+                            document.getElementById('office-street-name').value = addr.road;
+                        }
+                    }
+                    
+                    showNotification('Location found and address filled', 'success');
+                } else {
+                    showNotification('Location found but address could not be determined', 'info');
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+                showNotification('Location found but could not get address details', 'info');
+            }
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            showNotification('Could not get your location. Please enter address manually.', 'info');
+        }
+    );
+}
+
+// Handle address form submission - Updated to use API
+document.addEventListener('DOMContentLoaded', function() {
+    const addressForm = document.getElementById('address-form');
+    if (addressForm) {
+        addressForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = getUserId();
+            if (!userId) {
+                showNotification('Please log in first', 'info');
+                return;
+            }
+            
+            const addressType = document.getElementById('address-type').value;
+            const addressId = document.getElementById('address-id').value;
+            const isDefault = document.getElementById('set-as-default').checked;
+            
+            let addressData = {
+                action: addressId ? 'update-address' : 'save-address',
+                userId,
+                address_type: addressType,
+                is_default: isDefault,
+                email_address: document.getElementById('email-address').value,
+                barangay: document.getElementById('barangay').value,
+                city_municipality: document.getElementById('city-municipality').value,
+                province_state: document.getElementById('province-state').value,
+                postal_zip_code: document.getElementById('postal-zip-code').value,
+                country: document.getElementById('country').value,
+                latitude: document.getElementById('latitude').value || null,
+                longitude: document.getElementById('longitude').value || null,
+                formatted_address: document.getElementById('formatted-address').value || null
+            };
+            
+            if (addressId) {
+                addressData.id = parseInt(addressId);
+            }
+            
+            if (addressType === 'home') {
+                addressData.first_name = document.getElementById('first-name').value;
+                addressData.middle_name = document.getElementById('middle-name').value;
+                addressData.last_name = document.getElementById('last-name').value;
+                addressData.mobile_number = document.getElementById('mobile-number').value;
+                addressData.alternate_number = document.getElementById('alternate-number').value;
+                addressData.house_unit_number = document.getElementById('house-unit-number').value;
+                addressData.street_name = document.getElementById('street-name').value;
+                addressData.subdivision_village = document.getElementById('subdivision-village').value;
+                addressData.landmark_delivery_notes = document.getElementById('landmark-delivery-notes').value;
+            } else {
+                addressData.recipient_name = document.getElementById('recipient-name').value;
+                addressData.company_name = document.getElementById('company-name').value;
+                addressData.office_phone = document.getElementById('office-phone').value;
+                addressData.mobile_number = document.getElementById('office-mobile-number').value;
+                addressData.building_name = document.getElementById('building-name').value;
+                addressData.floor_unit_number = document.getElementById('floor-unit-number').value;
+                addressData.street_name = document.getElementById('office-street-name').value;
+                addressData.office_hours = document.getElementById('office-hours').value;
+                addressData.additional_instructions = document.getElementById('additional-instructions').value;
+            }
+            
+            try {
+                const response = await fetch('/api/post', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(addressData)
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showNotification(data.message || 'Address saved successfully', 'success');
+                    closeAddressModal();
+                    loadAddresses();
+                } else {
+                    showNotification(data.error || 'Failed to save address', 'info');
+                }
+            } catch (error) {
+                console.error('Error saving address:', error);
+                showNotification('Failed to save address', 'info');
+            }
+        });
+    }
+    
+    // Load addresses when shipping section is shown
+    const originalShowSection = showSettingsSection;
+    showSettingsSection = function(sectionName) {
+        originalShowSection(sectionName);
+        if (sectionName === 'shipping') {
+            loadAddresses();
+        }
+    };
+});
+
+// Courier Functions - Updated to use API
 async function saveCourierPreference() {
     const selected = document.querySelector('input[name="defaultCourier"]:checked');
     if (!selected) {
@@ -628,12 +910,43 @@ async function saveCourierPreference() {
     }
     
     const courierValue = selected.value;
+    const userId = getUserId();
     
     // Save to localStorage immediately
     localStorage.setItem('jbr7_default_courier', courierValue);
     
     const courierName = courierValue === 'jnt' ? 'JNT' : 'Flash Express';
-    showNotification(`Default courier set to: ${courierName}`, 'success');
+    
+    if (!userId) {
+        showNotification(`Default courier saved locally: ${courierName}`, 'success');
+        return;
+    }
+    
+    // Save to database
+    try {
+        const response = await fetch('/api/post', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'save-preferences',
+                userId,
+                default_courier: courierValue
+            })
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            showNotification(`Default courier set to: ${courierName}`, 'success');
+        } else {
+            showNotification(`Default courier saved locally: ${courierName}`, 'success');
+        }
+    } catch (error) {
+        console.error('Error saving courier preference:', error);
+        showNotification(`Default courier saved locally: ${courierName}`, 'success');
+    }
 }
 
 // Help Functions
@@ -658,8 +971,17 @@ function logout() {
             UserStorage.clearUserData();
         }
         
-        // Clear all storage
-        localStorage.clear();
+        // Clear legacy data
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('cart');
+        localStorage.removeItem('savedBags');
+        localStorage.removeItem('jbr7_default_payment');
+        localStorage.removeItem('jbr7_default_courier');
+        localStorage.removeItem('jbr7_customer_email');
+        localStorage.removeItem('jbr7_customer_phone');
+        localStorage.removeItem('pendingCheckout');
+        localStorage.removeItem('appliedPromo');
+        
         sessionStorage.clear();
 
         setTimeout(() => {
@@ -722,7 +1044,7 @@ if (!document.querySelector('#notification-styles')) {
     document.head.appendChild(notificationStyles);
 }
 
-// Load saved preferences on page load
+// Load saved preferences on page load - Updated to use API
 async function loadSavedPreferences() {
     const userId = getUserId();
     
@@ -773,26 +1095,28 @@ async function loadSavedPreferences() {
                         localStorage.setItem('jbr7_default_courier', defaultCourier);
                     }
                 }
+                return;
             }
         }
     } catch (error) {
-        console.error('Error loading preferences:', error);
-        // Fall back to localStorage
-        const defaultPayment = localStorage.getItem('jbr7_default_payment');
-        if (defaultPayment) {
-            const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
-            if (paymentRadio) paymentRadio.checked = true;
-        }
-        
-        const defaultCourier = localStorage.getItem('jbr7_default_courier');
-        if (defaultCourier) {
-            const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
-            if (courierRadio) courierRadio.checked = true;
-        }
+        console.error('Error loading preferences from database:', error);
+    }
+    
+    // Fallback to localStorage only
+    const defaultPayment = localStorage.getItem('jbr7_default_payment');
+    if (defaultPayment) {
+        const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
+        if (paymentRadio) paymentRadio.checked = true;
+    }
+    
+    const defaultCourier = localStorage.getItem('jbr7_default_courier');
+    if (defaultCourier) {
+        const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
+        if (courierRadio) courierRadio.checked = true;
     }
 }
 
-// Load notification preferences
+// Load notification preferences from server - Updated to use API
 async function loadNotificationPreferences() {
     const userId = getUserId();
     if (!userId) return;
@@ -811,6 +1135,7 @@ async function loadNotificationPreferences() {
         const data = await response.json();
         
         if (data.success && data.data) {
+            // Update toggle switches
             const orderStatusToggle = document.getElementById('pushOrderStatus');
             const cartReminderToggle = document.getElementById('pushCartReminder');
             
@@ -826,39 +1151,52 @@ async function loadNotificationPreferences() {
     }
 }
 
-// Toggle push notification - TODO: Implement API endpoint  
+// Toggle push notification - Updated to use API
 async function togglePushNotification(type, checkbox) {
     const isEnabled = checkbox.checked ? 1 : 0;
-    const typeName = type === 'order_status' ? 'Order Status' : 'Cart Reminders';
-    const status = isEnabled ? 'enabled' : 'disabled';
+    const userId = getUserId();
     
-    showNotification(`${typeName} notifications ${status}`, 'success');
-}
-
-// Get current location
-function getCurrentLocation() {
-    if (!navigator.geolocation) {
-        showNotification('Geolocation is not supported by your browser', 'info');
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        checkbox.checked = !checkbox.checked;
         return;
     }
     
-    showNotification('Getting your location...', 'info');
+    console.log('togglePushNotification called:', { type, isEnabled });
     
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            
-            showNotification('Location found', 'success');
-        },
-        (error) => {
-            console.error('Geolocation error:', error);
-            showNotification('Could not get your location', 'info');
+    try {
+        const response = await fetch('/api/post', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                action: 'update-notification-preference',
+                userId,
+                notification_type: type,
+                enabled: isEnabled
+            })
+        });
+        
+        const data = await response.json();
+        console.log('Notification preference update response:', data);
+        
+        if (data.success) {
+            const status = isEnabled ? 'enabled' : 'disabled';
+            const typeName = type === 'order_status' ? 'Order Status' : 'Cart Reminders';
+            showNotification(`${typeName} notifications ${status}`, 'success');
+        } else {
+            // Revert checkbox state on error
+            checkbox.checked = !checkbox.checked;
+            showNotification(data.error || 'Failed to update notification preference', 'info');
         }
-    );
+    } catch (error) {
+        console.error('Error updating notification preference:', error);
+        // Revert checkbox state on error
+        checkbox.checked = !checkbox.checked;
+        showNotification('Failed to update notification preference', 'info');
+    }
 }
 
 // Initialize on page load
