@@ -1,28 +1,23 @@
 // api/orders.js
-// Orders endpoint for creating and managing orders - VERCEL SERVERLESS FUNCTION
-
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize Supabase client
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY
 );
 
 export default async function handler(req, res) {
-  // Enable CORS
+  // CORS headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  // Handle preflight request
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
   }
 
-  // Only allow POST and GET requests
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -42,7 +37,6 @@ export default async function handler(req, res) {
   }
 }
 
-// ==================== GET ORDERS ====================
 async function handleGetOrders(req, res) {
   const { userId, orderId, orderNumber } = req.query;
 
@@ -84,7 +78,6 @@ async function handleGetOrders(req, res) {
   }
 }
 
-// ==================== CREATE ORDER ====================
 async function handleCreateOrder(req, res) {
   const {
     userId,
@@ -102,7 +95,6 @@ async function handleCreateOrder(req, res) {
     timestamp
   } = req.body;
 
-  // Validation
   if (!userId) {
     return res.status(400).json({ error: 'userId is required' });
   }
@@ -114,7 +106,6 @@ async function handleCreateOrder(req, res) {
   }
 
   try {
-    // Get default shipping address if not provided
     let shippingAddressId = null;
     const { data: addresses } = await supabase
       .from('shipping_addresses')
@@ -127,7 +118,6 @@ async function handleCreateOrder(req, res) {
       shippingAddressId = addresses.id;
     }
 
-    // 1. Insert order
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
@@ -155,7 +145,6 @@ async function handleCreateOrder(req, res) {
 
     const dbOrderId = orderData.id;
 
-    // 2. Insert order items
     const orderItems = items.map(item => ({
       order_id: dbOrderId,
       product_name: item.name || 'Unknown Product',
@@ -173,12 +162,10 @@ async function handleCreateOrder(req, res) {
 
     if (itemsError) {
       console.error('Order items insert error:', itemsError);
-      // Rollback: delete the order
       await supabase.from('orders').delete().eq('id', dbOrderId);
       throw itemsError;
     }
 
-    // 3. Create notification
     const { error: notifError } = await supabase
       .from('order_notifications')
       .insert({
@@ -192,7 +179,6 @@ async function handleCreateOrder(req, res) {
 
     if (notifError) {
       console.error('Notification insert error:', notifError);
-      // Continue anyway - notification is not critical
     }
 
     return res.status(200).json({
