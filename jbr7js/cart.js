@@ -1,4 +1,4 @@
-// Cart Page Functionality - UPDATED to use Supabase API via Vercel
+// Cart Page Functionality - FIXED VERSION
 
 let cartItems = [];
 
@@ -150,7 +150,7 @@ function renderCart() {
         let lineTotal = (priceNum * item.quantity).toFixed(2);
         
         const customBadges = [];
-        if (item.customizations && item.customizations.length) customBadges.push(...item.customizations.map(c => `<span class="custom-badge">${c}</span>`));
+        if (item.customizations && item.customizations.length) customBadges.push(...item.customizations.map(c => `<span class="custom-badge">${escapeHtml(c)}</span>`));
         const customs = customBadges.length ? customBadges.join('') : '<span class="custom-badge">Standard</span>';
         
         const titleEnc = encodeURIComponent(item.name || 'Product');
@@ -174,9 +174,9 @@ function renderCart() {
 
             let colorButtons = '';
             colors.forEach(c => {
-                const safeVal = c.replace(/"/g, '&quot;');
+                const safeVal = escapeHtml(c);
                 const checked = selectedColor === c ? 'checked' : '';
-                colorButtons += `<label class="color-option"><input type="radio" name="color-${index}" value="${safeVal}" ${checked} onchange="onCartColorChange(${index}, '${safeVal}')"> <span>${c}</span></label>`;
+                colorButtons += `<label class="color-option"><input type="radio" name="color-${index}" value="${safeVal}" ${checked} onchange="onCartColorChange(${index}, '${escapeHtml(c, true)}')"> <span>${escapeHtml(c)}</span></label>`;
             });
 
             if (!item.selectedColor) {
@@ -188,7 +188,7 @@ function renderCart() {
             const priceMapForSizes = isColoredSelection ? COLORED_TOTE_SIZE_PRICES : TOTE_SIZE_PRICES;
             const sizeOptions = Object.keys(priceMapForSizes).map(s => {
                 const selected = item.size === s ? 'selected' : '';
-                return `<option value="${s}" ${selected}>${s} — ₱${priceMapForSizes[s]}</option>`;
+                return `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)} — ₱${priceMapForSizes[s]}</option>`;
             }).join('');
 
             optionsHtml = `
@@ -208,7 +208,7 @@ function renderCart() {
                                 <option value="">-- Select size --</option>
                                 ${sizeOptions}
                             </select>
-                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${item.size || 'Standard'}</div>
+                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${escapeHtml(item.size || 'Standard')}</div>
                         </div>
                     </div>
                 </div>
@@ -216,7 +216,7 @@ function renderCart() {
         } else if (isVanity) {
             const vanitySizeOptions = Object.keys(VANITY_SIZE_PRICES).map(s => {
                 const selected = item.size === s ? 'selected' : '';
-                return `<option value="${s}" ${selected}>${s} — ₱${VANITY_SIZE_PRICES[s]}</option>`;
+                return `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)} — ₱${VANITY_SIZE_PRICES[s]}</option>`;
             }).join('');
 
             optionsHtml = `
@@ -228,7 +228,7 @@ function renderCart() {
                                 <option value="">-- Select size --</option>
                                 ${vanitySizeOptions}
                             </select>
-                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${item.size || 'Standard'}</div>
+                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${escapeHtml(item.size || 'Standard')}</div>
                         </div>
                     </div>
                 </div>
@@ -236,7 +236,7 @@ function renderCart() {
         } else if (isRinglight) {
             const ringSizeOptions = Object.keys(RINGLIGHT_SIZE_PRICES).map(s => {
                 const selected = item.size === s ? 'selected' : '';
-                return `<option value="${s}" ${selected}>${s} — ₱${RINGLIGHT_SIZE_PRICES[s]}</option>`;
+                return `<option value="${escapeHtml(s)}" ${selected}>${escapeHtml(s)} — ₱${RINGLIGHT_SIZE_PRICES[s]}</option>`;
             }).join('');
 
             optionsHtml = `
@@ -248,7 +248,7 @@ function renderCart() {
                                 <option value="">-- Select size --</option>
                                 ${ringSizeOptions}
                             </select>
-                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${item.size || 'Standard'}</div>
+                            <div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${escapeHtml(item.size || 'Standard')}</div>
                         </div>
                     </div>
                 </div>
@@ -258,9 +258,9 @@ function renderCart() {
             
             let colorButtons = '';
             colors.forEach(c => {
-                const safeVal = c.replace(/"/g, '&quot;');
+                const safeVal = escapeHtml(c);
                 const checked = selectedColor === c ? 'checked' : '';
-                colorButtons += `<label class="color-option"><input type="radio" name="color-${index}" value="${safeVal}" ${checked} onchange="setCartItemOption(${index}, 'selectedColor', '${safeVal}')"> <span>${c}</span></label>`;
+                colorButtons += `<label class="color-option"><input type="radio" name="color-${index}" value="${safeVal}" ${checked} onchange="setCartItemOption(${index}, 'selectedColor', '${escapeHtml(c, true)}')"> <span>${escapeHtml(c)}</span></label>`;
             });
             
             optionsHtml = `
@@ -269,7 +269,7 @@ function renderCart() {
                         <div style="flex:1;min-width:160px">
                             <div style="margin-bottom:0.5rem;font-weight:700">Choose Color</div>
                             <div class="color-options-list" style="display:flex;flex-wrap:wrap;gap:0.5rem">${colorButtons}</div>
-                            ${selectedColor ? `<div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${selectedColor}</div>` : '<div style="margin-top:0.5rem;font-size:0.9rem;color:#e53e3e">⚠ Please select a color to checkout</div>'}
+                            ${selectedColor ? `<div style="margin-top:0.5rem;font-size:0.9rem;color:#666">Selected: ${escapeHtml(selectedColor)}</div>` : '<div style="margin-top:0.5rem;font-size:0.9rem;color:#e53e3e">⚠ Please select a color to checkout</div>'}
                         </div>
                     </div>
                 </div>
@@ -292,9 +292,9 @@ function renderCart() {
         html += `
         <div class="cart-item" data-index="${index}">
             <input type="checkbox" class="cart-select" data-index="${index}" ${item.selected ? 'checked' : ''} onchange="toggleSelect(${index}, this.checked)">
-            <img src="${item.image}" alt="${item.name}" class="item-image" onerror="this.src='https://www.sourceforthegoose.com/cdn/shop/files/Scallop-top-jute-tote.jpg?v=1713019103&width=1080'">
+            <img src="${escapeHtml(item.image)}" alt="${escapeHtml(item.name)}" class="item-image" onerror="this.src='https://www.sourceforthegoose.com/cdn/shop/files/Scallop-top-jute-tote.jpg?v=1713019103&width=1080'">
             <div class="item-details">
-                <div class="item-name">${item.name}</div>
+                <div class="item-name">${escapeHtml(item.name)}</div>
                 <div class="item-description">Quality crafted bag</div>
                 <div class="item-customization">
                     ${customs}
@@ -316,6 +316,20 @@ function renderCart() {
     }
     cartContainer.innerHTML = html;
     initCartPreviews();
+}
+
+// HTML escape helper to prevent XSS
+function escapeHtml(text, forAttribute = false) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    const escaped = String(text).replace(/[&<>"']/g, m => map[m]);
+    return forAttribute ? escaped.replace(/'/g, "\\'") : escaped;
 }
 
 function onCartColorChange(index, color) {
@@ -533,6 +547,11 @@ async function checkout() {
             method: 'GET',
             credentials: 'same-origin'
         });
+        
+        if (!addressResponse.ok) {
+            throw new Error(`HTTP error! status: ${addressResponse.status}`);
+        }
+        
         const addressData = await addressResponse.json();
         
         if (!addressData.success || !addressData.data || addressData.data.length === 0) {
@@ -789,7 +808,7 @@ function showNotification(message, type = 'info') {
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
         <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
-        <span>${message}</span>
+        <span>${escapeHtml(message)}</span>
     `;
     
     document.body.appendChild(notification);

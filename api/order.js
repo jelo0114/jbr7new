@@ -41,7 +41,10 @@ async function handleGetOrders(req, res) {
   const { userId, orderId, orderNumber } = req.query;
 
   if (!userId && !orderId && !orderNumber) {
-    return res.status(400).json({ error: 'userId, orderId, or orderNumber is required' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'userId, orderId, or orderNumber is required' 
+    });
   }
 
   try {
@@ -95,33 +98,50 @@ async function handleCreateOrder(req, res) {
     timestamp
   } = req.body;
 
+  // Input validation
   if (!userId) {
-    return res.status(400).json({ error: 'userId is required' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'userId is required' 
+    });
   }
   if (!orderId) {
-    return res.status(400).json({ error: 'orderId is required' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'orderId is required' 
+    });
   }
   if (!items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'items array is required and cannot be empty' });
+    return res.status(400).json({ 
+      success: false,
+      error: 'items array is required and cannot be empty' 
+    });
   }
 
   try {
+    // Get default shipping address
     let shippingAddressId = null;
-    const { data: addresses } = await supabase
+    const { data: addresses, error: addressError } = await supabase
       .from('shipping_addresses')
       .select('id')
       .eq('user_id', userId)
       .eq('is_default', true)
-      .single();
+      .limit(1)
+      .maybeSingle();
+    
+    if (addressError && addressError.code !== 'PGRST116') {
+      console.error('Error fetching shipping address:', addressError);
+    }
     
     if (addresses) {
       shippingAddressId = addresses.id;
     }
 
+    // Create order
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
       .insert({
-        user_id: userId,
+        user_id: parseInt(userId),
         order_id: orderId,
         order_number: orderNumber || orderId,
         status: 'processing',
@@ -145,31 +165,35 @@ async function handleCreateOrder(req, res) {
 
     const dbOrderId = orderData.id;
 
+    // Validate and sanitize order items
     const orderItems = items.map(item => ({
       order_id: dbOrderId,
-      product_name: item.name || 'Unknown Product',
-      product_image: item.image || null,
-      size: item.size || null,
-      color: item.color || null,
-      quantity: parseInt(item.quantity) || 1,
-      unit_price: parseFloat(item.unitPrice) || 0,
-      line_total: parseFloat(item.lineTotal) || 0
+      product_name: String(item.name || 'Unknown Product').substring(0, 255),
+      product_image: item.image ? String(item.image).substring(0, 500) : null,
+      size: item.size ? String(item.size).substring(0, 50) : null,
+      color: item.color ? String(item.color).substring(0, 50) : null,
+      quantity: Math.max(1, parseInt(item.quantity) || 1),
+      unit_price: Math.max(0, parseFloat(item.unitPrice) || 0),
+      line_total: Math.max(0, parseFloat(item.lineTotal) || 0)
     }));
 
+    // Insert order items
     const { error: itemsError } = await supabase
       .from('order_items')
       .insert(orderItems);
 
     if (itemsError) {
       console.error('Order items insert error:', itemsError);
+      // Rollback - delete the order
       await supabase.from('orders').delete().eq('id', dbOrderId);
       throw itemsError;
     }
 
+    // Create notification
     const { error: notifError } = await supabase
       .from('order_notifications')
       .insert({
-        user_id: userId,
+        user_id: parseInt(userId),
         order_id: dbOrderId,
         notification_type: 'order_placed',
         title: 'Order Placed Successfully',
@@ -179,6 +203,7 @@ async function handleCreateOrder(req, res) {
 
     if (notifError) {
       console.error('Notification insert error:', notifError);
+      // Don't fail the whole order if notification fails
     }
 
     return res.status(200).json({
