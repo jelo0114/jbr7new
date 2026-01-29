@@ -1,5 +1,5 @@
 // pages/api/get.js
-// GET endpoint for fetching user data from Supabase
+// GET endpoint for fetching user data from Supabase - FIXED VERSION
 
 import { supabase } from '../../lib/supabaseClient';
 
@@ -238,39 +238,103 @@ export default async function handler(req, res) {
           return res.status(400).json({ error: 'userId is required' });
         }
 
+        console.log('Fetching profile for userId:', userId);
+
+        // Get user profile
         const { data: profile, error: profileError } = await supabase
           .from('users')
-          .select('id, username, email, points, created_at')
+          .select('id, username, email, points, created_at, profile_picture')
           .eq('id', userId)
           .single();
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          console.error('Profile fetch error:', profileError);
+          throw profileError;
+        }
 
-        // Get stats
-        const { data: ordersCount } = await supabase
+        console.log('Profile fetched:', profile);
+
+        // Get orders count - FIXED
+        const { count: ordersCount, error: ordersCountError } = await supabase
           .from('orders')
-          .select('id', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', userId);
 
-        const { data: savedCount } = await supabase
+        if (ordersCountError) {
+          console.error('Orders count error:', ordersCountError);
+        }
+
+        // Get saved items count - FIXED
+        const { count: savedCount, error: savedCountError } = await supabase
           .from('saved_items')
-          .select('id', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', userId);
 
-        const { data: reviewsCount } = await supabase
+        if (savedCountError) {
+          console.error('Saved items count error:', savedCountError);
+        }
+
+        // Get reviews count - FIXED
+        const { count: reviewsCount, error: reviewsCountError } = await supabase
           .from('reviews')
-          .select('id', { count: 'exact', head: true })
+          .select('*', { count: 'exact', head: true })
           .eq('user_id', userId);
+
+        if (reviewsCountError) {
+          console.error('Reviews count error:', reviewsCountError);
+        }
+
+        // Get actual saved items for the wishlist
+        const { data: savedItemsData, error: savedItemsError } = await supabase
+          .from('saved_items')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (savedItemsError) {
+          console.error('Saved items fetch error:', savedItemsError);
+        }
+
+        // Format saved items
+        const formattedSavedItems = (savedItemsData || []).map(item => ({
+          title: item.title,
+          price: item.price,
+          metadata: {
+            image: item.image || 'totebag.avif'
+          }
+        }));
+
+        // Get recent orders for display
+        const { data: recentOrdersData, error: recentOrdersError } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false })
+          .limit(10);
+
+        if (recentOrdersError) {
+          console.error('Recent orders fetch error:', recentOrdersError);
+        }
+
+        console.log('Stats:', { ordersCount, savedCount, reviewsCount });
 
         return res.status(200).json({
           success: true,
-          user: profile,
+          user: {
+            username: profile.username,
+            email: profile.email,
+            points: profile.points || 0,
+            created_at: profile.created_at,
+            profile_picture: profile.profile_picture || null
+          },
           stats: {
-            orders: ordersCount?.length || 0,
-            saved: savedCount?.length || 0,
-            reviews: reviewsCount?.length || 0,
+            orders: ordersCount || 0,
+            saved: savedCount || 0,
+            reviews: reviewsCount || 0,
             favorites: 0
-          }
+          },
+          items: formattedSavedItems,
+          orders: recentOrdersData || []
         });
 
       default:
