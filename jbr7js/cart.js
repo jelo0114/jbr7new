@@ -1,4 +1,4 @@
-// Cart Page Functionality - UPDATED with color selection for all products
+// Cart Page Functionality - UPDATED to use Supabase API via Vercel
 
 let cartItems = [];
 
@@ -33,14 +33,13 @@ const RINGLIGHT_SIZE_PRICES = {
 };
 
 // Color options for each product type
-// Color options for each product type
 const PRODUCT_COLORS = {
     'Plain Brass Cotton Backpack': ['Maroon', 'Dark Old Rose', 'Neon Green', 'Tan Brown', 'Black', 'Pink', 'Sage Green'],
-    'Plain Brass Cotton Back Pack': ['Maroon', 'Dark Old Rose', 'Neon Green', 'Tan Brown', 'Black', 'Pink', 'Sage Green'], // Alternative spelling
-    'Brass Cotton Backpack': ['Maroon', 'Dark Old Rose', 'Neon Green', 'Tan Brown', 'Black', 'Pink', 'Sage Green'], // Short version
+    'Plain Brass Cotton Back Pack': ['Maroon', 'Dark Old Rose', 'Neon Green', 'Tan Brown', 'Black', 'Pink', 'Sage Green'],
+    'Brass Cotton Backpack': ['Maroon', 'Dark Old Rose', 'Neon Green', 'Tan Brown', 'Black', 'Pink', 'Sage Green'],
     'Two Colored Brass Cotton': ['Olive/Peach', 'Pink/Light Gray', 'Soft Violet', 'Mustard', 'Red/Gray', 'Neon/Olive', 'Rust/Old Rose', 'Red/Black', 'Neon/Pink'],
     'Envelope Bags': ['Black', 'Green', 'Pink', 'Blue', 'Neon Green', 'Deep Blue', 'Red', 'Yellow'],
-    'Envelope Bag': ['Black', 'Green', 'Pink', 'Blue', 'Neon Green', 'Deep Blue', 'Red', 'Yellow'], // Singular version
+    'Envelope Bag': ['Black', 'Green', 'Pink', 'Blue', 'Neon Green', 'Deep Blue', 'Red', 'Yellow'],
     'Boys Kiddie Bag': ['Batman', 'Cars', 'Ironman', 'Spiderman', 'Superman'],
     'Girls Kiddie Bag': ['Barbie', 'Sofia', 'Hello Kitty', 'Frozen'],
     'Katrina Plain': ['Red', 'Neon Green', 'Black', 'Gray', 'Sky Blue', 'Pink'],
@@ -54,13 +53,11 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCartFromStorage();
     renderCart();
     updateSummary();
-    // Load default preferences from database/localStorage
     loadDefaultPaymentAndCourier();
 });
 
 // Load cart from localStorage (user-specific)
 function loadCartFromStorage() {
-    // Use user-specific storage
     const cartData = typeof UserStorage !== 'undefined' && UserStorage ? 
         UserStorage.getItem('cart') : 
         localStorage.getItem('cart');
@@ -84,7 +81,6 @@ function getColorsForProduct(productName) {
     
     const nameLower = productName.toLowerCase();
     
-    // Check for exact or partial matches
     for (const key in PRODUCT_COLORS) {
         const keyLower = key.toLowerCase();
         if (nameLower.includes(keyLower)) {
@@ -92,7 +88,6 @@ function getColorsForProduct(productName) {
         }
     }
     
-    // Additional fuzzy matching for common variations
     if (nameLower.includes('brass') && nameLower.includes('cotton')) {
         if (nameLower.includes('two color') || nameLower.includes('two-color') || nameLower.includes('twocolored')) {
             return PRODUCT_COLORS['Two Colored Brass Cotton'];
@@ -122,7 +117,6 @@ function getColorsForProduct(productName) {
 
 // Save cart to localStorage (user-specific)
 function saveCartToStorage() {
-    // Use user-specific storage
     if (typeof UserStorage !== 'undefined' && UserStorage) {
         UserStorage.setItem('cart', JSON.stringify(cartItems));
     } else {
@@ -172,7 +166,6 @@ function renderCart() {
         const isVanity = nameLower.includes('vanity') || nameLower.includes('mirror');
         const isRinglight = nameLower.includes('ring') || nameLower.includes('ring light') || nameLower.includes('ringlight');
         
-        // Get colors for this product
         const colors = item.availableColors || getColorsForProduct(item.name);
         const hasColors = colors && colors.length > 0;
         
@@ -261,7 +254,6 @@ function renderCart() {
                 </div>
             `;
         } else if (hasColors) {
-            // Other products with colors (Module Bag, Katrina, etc.)
             const selectedColor = item.selectedColor || '';
             
             let colorButtons = '';
@@ -284,7 +276,6 @@ function renderCart() {
             `;
         }
 
-        // Recompute effective price
         if (isColoredTote) {
             const selColor = (cartItems[index].selectedColor || '').toLowerCase();
             const isColoredSelection = selColor && !(/^(white|black)$/i.test(selColor));
@@ -327,7 +318,6 @@ function renderCart() {
     initCartPreviews();
 }
 
-// Handler when a color radio is changed in the cart options
 function onCartColorChange(index, color) {
     if (index < 0 || index >= cartItems.length) return;
     const folder = 'Tote Bag';
@@ -336,7 +326,6 @@ function onCartColorChange(index, color) {
     setCartItemOption(index, 'selectedColor', color);
 }
 
-// Try to set preview images for tote color previews with graceful fallback
 function initCartPreviews() {
     const exts = ['png', 'jpg', 'jpeg', 'avif', 'webp'];
     const folder = 'Tote Bag';
@@ -366,12 +355,10 @@ function initCartPreviews() {
     });
 }
 
-// Toggle selection for a cart item
 function toggleSelect(index, checked) {
     if (index < 0 || index >= cartItems.length) return;
     cartItems[index].selected = !!checked;
     
-    // Show/hide options panel immediately without full re-render
     const optionsPanel = document.getElementById(`item-options-${index}`);
     if (optionsPanel) {
         optionsPanel.style.display = checked ? 'block' : 'none';
@@ -381,7 +368,6 @@ function toggleSelect(index, checked) {
     updateSummary();
 }
 
-// Set an option (color/size) for a cart item and persist
 function setCartItemOption(index, key, value) {
     if (index < 0 || index >= cartItems.length) return;
     
@@ -433,7 +419,6 @@ function setCartItemOption(index, key, value) {
     showNotification('Selection saved', 'success');
 }
 
-// Update item quantity
 function updateQuantity(index, change) {
     if (index < 0 || index >= cartItems.length) return;
     
@@ -449,7 +434,6 @@ function updateQuantity(index, change) {
     }
 }
 
-// Remove item from cart
 function removeItem(index) {
     if (index < 0 || index >= cartItems.length) return;
     
@@ -462,7 +446,6 @@ function removeItem(index) {
     showNotification(`${itemName} removed from cart`, 'info');
 }
 
-// Clear entire cart
 function clearCart() {
     if (cartItems.length === 0) {
         showNotification('Cart is already empty', 'info');
@@ -478,7 +461,6 @@ function clearCart() {
     }
 }
 
-// Update cart summary
 function updateSummary() {
     const anySelected = cartItems.some(it => !!it.selected);
     const subtotal = cartItems.reduce((sum, item) => {
@@ -503,7 +485,6 @@ function updateSummary() {
     if (countEl) countEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''} in your cart`;
 }
 
-// Apply promo code
 function applyPromoCode() {
     const promoInput = document.getElementById('promo-input');
     const promoCode = promoInput.value.trim().toUpperCase();
@@ -529,28 +510,35 @@ function applyPromoCode() {
     }
 }
 
-// Checkout function - UPDATED to validate color selection and address
+// UPDATED CHECKOUT FUNCTION - Uses Supabase API
 async function checkout() {
     if (cartItems.length === 0) {
         showNotification('Your cart is empty! Add items before checkout.', 'info');
         return;
     }
     
-    // Validate that user has at least one shipping address
+    // Get user ID
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!userId) {
+        showNotification('Please log in to checkout', 'info');
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1500);
+        return;
+    }
+    
+    // Validate shipping address
     try {
-        const addressResponse = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const addressResponse = await fetch(`/api/get?action=shipping-addresses&userId=${userId}`, {
+            method: 'GET',
             credentials: 'same-origin'
         });
         const addressData = await addressResponse.json();
         
-        if (!addressData.success || !addressData.addresses || addressData.addresses.length === 0) {
-            showNotification('Please add a shipping address in Settings before checkout. Redirecting to Settings...', 'error');
+        if (!addressData.success || !addressData.data || addressData.data.length === 0) {
+            showNotification('Please add a shipping address in Settings before checkout. Redirecting...', 'error');
             setTimeout(() => {
-                if (typeof handleNavigate === 'function') {
-                    handleNavigate('settings');
-                } else {
-                    window.location.href = 'settings.html#shipping';
-                }
+                window.location.href = 'settings.html#shipping';
             }, 2000);
             return;
         }
@@ -560,7 +548,7 @@ async function checkout() {
         return;
     }
     
-    // Validate color selection for products that require it
+    // Validate color selection
     const anySelected = cartItems.some(it => !!it.selected);
     const itemsToCheck = anySelected ? cartItems.filter(it => it.selected) : cartItems;
     
@@ -568,7 +556,6 @@ async function checkout() {
         const colors = item.availableColors || getColorsForProduct(item.name);
         if (colors && colors.length > 0 && !item.selectedColor) {
             showNotification(`Please select a color for ${item.name}`, 'info');
-            // Scroll to the item
             const itemElement = document.querySelector(`[data-index="${cartItems.indexOf(item)}"]`);
             if (itemElement) {
                 itemElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -601,30 +588,41 @@ async function checkout() {
     const customerPhone = localStorage.getItem('jbr7_customer_phone') || localStorage.getItem('customerPhone') || '';
 
     const orderId = 'JBR7-' + Date.now().toString(36).toUpperCase();
+    const itemsToCheckout = anySelected ? cartItems.filter(it => it.selected) : cartItems;
 
-// Only include checked items, or all items if none are checked
-const itemsToCheckout = anySelected ? cartItems.filter(it => it.selected) : cartItems;
-
-const items = itemsToCheckout.map(it => ({
-    name: it.name || '',
-    image: it.image || '',
-    quantity: Number(it.quantity) || 1,
-    size: it.size || '',
-    color: it.selectedColor || '',
-    unitPrice: +(parseFloat(String(it.price).replace(/[^0-9\.\-]/g, '')) || 0),
-    lineTotal: +((parseFloat(String(it.price).replace(/[^0-9\.\-]/g, '')) || 0) * (Number(it.quantity) || 1)).toFixed(2)
-}));
+    const items = itemsToCheckout.map(it => ({
+        name: it.name || '',
+        image: it.image || '',
+        quantity: Number(it.quantity) || 1,
+        size: it.size || '',
+        color: it.selectedColor || '',
+        unitPrice: +(parseFloat(String(it.price).replace(/[^0-9\.\-]/g, '')) || 0),
+        lineTotal: +((parseFloat(String(it.price).replace(/[^0-9\.\-]/g, '')) || 0) * (Number(it.quantity) || 1)).toFixed(2)
+    }));
 
     // Get default shipping address
     let shippingAddress = null;
     try {
-        const addressResponse = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const addressResponse = await fetch(`/api/get?action=shipping-addresses&userId=${userId}`, {
+            method: 'GET',
             credentials: 'same-origin'
         });
         const addressData = await addressResponse.json();
-        if (addressData.success && addressData.addresses && addressData.addresses.length > 0) {
-            // Get default address or first address
-            shippingAddress = addressData.addresses.find(addr => addr.is_default == 1) || addressData.addresses[0];
+        if (addressData.success && addressData.data && addressData.data.length > 0) {
+            const defaultAddr = addressData.data.find(addr => addr.is_default) || addressData.data[0];
+            
+            // Format address for order
+            shippingAddress = {
+                full_name: [defaultAddr.first_name, defaultAddr.middle_name, defaultAddr.last_name].filter(Boolean).join(' ') || 
+                           defaultAddr.recipient_name || defaultAddr.company_name || '',
+                phone: defaultAddr.mobile_number || defaultAddr.office_phone || '',
+                address_line1: [defaultAddr.house_unit_number, defaultAddr.street_name, defaultAddr.building_name].filter(Boolean).join(' '),
+                address_line2: [defaultAddr.subdivision_village, defaultAddr.barangay].filter(Boolean).join(', '),
+                city: defaultAddr.city_municipality || '',
+                province: defaultAddr.province_state || '',
+                postal_code: defaultAddr.postal_zip_code || '',
+                country: defaultAddr.country || 'Philippines'
+            };
         }
     } catch (error) {
         console.error('Error fetching shipping address:', error);
@@ -632,6 +630,7 @@ const items = itemsToCheckout.map(it => ({
 
     const checkoutData = {
         orderId,
+        orderNumber: orderId,
         timestamp: new Date().toISOString(),
         items,
         subtotal: +subtotal.toFixed(2),
@@ -641,101 +640,63 @@ const items = itemsToCheckout.map(it => ({
         courier: courierService,
         customerEmail,
         customerPhone,
-        shippingAddress: shippingAddress ? {
-            full_name: shippingAddress.full_name || '',
-            phone: shippingAddress.phone || '',
-            address_line1: shippingAddress.address_line1 || '',
-            address_line2: shippingAddress.address_line2 || '',
-            city: shippingAddress.city || '',
-            province: shippingAddress.province || '',
-            postal_code: shippingAddress.postal_code || '',
-            country: shippingAddress.country || 'Philippines'
-        } : null
+        shippingAddress
     };
 
-    try { console.log('Storing pendingCheckout:', checkoutData); } catch (e) { /* ignore */ }
     localStorage.setItem('pendingCheckout', JSON.stringify(checkoutData));
-
-    // Show loading notification
     showNotification('Saving order to database...', 'info');
     
-    fetch('/jbr7php/save_order.php', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(checkoutData)
-    }).then(response => {
-        if (!response.ok) {
-            return response.text().then(text => {
-                throw new Error(`HTTP ${response.status}: ${text}`);
-            });
-        }
-        return response.json();
-    })
-    .then(data => {
+    try {
+        const response = await fetch('/api/orders', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({
+                userId: parseInt(userId),
+                orderId: checkoutData.orderId,
+                orderNumber: checkoutData.orderNumber,
+                items: checkoutData.items,
+                subtotal: checkoutData.subtotal,
+                shipping: checkoutData.shipping,
+                total: checkoutData.total,
+                payment: checkoutData.payment,
+                courier: checkoutData.courier,
+                customerEmail: checkoutData.customerEmail,
+                customerPhone: checkoutData.customerPhone,
+                shippingAddress: checkoutData.shippingAddress,
+                timestamp: checkoutData.timestamp
+            })
+        });
+        
+        const data = await response.json();
+        
         if (data.success) {
-            console.log('Order saved to database:', data.order_id, data.order_number);
-            
-            // Create push notification for order placement
-            fetch('/jbr7php/create_order_notification.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'same-origin',
-                body: JSON.stringify({
-                    order_id: data.order_id,
-                    order_number: data.order_number
-                })
-            })
-            .then(notifResponse => notifResponse.json())
-            .then(notifData => {
-                if (notifData.success && notifData.notification) {
-                    console.log('Order notification created:', notifData.notification);
-                    
-                    // Add notification to localStorage for frontend display
-                    if (window.JBR7Notifications && typeof window.JBR7Notifications.addNotification === 'function') {
-                        window.JBR7Notifications.addNotification(
-                            'orders',
-                            notifData.notification.title,
-                            notifData.notification.message
-                        );
-                    }
-                }
-            })
-            .catch(e => console.error('Failed to create notification:', e));
-            
-            setTimeout(() => {
-                fetch('/jbr7php/update_order_status.php', { credentials: 'same-origin' })
-                    .then(r => r.json())
-                    .then(d => console.log('Status update (shipped):', d))
-                    .catch(e => console.error('Status update failed', e));
-            }, 91000);
-            setTimeout(() => {
-                fetch('/jbr7php/update_order_status.php', { credentials: 'same-origin' })
-                    .then(r => r.json())
-                    .then(d => console.log('Status update (delivered):', d))
-                    .catch(e => console.error('Status update failed', e));
-            }, 181000);
-            
-            // Only redirect to receipt if save was successful
+            console.log('Order saved successfully:', data.order_id);
             showNotification('Order saved successfully! Redirecting to receipt...', 'success');
+            
+            // Clear selected items or entire cart
+            if (anySelected) {
+                cartItems = cartItems.filter(it => !it.selected);
+                saveCartToStorage();
+            } else {
+                cartItems = [];
+                saveCartToStorage();
+            }
+            
             setTimeout(() => {
                 window.location.href = 'receipt.html';
             }, 800);
         } else {
             console.error('Failed to save order:', data.error);
-            showNotification('Order saved locally but failed to save to database. Please check your connection and try again.', 'error');
-            // Don't redirect - keep user on cart page
+            showNotification('Order saved locally but failed to save to database: ' + data.error, 'error');
         }
-    }).catch(e => {
-        console.error('Failed to save order to database', e);
-        showNotification('Order saved locally but failed to save to database. Please check your connection and try again.', 'error');
-        // Don't redirect - keep user on cart page
-    });
+    } catch (error) {
+        console.error('Failed to save order:', error);
+        showNotification('Order saved locally but failed to save to database. Please check your connection.', 'error');
+    }
 }
 
-// Load default payment and courier from database/localStorage
 async function loadDefaultPaymentAndCourier() {
-    // Payment method mapping: settings value -> cart value
     const paymentMapping = {
         'gcash': 'GCash',
         'paymaya': 'PayMaya',
@@ -744,7 +705,6 @@ async function loadDefaultPaymentAndCourier() {
         'mastercard': 'Mastercard'
     };
     
-    // Courier mapping: settings value -> cart value
     const courierMapping = {
         'jnt': 'J&T Express',
         'flash': 'Flash Express'
@@ -753,87 +713,64 @@ async function loadDefaultPaymentAndCourier() {
     let defaultPayment = null;
     let defaultCourier = null;
     
-    // Try to load from database first
-    try {
-        const response = await fetch('/jbr7php/get_user_preferences.php', {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.preferences) {
-                defaultPayment = data.preferences.default_payment;
-                defaultCourier = data.preferences.default_courier;
-                
-                // Sync to localStorage for faster access next time
-                if (defaultPayment) {
-                    localStorage.setItem('jbr7_default_payment', defaultPayment);
-                }
-                if (defaultCourier) {
-                    localStorage.setItem('jbr7_default_courier', defaultCourier);
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    
+    if (userId) {
+        try {
+            const response = await fetch(`/api/get?action=user-preferences&userId=${userId}`, {
+                method: 'GET',
+                credentials: 'same-origin'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.data) {
+                    defaultPayment = data.data.default_payment;
+                    defaultCourier = data.data.default_courier;
+                    
+                    if (defaultPayment) localStorage.setItem('jbr7_default_payment', defaultPayment);
+                    if (defaultCourier) localStorage.setItem('jbr7_default_courier', defaultCourier);
                 }
             }
+        } catch (error) {
+            console.error('Error loading preferences:', error);
         }
-    } catch (error) {
-        console.error('Error loading preferences from database:', error);
     }
     
-    // Fallback to user-specific storage if database didn't return values
     if (!defaultPayment) {
-        if (typeof UserStorage !== 'undefined' && UserStorage) {
-            defaultPayment = UserStorage.getItem('default_payment');
-        } else {
-            defaultPayment = localStorage.getItem('jbr7_default_payment');
-        }
+        defaultPayment = localStorage.getItem('jbr7_default_payment');
     }
     if (!defaultCourier) {
-        if (typeof UserStorage !== 'undefined' && UserStorage) {
-            defaultCourier = UserStorage.getItem('default_courier');
-        } else {
-            defaultCourier = localStorage.getItem('jbr7_default_courier');
-        }
+        defaultCourier = localStorage.getItem('jbr7_default_courier');
     }
     
-    // Apply payment method
     if (defaultPayment && paymentMapping[defaultPayment]) {
-        // Wait a bit to ensure DOM is ready
         setTimeout(() => {
             const paymentSelect = document.getElementById('payment-method');
             if (paymentSelect) {
                 const cartValue = paymentMapping[defaultPayment];
-                // Check if the option exists
                 const optionExists = Array.from(paymentSelect.options).some(opt => opt.value === cartValue);
                 if (optionExists) {
                     paymentSelect.value = cartValue;
-                    console.log('Default payment method applied:', cartValue);
                 }
             }
         }, 100);
     }
     
-    // Apply courier
     if (defaultCourier && courierMapping[defaultCourier]) {
-        // Wait a bit to ensure DOM is ready
         setTimeout(() => {
             const courierSelect = document.getElementById('courier-service');
             if (courierSelect) {
                 const cartValue = courierMapping[defaultCourier];
-                // Check if the option exists
                 const optionExists = Array.from(courierSelect.options).some(opt => opt.value === cartValue);
                 if (optionExists) {
                     courierSelect.value = cartValue;
-                    console.log('Default courier applied:', cartValue);
                 }
             }
         }, 100);
     }
 }
 
-// Show notification
 function showNotification(message, type = 'info') {
     const existingNotification = document.querySelector('.notification');
     if (existingNotification) {
@@ -861,8 +798,6 @@ function showNotification(message, type = 'info') {
     }, 3000);
 }
 
-
-// Navigation functions
 function goToExplore() {
     window.location.href = 'explore.html';
 }
@@ -871,7 +806,6 @@ function goHome() {
     window.location.href = 'home.html';
 }
 
-// Add notification styles
 const notificationStyles = document.createElement('style');
 notificationStyles.textContent = `
     .notification {
@@ -914,6 +848,14 @@ notificationStyles.textContent = `
         color: #31708f;
     }
     
+    .notification-error {
+        border-left: 4px solid #d32f2f;
+    }
+    
+    .notification-error i {
+        color: #d32f2f;
+    }
+    
     .notification span {
         font-size: 0.95rem;
         color: #333;
@@ -945,4 +887,4 @@ notificationStyles.textContent = `
         color: #006923;
     }
 `;
-document.head.appendChild(notificationStyles);  
+document.head.appendChild(notificationStyles);

@@ -177,3 +177,223 @@ SELECT column_name, data_type
 FROM information_schema.columns 
 WHERE table_name = 'users' 
 ORDER BY ordinal_position;
+
+-- ============================================
+-- SHIPPING ADDRESSES TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS shipping_addresses (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    address_type VARCHAR(20) NOT NULL CHECK (address_type IN ('home', 'office')),
+    is_default BOOLEAN DEFAULT FALSE,
+    
+    -- Home Address Fields
+    first_name VARCHAR(100),
+    middle_name VARCHAR(100),
+    last_name VARCHAR(100),
+    
+    -- Office Address Fields
+    recipient_name VARCHAR(200),
+    company_name VARCHAR(200),
+    office_phone VARCHAR(50),
+    
+    -- Contact Information
+    mobile_number VARCHAR(50),
+    alternate_number VARCHAR(50),
+    email_address VARCHAR(255),
+    
+    -- Home Address Details
+    house_unit_number VARCHAR(100),
+    subdivision_village VARCHAR(200),
+    landmark_delivery_notes TEXT,
+    
+    -- Office Address Details
+    building_name VARCHAR(200),
+    floor_unit_number VARCHAR(100),
+    office_hours VARCHAR(200),
+    additional_instructions TEXT,
+    
+    -- Common Address Fields
+    street_name VARCHAR(255),
+    barangay VARCHAR(200),
+    city_municipality VARCHAR(200) NOT NULL,
+    province_state VARCHAR(200) NOT NULL,
+    postal_zip_code VARCHAR(20) NOT NULL,
+    country VARCHAR(100) DEFAULT 'Philippines',
+    
+    -- Location Coordinates
+    latitude DECIMAL(10, 8),
+    longitude DECIMAL(11, 8),
+    formatted_address TEXT,
+    
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Indexes for shipping_addresses
+CREATE INDEX idx_shipping_user_id ON shipping_addresses(user_id);
+CREATE INDEX idx_shipping_default ON shipping_addresses(is_default);
+CREATE INDEX idx_shipping_type ON shipping_addresses(address_type);
+
+-- ============================================
+-- USER PREFERENCES TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS user_preferences (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    default_payment VARCHAR(50),
+    default_courier VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Index for user_preferences
+CREATE INDEX idx_preferences_user_id ON user_preferences(user_id);
+
+-- ============================================
+-- NOTIFICATION PREFERENCES TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS notification_preferences (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL UNIQUE,
+    order_status BOOLEAN DEFAULT TRUE,
+    cart_reminder BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Index for notification_preferences
+CREATE INDEX idx_notif_user_id ON notification_preferences(user_id);
+
+-- ============================================
+-- ADD PHONE COLUMN TO USERS TABLE (if not exists)
+-- ============================================
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+
+-- ============================================
+-- TRIGGER TO UPDATE updated_at TIMESTAMP
+-- ============================================
+
+-- For shipping_addresses
+CREATE OR REPLACE FUNCTION update_shipping_addresses_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_shipping_addresses_updated_at
+    BEFORE UPDATE ON shipping_addresses
+    FOR EACH ROW
+    EXECUTE FUNCTION update_shipping_addresses_updated_at();
+
+-- For user_preferences
+CREATE OR REPLACE FUNCTION update_user_preferences_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_user_preferences_updated_at
+    BEFORE UPDATE ON user_preferences
+    FOR EACH ROW
+    EXECUTE FUNCTION update_user_preferences_updated_at();
+
+-- For notification_preferences
+CREATE OR REPLACE FUNCTION update_notification_preferences_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_notification_preferences_updated_at
+    BEFORE UPDATE ON notification_preferences
+    FOR EACH ROW
+    EXECUTE FUNCTION update_notification_preferences_updated_at();
+
+-- ============================================
+-- SAMPLE DATA FOR TESTING
+-- ============================================
+
+-- Insert test shipping address (adjust user_id as needed)
+INSERT INTO shipping_addresses (
+    user_id, address_type, is_default,
+    first_name, last_name, mobile_number,
+    house_unit_number, street_name, barangay,
+    city_municipality, province_state, postal_zip_code
+) VALUES (
+    1, 'home', TRUE,
+    'Juan', 'Dela Cruz', '09171234567',
+    '123', 'Rizal Street', 'Barangay 1',
+    'Baliuag', 'Bulacan', '3006'
+) ON CONFLICT DO NOTHING;
+
+-- Insert test user preferences
+INSERT INTO user_preferences (user_id, default_payment, default_courier)
+VALUES (1, 'cod', 'jnt')
+ON CONFLICT (user_id) DO NOTHING;
+
+-- Insert test notification preferences
+INSERT INTO notification_preferences (user_id, order_status, cart_reminder)
+VALUES (1, TRUE, TRUE)
+ON CONFLICT (user_id) DO NOTHING;
+
+-- ============================================
+-- VERIFICATION QUERIES
+-- ============================================
+
+-- Check if all tables exist
+SELECT table_name 
+FROM information_schema.tables 
+WHERE table_schema = 'public' 
+AND table_name IN ('shipping_addresses', 'user_preferences', 'notification_preferences')
+ORDER BY table_name;
+
+-- Check shipping_addresses structure
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'shipping_addresses'
+ORDER BY ordinal_position;
+
+-- Check user_preferences structure
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'user_preferences'
+ORDER BY ordinal_position;
+
+-- Check notification_preferences structure
+SELECT column_name, data_type, is_nullable
+FROM information_schema.columns
+WHERE table_name = 'notification_preferences'
+ORDER BY ordinal_position;
+
+-- Count records in each table
+SELECT 
+    'shipping_addresses' as table_name, 
+    COUNT(*) as record_count 
+FROM shipping_addresses
+UNION ALL
+SELECT 'user_preferences', COUNT(*) FROM user_preferences
+UNION ALL
+SELECT 'notification_preferences', COUNT(*) FROM notification_preferences;
+
+-- ============================================
+-- CLEANUP (Use only if you need to start fresh)
+-- ============================================
+
+-- DROP TABLE IF EXISTS shipping_addresses CASCADE;
+-- DROP TABLE IF EXISTS user_preferences CASCADE;
+-- DROP TABLE IF EXISTS notification_preferences CASCADE;

@@ -1,4 +1,4 @@
-// receipt.js - read pendingCheckout from localStorage and render professional receipt
+// receipt.js - UPDATED to use Supabase API for saving receipts
 (function(){
   function fmt(n){ return '₱' + Number(n).toFixed(2); }
 
@@ -33,22 +33,18 @@
   const tbody = document.querySelector('#itemsTable tbody');
   tbody.innerHTML = '';
   
-  // Be defensive: some deployments may store slightly different keys (price vs unitPrice/basePrice)
   let items = data.items || [];
   console.log('Rendering items (raw):', items);
 
-  // Normalize each item so receipt can render even if the source used a different field name
+  // Normalize each item
   items = (items || []).map(it => {
     const clone = Object.assign({}, it);
-    // try to coerce unitPrice from several possible fields
     if (typeof clone.unitPrice === 'undefined') {
       if (typeof clone.price !== 'undefined') clone.unitPrice = parseFloat(String(clone.price).toString().replace(/[^0-9\.-]/g, '')) || 0;
       else if (typeof clone.basePrice !== 'undefined') clone.unitPrice = Number(clone.basePrice) || 0;
       else clone.unitPrice = 0;
     }
-    // quantity fallback
     clone.quantity = Number(clone.quantity || clone.qty || 1) || 1;
-    // lineTotal fallback
     if (typeof clone.lineTotal === 'undefined' || !clone.lineTotal) {
       clone.lineTotal = +(clone.unitPrice * clone.quantity).toFixed(2);
     }
@@ -70,7 +66,6 @@
     items.forEach(it => {
       const tr = document.createElement('tr');
       
-      // Item name column with optional size/color
       const tdName = document.createElement('td');
       let itemDetails = `<div style="font-weight:700">${escapeHtml(it.name || 'Unknown Item')}</div>`;
       if (it.size || it.color) {
@@ -81,17 +76,14 @@
       }
       tdName.innerHTML = itemDetails;
       
-      // Unit price
       const tdUnit = document.createElement('td');
       tdUnit.className = 'right';
       tdUnit.textContent = fmt(it.unitPrice || it.price || 0);
       
-      // Quantity
       const tdQty = document.createElement('td');
       tdQty.className = 'right';
       tdQty.textContent = it.quantity || 1;
       
-      // Line total
       const tdLine = document.createElement('td');
       tdLine.className = 'right';
       tdLine.textContent = fmt(it.lineTotal || ((it.unitPrice || it.price || 0) * (it.quantity || 1)));
@@ -104,8 +96,7 @@
     });
   }
 
-  // Populate totals (NO TAX)
-  // If totals are missing, compute from normalized items
+  // Populate totals
   let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
   let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
 
@@ -116,7 +107,6 @@
     shippingVal = subtotalVal > 50 ? 0 : 5.99;
   }
   
-  // ALWAYS recalculate total to ensure it's correct (subtotal + shipping only, no tax)
   let totalVal = +(subtotalVal + shippingVal).toFixed(2);
 
   document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
@@ -146,7 +136,7 @@
     document.getElementById('shippingAddress').innerHTML = '<div style="color:#999;font-style:italic">No shipping address provided</div>';
   }
 
-  // Save receipt to database
+  // Save receipt to database using Supabase API
   saveReceiptToDatabase(data);
 
   // Back button
@@ -158,22 +148,26 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
   }
 
-  // Save receipt to database
+  // UPDATED: Save receipt using Supabase API
   function saveReceiptToDatabase(receiptData) {
-    console.log('Attempting to save receipt to database...', receiptData);
+    console.log('Attempting to save receipt to database via Supabase API...', receiptData);
     
     const userId = sessionStorage.getItem('jbr7_user_id');
+    
+    if (!userId) {
+      console.warn('No user ID found, cannot save receipt to database');
+      return;
+    }
 
-fetch('/api/actions', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify({
-        action: 'save-order',
-        userId: userId,
-        ...receiptData
+    fetch('/api/receipts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({
+        userId: parseInt(userId),
+        receiptData: receiptData
+      })
     })
-})
     .then(response => {
       console.log('Receipt save response status:', response.status);
       if (!response.ok) {
@@ -190,14 +184,12 @@ fetch('/api/actions', {
         console.log('✅ Receipt saved to database successfully! Receipt ID:', data.receipt_id);
       } else {
         console.error('❌ Failed to save receipt:', data.error);
-        // Show user-friendly error
-        alert('Warning: Receipt could not be saved to database. Error: ' + (data.error || 'Unknown error'));
+        console.warn('Receipt data is still available locally in pendingCheckout');
       }
     })
     .catch(error => {
       console.error('❌ Error saving receipt:', error);
-      // Show user-friendly error
-      alert('Warning: Could not save receipt to database. Please check your connection. Error: ' + error.message);
+      console.warn('Receipt data is still available locally in pendingCheckout');
     });
   }
 })();
