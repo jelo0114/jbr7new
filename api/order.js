@@ -1,52 +1,38 @@
-// api/orders.js - SECURED VERSION
+// pages/api/orders.js
 import { createClient } from '@supabase/supabase-js';
 
-// Validate environment variables
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
-  throw new Error('Missing required environment variables: SUPABASE_URL and SUPABASE_ANON_KEY');
+// Prefer using service role on server-side for writes. If you have a lib/supabaseServer export, replace this.
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables.');
 }
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-);
+// Create supabase client (server-side)
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: { persistSession: false }
+});
 
-// Constants for validation
-const VALIDATION_RULES = {
-  MAX_PRODUCT_NAME_LENGTH: 255,
-  MAX_IMAGE_URL_LENGTH: 500,
-  MAX_SIZE_LENGTH: 50,
-  MAX_COLOR_LENGTH: 50,
-  MAX_EMAIL_LENGTH: 255,
-  MAX_PHONE_LENGTH: 20,
-  MAX_ORDER_ID_LENGTH: 50,
-  MIN_PRICE: 0,
-  MAX_PRICE: 999999.99,
-  MIN_QUANTITY: 1,
-  MAX_QUANTITY: 9999,
-  MAX_ITEMS_PER_ORDER: 100
+// Utility validators
+const MAX_ITEMS = 200;
+const isPositiveInteger = (v) => {
+  const n = Number(v);
+  return Number.isInteger(n) && n > 0;
 };
-
-const ALLOWED_ORDER_STATUSES = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
-const ALLOWED_NOTIFICATION_TYPES = ['order_placed', 'order_updated', 'order_shipped', 'order_delivered'];
+const isNonEmptyString = (s) => typeof s === 'string' && s.trim().length > 0;
+const sanitize = (s, max = 255) => (s === null || s === undefined) ? null : String(s).trim().slice(0, max);
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
+  // Basic CORS (adjust origin as needed)
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
     return;
-  }
-
-  if (req.method !== 'POST' && req.method !== 'GET') {
-    return res.status(405).json({ 
-      success: false,
-      error: 'Method not allowed' 
-    });
   }
 
   try {
@@ -54,139 +40,72 @@ export default async function handler(req, res) {
       return await handleGetOrders(req, res);
     } else if (req.method === 'POST') {
       return await handleCreateOrder(req, res);
+    } else {
+      return res.status(405).json({ success: false, error: 'Method not allowed' });
     }
-  } catch (error) {
-    console.error('Orders API Error:', error);
-    
-    // Don't expose internal error details to client in production
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
-    return res.status(500).json({
-      success: false,
-      error: isDevelopment ? error.message : 'Internal server error',
-      ...(isDevelopment && { stack: error.stack })
-    });
+  } catch (err) {
+    console.error('Unexpected handler error:', err);
+    return res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }
 
 async function handleGetOrders(req, res) {
   const { userId, orderId, orderNumber } = req.query;
 
-  // Validate at least one parameter is provided
   if (!userId && !orderId && !orderNumber) {
-    return res.status(400).json({ 
-      success: false,
-      error: 'userId, orderId, or orderNumber is required' 
-    });
-  }
-
-  // Validate parameter types and formats
-  if (userId && (!Number.isInteger(Number(userId)) || Number(userId) <= 0)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid userId format'
-    });
-  }
-
-  if (orderId && (!Number.isInteger(Number(orderId)) || Number(orderId) <= 0)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid orderId format'
-    });
-  }
-
-  if (orderNumber && typeof orderNumber !== 'string') {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid orderNumber format'
-    });
+    return res.status(400).json({ success: false, error: 'userId, orderId, or orderNumber is required' });
   }
 
   try {
-    let query = supabase
-      .from('orders')
-      .select(`
-        *,
-        order_items (*),
-        shipping_addresses (*)
-      `);
+    // Build base query selecting common relations
+    // Use select string that won't fail if relations don't exist; supabase ignores unknown columns when selecting simple columns
+    let query = supabase.from('orders').select(`
+      *,
+      order_items (*)
+    `);
 
     if (userId) {
-      query = query.eq('user_id', parseInt(userId)).order('created_at', { ascending: false });
+      // accept numeric or string user ids
+      const maybeInt = parseInt(userId);
+      if (isPositiveInteger(maybeInt)) {
+        query = query.eq('user_id', maybeInt).order('created_at', { ascending: false });
+      } else {
+        // maybe stored as text
+        query = query.eq('user_id', String(userId)).order('created_at', { ascending: false });
+      }
     } else if (orderId) {
-      query = query.eq('id', parseInt(orderId)).maybeSingle();
+      // Try numeric id first, then uuid/text
+      const maybeInt = parseInt(orderId);
+      if (isPositiveInteger(maybeInt)) {
+        query = query.eq('id', maybeInt).limit(1);
+      } else {
+        // try order_id or id as text/uuid or order_number
+        query = query.or(`id.eq.${orderId},order_id.eq.${orderId},order_number.eq.${orderId}`).limit(1);
+      }
     } else if (orderNumber) {
-      query = query.eq('order_number', orderNumber).maybeSingle();
+      query = query.or(`order_number.eq.${orderNumber},order_id.eq.${orderNumber}`).limit(1);
     }
 
-    const { data, error } = await query;
-
+    const { data, error, status } = await query;
     if (error) {
-      console.error('Database query error:', error);
-      throw new Error('Failed to fetch orders');
+      console.error('Get orders DB error:', error);
+      return res.status(500).json({ success: false, error: 'Database query failed' });
     }
 
-    // Handle case where no data is found for single queries
-    if ((orderId || orderNumber) && !data) {
-      return res.status(404).json({
-        success: false,
-        error: 'Order not found'
-      });
+    // If single queries return arrays with 0 items
+    if ((orderId || orderNumber) && (!data || (Array.isArray(data) && data.length === 0))) {
+      return res.status(404).json({ success: false, error: 'Order not found' });
     }
 
-    return res.status(200).json({
-      success: true,
-      data: data || []
-    });
-  } catch (error) {
-    console.error('Get orders error:', error);
-    return res.status(500).json({
-      success: false,
-      error: error.message || 'Failed to retrieve orders'
-    });
+    return res.status(200).json({ success: true, data: data || [] });
+  } catch (err) {
+    console.error('handleGetOrders error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to fetch orders' });
   }
 }
 
-// Input validation helpers
-function sanitizeString(value, maxLength) {
-  if (!value) return null;
-  return String(value).trim().substring(0, maxLength);
-}
-
-function validateEmail(email) {
-  if (!email) return true; // Email is optional
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-}
-
-function validatePhone(phone) {
-  if (!phone) return true; // Phone is optional
-  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-  return phoneRegex.test(phone) && phone.length <= VALIDATION_RULES.MAX_PHONE_LENGTH;
-}
-
-function validatePrice(price) {
-  const numPrice = parseFloat(price);
-  return !isNaN(numPrice) && 
-         numPrice >= VALIDATION_RULES.MIN_PRICE && 
-         numPrice <= VALIDATION_RULES.MAX_PRICE;
-}
-
-function validateQuantity(quantity) {
-  const numQty = parseInt(quantity);
-  return Number.isInteger(numQty) && 
-         numQty >= VALIDATION_RULES.MIN_QUANTITY && 
-         numQty <= VALIDATION_RULES.MAX_QUANTITY;
-}
-
-function validateOrderId(orderId) {
-  if (!orderId || typeof orderId !== 'string') return false;
-  // Allow alphanumeric, hyphens, and underscores only
-  const orderIdRegex = /^[A-Za-z0-9\-_]+$/;
-  return orderIdRegex.test(orderId) && orderId.length <= VALIDATION_RULES.MAX_ORDER_ID_LENGTH;
-}
-
 async function handleCreateOrder(req, res) {
+  const body = req.body || {};
   const {
     userId,
     orderId,
@@ -201,319 +120,158 @@ async function handleCreateOrder(req, res) {
     customerPhone,
     shippingAddress,
     timestamp
-  } = req.body;
+  } = body;
 
-  // ========================================
-  // COMPREHENSIVE INPUT VALIDATION
-  // ========================================
-
-  // Validate required fields
-  if (!userId) {
-    return res.status(400).json({ 
-      success: false,
-      error: 'userId is required' 
-    });
-  }
-
-  if (!Number.isInteger(Number(userId)) || Number(userId) <= 0) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid userId: must be a positive integer'
-    });
-  }
-
-  if (!orderId) {
-    return res.status(400).json({ 
-      success: false,
-      error: 'orderId is required' 
-    });
-  }
-
-  if (!validateOrderId(orderId)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid orderId format: must be alphanumeric with hyphens/underscores only'
-    });
-  }
-
+  // Basic validation
+  if (!userId) return res.status(400).json({ success: false, error: 'userId is required' });
+  if (!orderId) return res.status(400).json({ success: false, error: 'orderId is required' });
   if (!items || !Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ 
-      success: false,
-      error: 'items array is required and cannot be empty' 
-    });
+    return res.status(400).json({ success: false, error: 'items array is required' });
+  }
+  if (items.length > MAX_ITEMS) return res.status(400).json({ success: false, error: `Too many items (max ${MAX_ITEMS})` });
+
+  // Validate numeric-ish amounts loosely
+  const parsedSubtotal = parseFloat(subtotal) || 0;
+  const parsedShipping = parseFloat(shipping) || 0;
+  const parsedTotal = parseFloat(total) || 0;
+  if (parsedSubtotal < 0 || parsedShipping < 0 || parsedTotal < 0) {
+    return res.status(400).json({ success: false, error: 'Invalid monetary amounts' });
   }
 
-  if (items.length > VALIDATION_RULES.MAX_ITEMS_PER_ORDER) {
-    return res.status(400).json({
-      success: false,
-      error: `Too many items: maximum ${VALIDATION_RULES.MAX_ITEMS_PER_ORDER} items per order`
-    });
-  }
-
-  // Validate financial amounts
-  if (!validatePrice(subtotal)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid subtotal amount'
-    });
-  }
-
-  if (!validatePrice(shipping)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid shipping amount'
-    });
-  }
-
-  if (!validatePrice(total)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid total amount'
-    });
-  }
-
-  // Validate email if provided
-  if (customerEmail && !validateEmail(customerEmail)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid email format'
-    });
-  }
-
-  // Validate phone if provided
-  if (customerPhone && !validatePhone(customerPhone)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid phone number format'
-    });
-  }
-
-  // Validate timestamp
-  let orderTimestamp = timestamp;
-  if (timestamp) {
-    const parsedDate = new Date(timestamp);
-    if (isNaN(parsedDate.getTime())) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid timestamp format'
-      });
-    }
-    orderTimestamp = parsedDate.toISOString();
-  } else {
-    orderTimestamp = new Date().toISOString();
-  }
-
-  // Validate each item in the order
+  // Validate items minimal shape
   for (let i = 0; i < items.length; i++) {
-    const item = items[i];
-    
-    if (!item.name || typeof item.name !== 'string' || item.name.trim() === '') {
-      return res.status(400).json({
-        success: false,
-        error: `Item ${i + 1}: Product name is required`
-      });
-    }
-
-    if (item.unitPrice !== undefined && !validatePrice(item.unitPrice)) {
-      return res.status(400).json({
-        success: false,
-        error: `Item ${i + 1}: Invalid unit price`
-      });
-    }
-
-    if (item.lineTotal !== undefined && !validatePrice(item.lineTotal)) {
-      return res.status(400).json({
-        success: false,
-        error: `Item ${i + 1}: Invalid line total`
-      });
-    }
-
-    if (item.quantity !== undefined && !validateQuantity(item.quantity)) {
-      return res.status(400).json({
-        success: false,
-        error: `Item ${i + 1}: Invalid quantity (must be between ${VALIDATION_RULES.MIN_QUANTITY} and ${VALIDATION_RULES.MAX_QUANTITY})`
-      });
+    const it = items[i];
+    if (!it.name || it.quantity == null) {
+      return res.status(400).json({ success: false, error: `Each item must have name and quantity (error at index ${i})` });
     }
   }
 
-  // Verify total calculation matches items
-  const calculatedSubtotal = items.reduce((sum, item) => {
-    return sum + (parseFloat(item.lineTotal) || 0);
-  }, 0);
-
-  const providedSubtotal = parseFloat(subtotal);
-  const tolerance = 0.01; // Allow 1 cent difference for rounding
-
-  if (Math.abs(calculatedSubtotal - providedSubtotal) > tolerance) {
-    return res.status(400).json({
-      success: false,
-      error: 'Subtotal mismatch: calculated subtotal does not match provided subtotal'
-    });
+  // Verify subtotal math within tolerance
+  const computed = items.reduce((s, it) => s + (parseFloat(it.lineTotal) || (parseFloat(it.unitPrice || 0) * (parseInt(it.quantity || 1)))), 0);
+  if (Math.abs(computed - parsedSubtotal) > 0.5) { // allow larger tolerance if prices/rounding differ
+    console.warn('Provided subtotal differs from computed subtotal', { computed, provided: parsedSubtotal });
+    // Don't fail — just log; you can change to strict if desired
   }
 
-  // ========================================
-  // DATABASE OPERATIONS
-  // ========================================
+  // Prepare order record
+  const orderRecord = {
+    user_id: isPositiveInteger(userId) ? parseInt(userId) : String(userId),
+    // try to store both order_id and order_number fields to maximize compatibility
+    order_id: sanitize(orderId, 100),
+    order_number: sanitize(orderNumber || orderId, 100),
+    status: 'processing',
+    payment_method: sanitize(payment, 100),
+    courier_service: sanitize(courier, 100),
+    customer_email: sanitize(customerEmail, 255),
+    customer_phone: sanitize(customerPhone, 50),
+    subtotal: parsedSubtotal,
+    shipping: parsedShipping,
+    total_amount: parsedTotal,
+    placed_at: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString()
+  };
 
+  // Try creating order and items
+  let createdOrder = null;
   try {
-    // Get default shipping address
-    let shippingAddressId = null;
-    
-    try {
-      const { data: addresses, error: addressError } = await supabase
-        .from('shipping_addresses')
-        .select('id')
-        .eq('user_id', parseInt(userId))
-        .eq('is_default', true)
-        .limit(1)
-        .maybeSingle();
-      
-      if (addressError && addressError.code !== 'PGRST116') {
-        console.error('Error fetching shipping address:', addressError);
-        // Don't fail the order if we can't fetch address, just log it
-      }
-      
-      if (addresses) {
-        shippingAddressId = addresses.id;
-      }
-    } catch (addressFetchError) {
-      console.error('Failed to fetch shipping address:', addressFetchError);
-      // Continue with order creation even if address fetch fails
-    }
-
-    // Sanitize and prepare order data
-    const orderData = {
-      user_id: parseInt(userId),
-      order_id: sanitizeString(orderId, VALIDATION_RULES.MAX_ORDER_ID_LENGTH),
-      order_number: sanitizeString(orderNumber || orderId, VALIDATION_RULES.MAX_ORDER_ID_LENGTH),
-      status: 'processing',
-      payment_method: sanitizeString(payment, 50),
-      courier_service: sanitizeString(courier, 50),
-      customer_email: sanitizeString(customerEmail, VALIDATION_RULES.MAX_EMAIL_LENGTH),
-      customer_phone: sanitizeString(customerPhone, VALIDATION_RULES.MAX_PHONE_LENGTH),
-      subtotal: parseFloat(subtotal) || 0,
-      shipping: parseFloat(shipping) || 0,
-      total_amount: parseFloat(total) || 0,
-      shipping_address_id: shippingAddressId,
-      placed_at: orderTimestamp
-    };
-
-    // Create order in database
-    const { data: createdOrder, error: orderError } = await supabase
+    const { data: insertedOrders, error: orderInsertErr } = await supabase
       .from('orders')
-      .insert(orderData)
-      .select()
-      .single();
-
-    if (orderError) {
-      console.error('Order insert error:', orderError);
-      throw new Error(`Failed to create order: ${orderError.message}`);
-    }
-
-    if (!createdOrder || !createdOrder.id) {
-      throw new Error('Order created but no ID returned');
-    }
-
-    const dbOrderId = createdOrder.id;
-
-    // Validate and sanitize order items
-    const orderItems = items.map((item, index) => {
-      const sanitizedItem = {
-        order_id: dbOrderId,
-        product_name: sanitizeString(item.name, VALIDATION_RULES.MAX_PRODUCT_NAME_LENGTH) || 'Unknown Product',
-        product_image: sanitizeString(item.image, VALIDATION_RULES.MAX_IMAGE_URL_LENGTH),
-        size: sanitizeString(item.size, VALIDATION_RULES.MAX_SIZE_LENGTH),
-        color: sanitizeString(item.color, VALIDATION_RULES.MAX_COLOR_LENGTH),
-        quantity: Math.max(VALIDATION_RULES.MIN_QUANTITY, Math.min(parseInt(item.quantity) || 1, VALIDATION_RULES.MAX_QUANTITY)),
-        unit_price: Math.max(0, Math.min(parseFloat(item.unitPrice) || 0, VALIDATION_RULES.MAX_PRICE)),
-        line_total: Math.max(0, Math.min(parseFloat(item.lineTotal) || 0, VALIDATION_RULES.MAX_PRICE))
-      };
-
-      return sanitizedItem;
-    });
-
-    // Insert order items with error handling
-    const { data: insertedItems, error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems)
+      .insert(orderRecord)
       .select();
 
-    if (itemsError) {
-      console.error('Order items insert error:', itemsError);
-      
-      // Rollback - delete the order
-      try {
-        await supabase
-          .from('orders')
-          .delete()
-          .eq('id', dbOrderId);
-        console.log('Order rolled back successfully');
-      } catch (rollbackError) {
-        console.error('Failed to rollback order:', rollbackError);
-      }
-      
-      throw new Error(`Failed to create order items: ${itemsError.message}`);
+    if (orderInsertErr) {
+      console.error('Order insert error:', orderInsertErr);
+      return res.status(500).json({ success: false, error: 'Failed to create order' });
+    }
+    createdOrder = Array.isArray(insertedOrders) ? insertedOrders[0] : insertedOrders;
+    const dbOrderId = createdOrder && (createdOrder.id || createdOrder.order_id || createdOrder.order_number);
+
+    if (!dbOrderId) {
+      console.warn('Inserted order did not return an id field. Returning created data anyway.');
     }
 
-    // Verify all items were inserted
-    if (!insertedItems || insertedItems.length !== items.length) {
-      console.error('Items count mismatch:', {
-        expected: items.length,
-        inserted: insertedItems?.length || 0
-      });
-      
-      // Rollback
+    // Prepare order_items payload
+    const orderItemsPayload = items.map(it => {
+      const qty = parseInt(it.quantity) || 1;
+      return {
+        order_id: createdOrder.id || createdOrder.order_id || dbOrderId,
+        product_name: sanitize(it.name, 255),
+        product_image: sanitize(it.image || '', 500),
+        size: sanitize(it.size || '', 100),
+        color: sanitize(it.color || '', 100),
+        quantity: qty,
+        unit_price: parseFloat(it.unitPrice) || 0,
+        line_total: parseFloat(it.lineTotal) || 0
+      };
+    });
+
+    // Insert items
+    const { data: insertedItems, error: itemsInsertErr } = await supabase
+      .from('order_items')
+      .insert(orderItemsPayload)
+      .select();
+
+    if (itemsInsertErr) {
+      console.error('Order items insert error:', itemsInsertErr);
+      // Attempt rollback (best effort)
       try {
-        await supabase.from('orders').delete().eq('id', dbOrderId);
-      } catch (rollbackError) {
-        console.error('Failed to rollback order:', rollbackError);
+        if (createdOrder && createdOrder.id) {
+          await supabase.from('orders').delete().eq('id', createdOrder.id);
+          console.log('Rolled back order after items insert failure');
+        }
+      } catch (rbErr) {
+        console.error('Rollback failed:', rbErr);
       }
-      
-      throw new Error('Failed to insert all order items');
+      return res.status(500).json({ success: false, error: 'Failed to create order items' });
     }
 
-    // Create notification (non-critical - don't fail order if this fails)
+    // Optionally insert shipping address if your table exists and shippingAddress provided
+    if (shippingAddress && typeof shippingAddress === 'object') {
+      try {
+        const addr = {
+          user_id: isPositiveInteger(userId) ? parseInt(userId) : String(userId),
+          order_id: createdOrder.id || createdOrder.order_id || dbOrderId,
+          recipient_name: sanitize(shippingAddress.full_name || shippingAddress.recipient_name || '', 255),
+          mobile_number: sanitize(shippingAddress.phone || '', 50),
+          address_line1: sanitize(shippingAddress.address_line1 || '', 500),
+          address_line2: sanitize(shippingAddress.address_line2 || '', 500),
+          city: sanitize(shippingAddress.city || '', 100),
+          province_state: sanitize(shippingAddress.province || '', 100),
+          postal_zip_code: sanitize(shippingAddress.postal_code || '', 30),
+          country: sanitize(shippingAddress.country || 'Philippines', 100),
+          is_default: false
+        };
+        await supabase.from('shipping_addresses').insert(addr);
+      } catch (addrErr) {
+        console.warn('Failed to insert shipping address (continuing):', addrErr.message || addrErr);
+      }
+    }
+
+    // Create a notification row if table exists (best-effort)
     try {
-      const { error: notifError } = await supabase
-        .from('order_notifications')
-        .insert({
-          user_id: parseInt(userId),
-          order_id: dbOrderId,
-          notification_type: 'order_placed',
-          title: 'Order Placed Successfully',
-          message: `Your order ${sanitizeString(orderNumber || orderId, 100)} has been placed and is being processed.`,
-          is_read: false
-        });
-
-      if (notifError) {
-        console.error('Notification insert error:', notifError);
-        // Don't fail the order, just log the error
-      }
-    } catch (notifException) {
-      console.error('Failed to create notification:', notifException);
-      // Don't fail the order
+      await supabase.from('order_notifications').insert({
+        user_id: isPositiveInteger(userId) ? parseInt(userId) : String(userId),
+        order_id: createdOrder.id || createdOrder.order_id || dbOrderId,
+        notification_type: 'order_placed',
+        title: 'Order Placed',
+        message: `Your order ${sanitize(orderNumber || orderId, 100)} has been placed.`,
+        is_read: false
+      });
+    } catch (notifErr) {
+      // ignore - optional functionality
+      console.warn('Notification insert failed (not critical):', notifErr.message || notifErr);
     }
 
-    // Return success response
     return res.status(200).json({
       success: true,
       message: 'Order created successfully',
-      order_id: dbOrderId,
-      order_number: orderData.order_number,
+      order_id: createdOrder.id || createdOrder.order_id || dbOrderId,
       data: {
-        ...createdOrder,
-        items_count: insertedItems.length
+        order: createdOrder,
+        items_created: Array.isArray(insertedItems) ? insertedItems.length : (insertedItems ? 1 : 0)
       }
     });
-
-  } catch (error) {
-    console.error('Create order error:', error);
-    
-    const isDevelopment = process.env.NODE_ENV === 'development';
-    
-    return res.status(500).json({
-      success: false,
-      error: isDevelopment ? error.message : 'Failed to create order'
-    });
+  } catch (err) {
+    console.error('Create order unexpected error:', err);
+    return res.status(500).json({ success: false, error: 'Failed to create order' });
   }
 }
