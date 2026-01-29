@@ -1,4 +1,4 @@
-// receipt.js - read pendingCheckout from localStorage and render professional receipt
+// receipt.js - FALLBACK VERSION with multiple endpoint attempts
 (function(){
   function fmt(n){ return '₱' + Number(n).toFixed(2); }
 
@@ -33,22 +33,18 @@
   const tbody = document.querySelector('#itemsTable tbody');
   tbody.innerHTML = '';
   
-  // Be defensive: some deployments may store slightly different keys (price vs unitPrice/basePrice)
   let items = data.items || [];
   console.log('Rendering items (raw):', items);
 
-  // Normalize each item so receipt can render even if the source used a different field name
+  // Normalize items
   items = (items || []).map(it => {
     const clone = Object.assign({}, it);
-    // try to coerce unitPrice from several possible fields
     if (typeof clone.unitPrice === 'undefined') {
       if (typeof clone.price !== 'undefined') clone.unitPrice = parseFloat(String(clone.price).toString().replace(/[^0-9\.-]/g, '')) || 0;
       else if (typeof clone.basePrice !== 'undefined') clone.unitPrice = Number(clone.basePrice) || 0;
       else clone.unitPrice = 0;
     }
-    // quantity fallback
     clone.quantity = Number(clone.quantity || clone.qty || 1) || 1;
-    // lineTotal fallback
     if (typeof clone.lineTotal === 'undefined' || !clone.lineTotal) {
       clone.lineTotal = +(clone.unitPrice * clone.quantity).toFixed(2);
     }
@@ -104,8 +100,7 @@
     });
   }
 
-  // Populate totals (NO TAX)
-  // If totals are missing, compute from normalized items
+  // Populate totals
   let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
   let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
 
@@ -116,7 +111,6 @@
     shippingVal = subtotalVal > 50 ? 0 : 5.99;
   }
   
-  // ALWAYS recalculate total to ensure it's correct (subtotal + shipping only, no tax)
   let totalVal = +(subtotalVal + shippingVal).toFixed(2);
 
   document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
@@ -146,7 +140,7 @@
     document.getElementById('shippingAddress').innerHTML = '<div style="color:#999;font-style:italic">No shipping address provided</div>';
   }
 
-  // Save receipt to database using Next.js API
+  // Save receipt to database (with fallback)
   saveReceiptToDatabase(data);
 
   // Back button
@@ -158,56 +152,96 @@
     return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
   }
 
-  // Save receipt to database using Next.js API
+  // IMPROVED: Try multiple endpoints with fallback
   async function saveReceiptToDatabase(receiptData) {
     console.log('Attempting to save receipt to database...', receiptData);
     
     const userId = sessionStorage.getItem('jbr7_user_id');
     if (!userId) {
       console.warn('No user ID found, skipping receipt save');
+      saveToLocalStorage(receiptData);
       return;
     }
     
-    try {
-      const response = await fetch('/api/receipts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          userId: parseInt(userId),
-          receiptData: {
-            orderId: receiptData.orderId,
-            orderNumber: receiptData.orderNumber || receiptData.orderId,
-            amount: receiptData.total,
-            currency: 'PHP',
-            status: 'succeeded',
-            payment_provider: receiptData.payment,
-            captured_at: receiptData.timestamp,
-            raw_response: receiptData
+    const receiptPayload = {
+      userId: parseInt(userId),
+      receiptData: {
+        orderId: receiptData.orderId,
+        orderNumber: receiptData.orderNumber || receiptData.orderId,
+        amount: receiptData.total,
+        currency: 'PHP',
+        status: 'succeeded',
+        payment_provider: receiptData.payment,
+        captured_at: receiptData.timestamp,
+        raw_response: receiptData
+      }
+    };
+    
+    // Try multiple endpoints in order
+    const endpoints = [
+      '/api/receipts',
+      '/api/receipt',
+      '/jbr7php/receipt.php'
+    ];
+    
+    let saved = false;
+    
+    for (const endpoint of endpoints) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(receiptPayload)
+        });
+
+        console.log(`${endpoint} response status:`, response.status);
+
+        if (response.ok) {
+          const contentType = response.headers.get("content-type");
+          
+          if (contentType && contentType.includes("application/json")) {
+            const data = await response.json();
+            console.log(`${endpoint} response data:`, data);
+
+            if (data.success) {
+              console.log(`✅ Receipt saved successfully via ${endpoint}! Receipt ID:`, data.receipt_id);
+              saved = true;
+              break;
+            }
           }
-        })
+        }
+        
+        // If this endpoint failed, try next one
+        console.log(`${endpoint} failed, trying next...`);
+        
+      } catch (error) {
+        console.error(`Error with ${endpoint}:`, error);
+        continue;
+      }
+    }
+    
+    if (!saved) {
+      console.warn('⚠️ All endpoints failed, saving to localStorage as fallback');
+      saveToLocalStorage(receiptData);
+    }
+  }
+  
+  // Save to localStorage as last resort
+  function saveToLocalStorage(receiptData) {
+    try {
+      const receipts = JSON.parse(localStorage.getItem('savedReceipts') || '[]');
+      receipts.push({
+        ...receiptData,
+        savedAt: new Date().toISOString(),
+        source: 'localStorage_fallback'
       });
-
-      console.log('Receipt save response status:', response.status);
-
-      if (!response.ok) {
-        const text = await response.text();
-        console.error('Receipt save HTTP error:', text);
-        // Don't show error to user - receipt is optional
-        return;
-      }
-
-      const data = await response.json();
-      console.log('Receipt save response data:', data);
-
-      if (data.success) {
-        console.log('✅ Receipt saved to database successfully! Receipt ID:', data.receipt_id);
-      } else {
-        console.warn('⚠️ Receipt save returned success:false:', data.error);
-      }
-    } catch (error) {
-      console.error('❌ Error saving receipt:', error);
-      // Don't show error to user - receipt is optional
+      localStorage.setItem('savedReceipts', JSON.stringify(receipts));
+      console.log('📝 Receipt saved to localStorage as fallback');
+    } catch (err) {
+      console.error('Failed to save to localStorage:', err);
     }
   }
 })();
