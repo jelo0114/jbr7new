@@ -95,15 +95,20 @@ export async function getShippingAddresses(userId) {
   return data || [];
 }
 
-export async function saveShippingAddress(userId, payload) {
-  // payload should match the columns in shipping_addresses table
-  const row = { ...payload, user_id: userId };
-  const { error } = await supabase.from('shipping_addresses').insert(row);
+export async function saveShippingAddress(userId, addressData) {
+  // Remove API-only fields before inserting into DB
+  const { action, userId: _ignoreUserId, ...cleanData } = addressData;
 
-  if (error) {
-    throw new Error(`saveShippingAddress failed: ${error.message}`);
-  }
+  const { error } = await supabase
+    .from('shipping_addresses')
+    .insert({
+      user_id: userId,
+      ...cleanData
+    });
+
+  if (error) throw error;
 }
+
 
 export async function deleteShippingAddress(userId, id) {
   const { error } = await supabase
@@ -668,19 +673,6 @@ export async function getUserReviews(userId) {
   }
 }
 
-export async function saveShippingAddress(userId, addressData) {
-  // Remove API-only fields before inserting into DB
-  const { action, userId: _ignoreUserId, ...cleanData } = addressData;
-
-  const { error } = await supabase
-    .from('shipping_addresses')
-    .insert({
-      user_id: userId,
-      ...cleanData
-    });
-
-  if (error) throw error;
-}
 
 // -----------------------------
 // HELPER FUNCTIONS
@@ -697,3 +689,4 @@ function formatTimeAgo(dateString) {
   if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
   return date.toLocaleDateString();
 }
+
