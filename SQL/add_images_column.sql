@@ -3,7 +3,7 @@
 
 USE `jbr7_db`;
 
--- Add images column to store JSON array of image paths
+-- Add images column to store JSON array of image path
 -- Note: Run this only if column doesn't exist
 ALTER TABLE `items` 
 ADD COLUMN `images` JSON NULL AFTER `image`;

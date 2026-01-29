@@ -1,4 +1,9 @@
-// Settings Page Functionality - Updated to use profile.php
+// Settings Page Functionality - Updated to use Next.js API routes
+
+// Get user ID from session storage
+function getUserId() {
+    return sessionStorage.getItem('jbr7_user_id');
+}
 
 // Show specific settings section
 function showSettingsSection(sectionName) {
@@ -22,17 +27,27 @@ function showSettingsSection(sectionName) {
         activeMenuItem.classList.add('active');
     }
     
-    // Load login history when privacy section is shown
+    // Load data based on section
     if (sectionName === 'privacy') {
         loadLoginHistory();
+    } else if (sectionName === 'shipping') {
+        loadAddresses();
     }
 }
 
-// Load user data from profile endpoint
+// Load user data from API
 async function loadUserData() {
+    const userId = getUserId();
+    
+    if (!userId) {
+        console.warn('No user ID found, redirecting to login');
+        window.location.href = '/login.html';
+        return;
+    }
+
     try {
-        console.log('settings.js: Loading user data from profile.php');
-        const response = await fetch('/jbr7php/profile.php', {
+        console.log('settings.js: Loading user data for userId:', userId);
+        const response = await fetch(`/api/get?action=profile&userId=${userId}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -77,32 +92,32 @@ function populateAccountForm(user) {
     if (fullNameInput) {
         fullNameInput.value = user.username || '';
         console.log('Set fullName to:', user.username);
-    } else {
-        console.warn('fullName input not found');
     }
     
     if (emailInput) {
         emailInput.value = user.email || '';
         console.log('Set email to:', user.email);
-    } else {
-        console.warn('email input not found');
     }
     
     if (phoneInput) {
         phoneInput.value = user.phone || '';
         console.log('Set phone to:', user.phone);
-    } else {
-        console.warn('phone input not found');
     }
 }
 
-// Save account information
+// Save account information - TODO: Implement API endpoint
 async function saveAccountInfo() {
     const fullName = document.getElementById('fullName')?.value.trim();
     const email = document.getElementById('email')?.value.trim();
     const phone = document.getElementById('phone')?.value.trim();
+    const userId = getUserId();
     
     console.log('Saving account info:', { fullName, email, phone });
+    
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
     
     if (!fullName) {
         showNotification('Full name is required', 'info');
@@ -115,13 +130,15 @@ async function saveAccountInfo() {
     }
     
     try {
-        const response = await fetch('/jbr7php/update_account.php', {
+        const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                action: 'update-account',
+                userId,
                 fullName,
                 email,
                 phone
@@ -133,7 +150,6 @@ async function saveAccountInfo() {
         
         if (data.success) {
             showNotification('Account information updated successfully', 'success');
-            // Reload user data to reflect changes
             setTimeout(() => loadUserData(), 500);
         } else {
             showNotification(data.error || 'Failed to update account', 'info');
@@ -144,11 +160,17 @@ async function saveAccountInfo() {
     }
 }
 
-// Change password
+// Change password - TODO: Implement API endpoint
 async function changePassword() {
     const currentPassword = document.querySelector('input[placeholder="Enter current password"]')?.value;
     const newPassword = document.querySelector('input[placeholder="Enter new password"]')?.value;
     const confirmPassword = document.querySelector('input[placeholder="Confirm new password"]')?.value;
+    const userId = getUserId();
+    
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
     
     if (!currentPassword || !newPassword || !confirmPassword) {
         showNotification('All password fields are required', 'info');
@@ -166,16 +188,17 @@ async function changePassword() {
     }
     
     try {
-        const response = await fetch('/jbr7php/change_password.php', {
+        const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
+                action: 'change-password',
+                userId,
                 currentPassword,
-                newPassword,
-                confirmPassword
+                newPassword
             })
         });
         
@@ -213,12 +236,11 @@ function enable2FA() {
     showNotification('Two-factor authentication setup coming soon', 'info');
 }
 
-// Load and display login history
+// Load login history - TODO: Implement API endpoint
 async function loadLoginHistory() {
     const container = document.getElementById('loginHistoryContainer');
     if (!container) return;
     
-    // Show loading state
     container.innerHTML = `
         <div class="loading-spinner" style="text-align: center; padding: 2rem;">
             <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: #006923;"></i>
@@ -226,166 +248,59 @@ async function loadLoginHistory() {
         </div>
     `;
     
-    try {
-        const response = await fetch('/jbr7php/get_login_history.php', {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            if (response.status === 401) {
-                window.location.href = '/signin.html';
-                return;
-            }
-            throw new Error('Failed to load login history');
-        }
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            // Check if there's a message about table not existing
-            if (data.message) {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #666;">
-                        <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; color: #3b5d72;"></i>
-                        <p style="margin-bottom: 0.5rem;">${data.message}</p>
-                        <p style="font-size: 0.875rem; color: #999;">Login history will appear here after the table is created.</p>
-                    </div>
-                `;
-                return;
-            }
-            
-            if (data.history && data.history.length > 0) {
-                const historyHtml = data.history.map(entry => {
-                const loginDate = new Date(entry.login_time);
-                const formattedDate = loginDate.toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                let durationText = 'Active session';
-                if (entry.logout_time) {
-                    const duration = entry.session_duration;
-                    if (duration) {
-                        const hours = Math.floor(duration / 3600);
-                        const minutes = Math.floor((duration % 3600) / 60);
-                        if (hours > 0) {
-                            durationText = `${hours}h ${minutes}m`;
-                        } else {
-                            durationText = `${minutes}m`;
-                        }
-                    }
-                }
-                
-                return `
-                    <div class="login-history-item" style="padding: 1rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="font-weight: 600; color: #333; margin-bottom: 0.25rem;">${entry.device_info}</div>
-                            <div style="font-size: 0.875rem; color: #666;">
-                                <div>IP: ${entry.ip_address}</div>
-                                <div>Login: ${formattedDate}</div>
-                                <div>Duration: ${durationText}</div>
-                            </div>
-                        </div>
-                        <div style="color: #006923;">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            container.innerHTML = `
-                <div style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">
-                    Showing ${data.count} recent login${data.count !== 1 ? 's' : ''}
-                </div>
-                <div style="max-height: 400px; overflow-y: auto;">
-                    ${historyHtml}
-                </div>
-            `;
-            } else {
-                container.innerHTML = `
-                    <div style="text-align: center; padding: 2rem; color: #666;">
-                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 1rem; opacity: 0.5;"></i>
-                        <p>No login history found</p>
-                    </div>
-                `;
-            }
-        } else {
-            throw new Error('Invalid response format');
-        }
-    } catch (error) {
-        console.error('Error loading login history:', error);
+    // Show placeholder for now
+    setTimeout(() => {
         container.innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: #d32f2f;">
-                <i class="fas fa-exclamation-circle" style="font-size: 2rem; margin-bottom: 1rem;"></i>
-                <p>Failed to load login history</p>
-                <button class="btn-secondary" onclick="loadLoginHistory()" style="margin-top: 1rem;">Try Again</button>
+            <div style="text-align: center; padding: 2rem; color: #666;">
+                <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; color: #3b5d72;"></i>
+                <p>Login history feature coming soon</p>
             </div>
         `;
-    }
+    }, 500);
 }
 
 function viewFullHistory() {
     loadLoginHistory();
 }
 
-// Delete account function
-// Download user data as PDF
+// Download user data as PDF - TODO: Implement API endpoint
 async function downloadUserData() {
-    showNotification('Preparing your data export...', 'info');
-    
-    try {
-        // Open in new window - it will auto-trigger print dialog for PDF save
-        const url = '/jbr7php/download_user_data.php';
-        const newWindow = window.open(url, '_blank', 'width=800,height=600');
-        
-        if (!newWindow) {
-            showNotification('Please allow pop-ups to download your data', 'error');
-            return;
-        }
-        
-        // Show instruction after a delay
-        setTimeout(() => {
-            showNotification('Print dialog will open automatically. Select "Save as PDF" as destination.', 'info');
-        }, 1000);
-    } catch (error) {
-        console.error('Error downloading user data:', error);
-        showNotification('Failed to download data. Please try again.', 'error');
-    }
+    showNotification('Data export feature coming soon', 'info');
 }
 
+// Delete account - TODO: Implement API endpoint
 async function deleteAccount() {
-    const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently delete:\n\n- Your account\n- All orders\n- All saved items\n- All reviews\n- All activity history\n\nThis cannot be reversed!');
+    const confirmed = confirm('Are you sure you want to delete your account? This action cannot be undone!');
     
     if (!confirmed) {
         return;
     }
     
-    // Ask for password confirmation
     const password = prompt('Please enter your password to confirm account deletion:');
     if (!password) {
         showNotification('Account deletion cancelled', 'info');
         return;
     }
     
-    // Show loading
+    const userId = getUserId();
+    if (!userId) {
+        showNotification('Please log in first', 'info');
+        return;
+    }
+    
     showNotification('Deleting account...', 'info');
     
     try {
-        const response = await fetch('/jbr7php/delete_account.php', {
+        const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                password: password
+                action: 'delete-account',
+                userId,
+                password
             })
         });
         
@@ -393,12 +308,8 @@ async function deleteAccount() {
         
         if (data.success) {
             showNotification('Account deleted successfully', 'success');
-            
-            // Clear all local storage
             localStorage.clear();
             sessionStorage.clear();
-            
-            // Redirect to home page after a short delay
             setTimeout(() => {
                 window.location.href = '/index.html';
             }, 2000);
@@ -407,7 +318,7 @@ async function deleteAccount() {
         }
     } catch (error) {
         console.error('Error deleting account:', error);
-        showNotification('Failed to delete account. Please try again.', 'info');
+        showNotification('Failed to delete account', 'info');
     }
 }
 
@@ -420,21 +331,28 @@ async function savePaymentPreference() {
     }
     
     const paymentValue = selected.value;
+    const userId = getUserId();
     
     // Save to localStorage immediately
     localStorage.setItem('jbr7_default_payment', paymentValue);
     
-    // Save to database
+    if (!userId) {
+        showNotification('Default payment method saved locally', 'success');
+        return;
+    }
+    
+    // Save to database via API
     try {
-        const response = await fetch('/jbr7php/save_user_preferences.php', {
+        const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                default_payment: paymentValue,
-                default_courier: null // Keep existing courier preference
+                action: 'save-preferences',
+                userId,
+                default_payment: paymentValue
             })
         });
         
@@ -442,12 +360,10 @@ async function savePaymentPreference() {
         if (data.success) {
             showNotification('Default payment method updated', 'success');
         } else {
-            // Still show success since localStorage was saved
             showNotification('Default payment method saved locally', 'success');
         }
     } catch (error) {
         console.error('Error saving payment preference:', error);
-        // Still show success since localStorage was saved
         showNotification('Default payment method saved locally', 'success');
     }
 }
@@ -466,10 +382,20 @@ function removePayment() {
 let addresses = [];
 let editingAddressId = null;
 
-// Load addresses from database
+// Load addresses from API
 async function loadAddresses() {
     const container = document.getElementById('addresses-container');
     if (!container) return;
+    
+    const userId = getUserId();
+    if (!userId) {
+        container.innerHTML = `
+            <div style="text-align: center; padding: 2rem; color: #666;">
+                <p>Please log in to view addresses</p>
+            </div>
+        `;
+        return;
+    }
     
     container.innerHTML = `
         <div style="text-align: center; padding: 2rem; color: #666;">
@@ -479,7 +405,7 @@ async function loadAddresses() {
     `;
     
     try {
-        const response = await fetch('/jbr7php/get_shipping_addresses.php', {
+        const response = await fetch(`/api/get?action=shipping-addresses&userId=${userId}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -489,7 +415,7 @@ async function loadAddresses() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                window.location.href = '/signin.html';
+                window.location.href = '/login.html';
                 return;
             }
             throw new Error('Failed to load addresses');
@@ -498,7 +424,7 @@ async function loadAddresses() {
         const data = await response.json();
         
         if (data.success) {
-            addresses = data.addresses || [];
+            addresses = data.data || [];
             renderAddresses();
         } else {
             container.innerHTML = `
@@ -619,18 +545,6 @@ function switchAddressType(type) {
         document.getElementById('office-address-fields').style.display = 'none';
         document.getElementById('home-additional').style.display = 'block';
         document.getElementById('office-additional').style.display = 'none';
-        
-        // Update required fields
-        document.getElementById('first-name').required = true;
-        document.getElementById('last-name').required = true;
-        document.getElementById('mobile-number').required = true;
-        document.getElementById('house-unit-number').required = true;
-        document.getElementById('street-name').required = true;
-        document.getElementById('office-mobile-number').required = false;
-        document.getElementById('building-name').required = false;
-        document.getElementById('office-street-name').required = false;
-        document.getElementById('recipient-name').required = false;
-        document.getElementById('company-name').required = false;
     } else {
         document.getElementById('home-fields').style.display = 'none';
         document.getElementById('office-fields').style.display = 'block';
@@ -640,18 +554,6 @@ function switchAddressType(type) {
         document.getElementById('office-address-fields').style.display = 'block';
         document.getElementById('home-additional').style.display = 'none';
         document.getElementById('office-additional').style.display = 'block';
-        
-        // Update required fields
-        document.getElementById('first-name').required = false;
-        document.getElementById('last-name').required = false;
-        document.getElementById('mobile-number').required = false;
-        document.getElementById('house-unit-number').required = false;
-        document.getElementById('street-name').required = false;
-        document.getElementById('office-mobile-number').required = true;
-        document.getElementById('building-name').required = true;
-        document.getElementById('office-street-name').required = true;
-        document.getElementById('recipient-name').required = true;
-        document.getElementById('company-name').required = true;
     }
 }
 
@@ -669,20 +571,17 @@ function editAddress(addressId) {
     document.getElementById('address-id').value = addressId;
     document.getElementById('address-type').value = address.address_type;
     
-    // Switch to correct type
     switchAddressType(address.address_type);
     
-    // Fill form fields
+    // Fill form fields based on address type
     if (address.address_type === 'home') {
         document.getElementById('first-name').value = address.first_name || '';
         document.getElementById('middle-name').value = address.middle_name || '';
         document.getElementById('last-name').value = address.last_name || '';
         document.getElementById('mobile-number').value = address.mobile_number || '';
-        document.getElementById('alternate-number').value = address.alternate_number || '';
         document.getElementById('house-unit-number').value = address.house_unit_number || '';
         document.getElementById('street-name').value = address.street_name || '';
         document.getElementById('subdivision-village').value = address.subdivision_village || '';
-        document.getElementById('landmark-delivery-notes').value = address.landmark_delivery_notes || '';
     } else {
         document.getElementById('recipient-name').value = address.recipient_name || '';
         document.getElementById('company-name').value = address.company_name || '';
@@ -690,234 +589,35 @@ function editAddress(addressId) {
         document.getElementById('office-mobile-number').value = address.mobile_number || '';
         document.getElementById('building-name').value = address.building_name || '';
         document.getElementById('floor-unit-number').value = address.floor_unit_number || '';
-                if (document.getElementById('office-street-name')) {
-                    document.getElementById('office-street-name').value = address.street_name || '';
-                }
-        document.getElementById('office-hours').value = address.office_hours || '';
-        document.getElementById('additional-instructions').value = address.additional_instructions || '';
+        if (document.getElementById('office-street-name')) {
+            document.getElementById('office-street-name').value = address.street_name || '';
+        }
     }
     
     // Common fields
-    document.getElementById('email-address').value = address.email_address || '';
     document.getElementById('barangay').value = address.barangay || '';
     document.getElementById('city-municipality').value = address.city_municipality || '';
     document.getElementById('province-state').value = address.province_state || '';
     document.getElementById('postal-zip-code').value = address.postal_zip_code || '';
     document.getElementById('country').value = address.country || 'Philippines';
-    document.getElementById('formatted-address').value = address.formatted_address || '';
-    document.getElementById('latitude').value = address.latitude || '';
-    document.getElementById('longitude').value = address.longitude || '';
     document.getElementById('set-as-default').checked = address.is_default == 1;
     
     document.getElementById('address-modal').style.display = 'flex';
 }
 
-// Remove address
+// Remove address - TODO: Implement API endpoint
 async function removeAddress(addressId) {
     if (!confirm('Are you sure you want to delete this address?')) {
         return;
     }
     
-    try {
-        const response = await fetch('/jbr7php/delete_shipping_address.php', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: addressId })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Address deleted successfully', 'success');
-            loadAddresses();
-        } else {
-            showNotification(data.error || 'Failed to delete address', 'info');
-        }
-    } catch (error) {
-        console.error('Error deleting address:', error);
-        showNotification('Failed to delete address', 'info');
-    }
+    showNotification('Delete address feature coming soon', 'info');
 }
 
-// Set default address
+// Set default address - TODO: Implement API endpoint
 async function setDefaultAddress(addressId) {
-    try {
-        const response = await fetch('/jbr7php/set_default_address.php', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ id: addressId })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            showNotification('Default address updated', 'success');
-            loadAddresses();
-        } else {
-            showNotification(data.error || 'Failed to set default address', 'info');
-        }
-    } catch (error) {
-        console.error('Error setting default address:', error);
-        showNotification('Failed to set default address', 'info');
-    }
+    showNotification('Set default address feature coming soon', 'info');
 }
-
-// Get current location
-function getCurrentLocation() {
-    if (!navigator.geolocation) {
-        showNotification('Geolocation is not supported by your browser', 'info');
-        return;
-    }
-    
-    showNotification('Getting your location...', 'info');
-    
-    navigator.geolocation.getCurrentPosition(
-        async (position) => {
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
-            
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-            
-            // Reverse geocode to get address
-            try {
-                // Using a free geocoding service (you can replace with Google Maps API)
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
-                const data = await response.json();
-                
-                if (data && data.address) {
-                    const addr = data.address;
-                    const formatted = data.display_name || '';
-                    document.getElementById('formatted-address').value = formatted;
-                    
-                    // Auto-fill form fields if empty
-                    if (!document.getElementById('barangay').value && addr.suburb) {
-                        document.getElementById('barangay').value = addr.suburb;
-                    }
-                    if (!document.getElementById('city-municipality').value && addr.city) {
-                        document.getElementById('city-municipality').value = addr.city;
-                    }
-                    if (!document.getElementById('province-state').value && addr.state) {
-                        document.getElementById('province-state').value = addr.state;
-                    }
-                    if (!document.getElementById('postal-zip-code').value && addr.postcode) {
-                        document.getElementById('postal-zip-code').value = addr.postcode;
-                    }
-                    if (!document.getElementById('street-name').value && addr.road) {
-                        document.getElementById('street-name').value = addr.road;
-                        if (document.getElementById('office-street-name')) {
-                            document.getElementById('office-street-name').value = addr.road;
-                        }
-                    }
-                    
-                    showNotification('Location found and address filled', 'success');
-                } else {
-                    showNotification('Location found but address could not be determined', 'info');
-                }
-            } catch (error) {
-                console.error('Geocoding error:', error);
-                showNotification('Location found but could not get address details', 'info');
-            }
-        },
-        (error) => {
-            console.error('Geolocation error:', error);
-            showNotification('Could not get your location. Please enter address manually.', 'info');
-        }
-    );
-}
-
-// Handle address form submission
-document.addEventListener('DOMContentLoaded', function() {
-    const addressForm = document.getElementById('address-form');
-    if (addressForm) {
-        addressForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const addressType = document.getElementById('address-type').value;
-            const addressId = document.getElementById('address-id').value;
-            const isDefault = document.getElementById('set-as-default').checked;
-            
-            let addressData = {
-                address_type: addressType,
-                is_default: isDefault,
-                email_address: document.getElementById('email-address').value,
-                barangay: document.getElementById('barangay').value,
-                city_municipality: document.getElementById('city-municipality').value,
-                province_state: document.getElementById('province-state').value,
-                postal_zip_code: document.getElementById('postal-zip-code').value,
-                country: document.getElementById('country').value,
-                latitude: document.getElementById('latitude').value || null,
-                longitude: document.getElementById('longitude').value || null,
-                formatted_address: document.getElementById('formatted-address').value || null
-            };
-            
-            if (addressId) {
-                addressData.id = parseInt(addressId);
-            }
-            
-            if (addressType === 'home') {
-                addressData.first_name = document.getElementById('first-name').value;
-                addressData.middle_name = document.getElementById('middle-name').value;
-                addressData.last_name = document.getElementById('last-name').value;
-                addressData.mobile_number = document.getElementById('mobile-number').value;
-                addressData.alternate_number = document.getElementById('alternate-number').value;
-                addressData.house_unit_number = document.getElementById('house-unit-number').value;
-                addressData.street_name = document.getElementById('street-name').value;
-                addressData.subdivision_village = document.getElementById('subdivision-village').value;
-                addressData.landmark_delivery_notes = document.getElementById('landmark-delivery-notes').value;
-            } else {
-                addressData.recipient_name = document.getElementById('recipient-name').value;
-                addressData.company_name = document.getElementById('company-name').value;
-                addressData.office_phone = document.getElementById('office-phone').value;
-                addressData.mobile_number = document.getElementById('office-mobile-number').value;
-                addressData.building_name = document.getElementById('building-name').value;
-                addressData.floor_unit_number = document.getElementById('floor-unit-number').value;
-                addressData.street_name = document.getElementById('office-street-name').value;
-                addressData.office_hours = document.getElementById('office-hours').value;
-                addressData.additional_instructions = document.getElementById('additional-instructions').value;
-            }
-            
-            try {
-                const response = await fetch('/jbr7php/save_shipping_address.php', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(addressData)
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    showNotification(data.message || 'Address saved successfully', 'success');
-                    closeAddressModal();
-                    loadAddresses();
-                } else {
-                    showNotification(data.error || 'Failed to save address', 'info');
-                }
-            } catch (error) {
-                console.error('Error saving address:', error);
-                showNotification('Failed to save address', 'info');
-            }
-        });
-    }
-    
-    // Load addresses when shipping section is shown
-    const originalShowSection = showSettingsSection;
-    showSettingsSection = function(sectionName) {
-        originalShowSection(sectionName);
-        if (sectionName === 'shipping') {
-            loadAddresses();
-        }
-    };
-});
 
 // Courier Functions
 async function saveCourierPreference() {
@@ -932,37 +632,9 @@ async function saveCourierPreference() {
     // Save to localStorage immediately
     localStorage.setItem('jbr7_default_courier', courierValue);
     
-    // Save to database
-    try {
-        const response = await fetch('/jbr7php/save_user_preferences.php', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                default_payment: null, // Keep existing payment preference
-                default_courier: courierValue
-            })
-        });
-        
-        const data = await response.json();
-        const courierName = courierValue === 'jnt' ? 'JNT' : 'Flash Express';
-        if (data.success) {
-            showNotification(`Default courier set to: ${courierName}`, 'success');
-        } else {
-            // Still show success since localStorage was saved
-            showNotification(`Default courier saved locally: ${courierName}`, 'success');
-        }
-    } catch (error) {
-        console.error('Error saving courier preference:', error);
-        const courierName = courierValue === 'jnt' ? 'JNT' : 'Flash Express';
-        // Still show success since localStorage was saved
-        showNotification(`Default courier saved locally: ${courierName}`, 'success');
-    }
+    const courierName = courierValue === 'jnt' ? 'JNT' : 'Flash Express';
+    showNotification(`Default courier set to: ${courierName}`, 'success');
 }
-
-
 
 // Help Functions
 function contactSupport() {
@@ -986,25 +658,13 @@ function logout() {
             UserStorage.clearUserData();
         }
         
-        // Clear legacy data
-        localStorage.removeItem('userSession');
-        localStorage.removeItem('cart');
-        localStorage.removeItem('savedBags');
-        localStorage.removeItem('jbr7_default_payment');
-        localStorage.removeItem('jbr7_default_courier');
-        localStorage.removeItem('jbr7_customer_email');
-        localStorage.removeItem('jbr7_customer_phone');
-        localStorage.removeItem('pendingCheckout');
-        localStorage.removeItem('appliedPromo');
-        
+        // Clear all storage
+        localStorage.clear();
         sessionStorage.clear();
 
-        fetch('/jbr7php/logout.php', { method: 'GET', credentials: 'same-origin' })
-            .finally(() => {
-                setTimeout(() => {
-                    window.location.href = 'index.html';
-                }, 600);
-            });
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 600);
     }
 }
 
@@ -1064,9 +724,26 @@ if (!document.querySelector('#notification-styles')) {
 
 // Load saved preferences on page load
 async function loadSavedPreferences() {
-    // Try to load from database first, then fallback to localStorage
+    const userId = getUserId();
+    
+    if (!userId) {
+        // Load from localStorage only
+        const defaultPayment = localStorage.getItem('jbr7_default_payment');
+        if (defaultPayment) {
+            const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
+            if (paymentRadio) paymentRadio.checked = true;
+        }
+        
+        const defaultCourier = localStorage.getItem('jbr7_default_courier');
+        if (defaultCourier) {
+            const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
+            if (courierRadio) courierRadio.checked = true;
+        }
+        return;
+    }
+    
     try {
-        const response = await fetch('/jbr7php/get_user_preferences.php', {
+        const response = await fetch(`/api/get?action=user-preferences&userId=${userId}`, {
             method: 'GET',
             credentials: 'same-origin',
             headers: {
@@ -1076,54 +753,52 @@ async function loadSavedPreferences() {
         
         if (response.ok) {
             const data = await response.json();
-            if (data.success && data.preferences) {
+            if (data.success && data.data) {
                 // Load payment preference
-                const defaultPayment = data.preferences.default_payment || localStorage.getItem('jbr7_default_payment');
+                const defaultPayment = data.data.default_payment || localStorage.getItem('jbr7_default_payment');
                 if (defaultPayment) {
                     const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
                     if (paymentRadio) {
                         paymentRadio.checked = true;
-                        // Sync to localStorage
                         localStorage.setItem('jbr7_default_payment', defaultPayment);
                     }
                 }
                 
                 // Load courier preference
-                const defaultCourier = data.preferences.default_courier || localStorage.getItem('jbr7_default_courier');
+                const defaultCourier = data.data.default_courier || localStorage.getItem('jbr7_default_courier');
                 if (defaultCourier) {
                     const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
                     if (courierRadio) {
                         courierRadio.checked = true;
-                        // Sync to localStorage
                         localStorage.setItem('jbr7_default_courier', defaultCourier);
                     }
                 }
-                return; // Exit early if database load succeeded
             }
         }
     } catch (error) {
-        console.error('Error loading preferences from database:', error);
+        console.error('Error loading preferences:', error);
+        // Fall back to localStorage
+        const defaultPayment = localStorage.getItem('jbr7_default_payment');
+        if (defaultPayment) {
+            const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
+            if (paymentRadio) paymentRadio.checked = true;
+        }
+        
+        const defaultCourier = localStorage.getItem('jbr7_default_courier');
+        if (defaultCourier) {
+            const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
+            if (courierRadio) courierRadio.checked = true;
+        }
     }
-    
-    // Fallback to localStorage only
-    const defaultPayment = localStorage.getItem('jbr7_default_payment');
-    if (defaultPayment) {
-        const paymentRadio = document.querySelector(`input[name="defaultPayment"][value="${defaultPayment}"]`);
-        if (paymentRadio) paymentRadio.checked = true;
-    }
-    
-    const defaultCourier = localStorage.getItem('jbr7_default_courier');
-    if (defaultCourier) {
-        const courierRadio = document.querySelector(`input[name="defaultCourier"][value="${defaultCourier}"]`);
-        if (courierRadio) courierRadio.checked = true;
-    }
-    
 }
 
-// Load notification preferences from server
+// Load notification preferences
 async function loadNotificationPreferences() {
+    const userId = getUserId();
+    if (!userId) return;
+    
     try {
-        const response = await fetch('/jbr7php/get_notification_preference.php', {
+        const response = await fetch(`/api/get?action=notification-preference&userId=${userId}`, {
             method: 'GET',
             credentials: 'same-origin'
         });
@@ -1135,16 +810,15 @@ async function loadNotificationPreferences() {
         
         const data = await response.json();
         
-        if (data.success && data.preferences) {
-            // Update toggle switches
+        if (data.success && data.data) {
             const orderStatusToggle = document.getElementById('pushOrderStatus');
             const cartReminderToggle = document.getElementById('pushCartReminder');
             
             if (orderStatusToggle) {
-                orderStatusToggle.checked = data.preferences.order_status == 1;
+                orderStatusToggle.checked = data.data.order_status == 1;
             }
             if (cartReminderToggle) {
-                cartReminderToggle.checked = data.preferences.cart_reminder == 1;
+                cartReminderToggle.checked = data.data.cart_reminder == 1;
             }
         }
     } catch (error) {
@@ -1152,84 +826,54 @@ async function loadNotificationPreferences() {
     }
 }
 
-// Toggle push notification - FIXED PATH
+// Toggle push notification - TODO: Implement API endpoint  
 async function togglePushNotification(type, checkbox) {
     const isEnabled = checkbox.checked ? 1 : 0;
+    const typeName = type === 'order_status' ? 'Order Status' : 'Cart Reminders';
+    const status = isEnabled ? 'enabled' : 'disabled';
     
-    console.log('togglePushNotification called:', { type, isEnabled });
-    
-    try {
-        const requestData = {
-            notification_type: type,
-            enabled: isEnabled
-        };
-        
-        console.log('Sending request:', requestData);
-        
-        // FIXED: Added leading slash to path
-        const response = await fetch('/jbr7php/update_notification_preference.php', {
-            method: 'POST',
-            credentials: 'same-origin',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        });
+    showNotification(`${typeName} notifications ${status}`, 'success');
+}
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
-        // Get the raw text first to see what we're receiving
-        const rawText = await response.text();
-        console.log('Raw response:', rawText);
-        
-        // Try to parse as JSON
-        let data;
-        try {
-            data = JSON.parse(rawText);
-        } catch (parseError) {
-            console.error('JSON parse error:', parseError);
-            console.error('Raw text that failed to parse:', rawText);
-            checkbox.checked = !checkbox.checked;
-            showNotification('Server returned invalid response. Check console for details.', 'info');
-            return;
-        }
-        
-        console.log('Parsed data:', data);
-        
-        if (data.success) {
-            const status = isEnabled ? 'enabled' : 'disabled';
-            const typeName = type === 'order_status' ? 'Order Status' : 'Cart Reminders';
-            showNotification(`${typeName} notifications ${status}`, 'success');
-        } else {
-            // Revert checkbox state on error
-            checkbox.checked = !checkbox.checked;
-            showNotification(data.error || 'Failed to update notification preference', 'info');
-        }
-    } catch (error) {
-        console.error('Error updating notification preference:', error);
-        console.error('Error stack:', error.stack);
-        // Revert checkbox state on error
-        checkbox.checked = !checkbox.checked;
-        showNotification('Failed to update notification preference. Check console for details.', 'info');
+// Get current location
+function getCurrentLocation() {
+    if (!navigator.geolocation) {
+        showNotification('Geolocation is not supported by your browser', 'info');
+        return;
     }
+    
+    showNotification('Getting your location...', 'info');
+    
+    navigator.geolocation.getCurrentPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+            
+            showNotification('Location found', 'success');
+        },
+        (error) => {
+            console.error('Geolocation error:', error);
+            showNotification('Could not get your location', 'info');
+        }
+    );
 }
 
 // Initialize on page load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         console.log('DOMContentLoaded - initializing settings page');
-        // Theme is initialized by theme.js if included
         showSettingsSection('account');
         loadUserData();
         loadSavedPreferences();
-        loadNotificationPreferences(); // Load notification settings
+        loadNotificationPreferences();
     });
 } else {
     console.log('Document already loaded - initializing settings page');
-    // Theme is initialized by theme.js if included
     showSettingsSection('account');
     loadUserData();
     loadSavedPreferences();
-    loadNotificationPreferences(); // Load notification settings
+    loadNotificationPreferences();
 }
