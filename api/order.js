@@ -1,5 +1,5 @@
 // pages/api/orders.js
-// Orders endpoint for creating and managing orders
+// Orders endpoint for creating and managing orders - UPDATED FOR UUID
 
 import { supabase } from '../../lib/supabaseClient';
 
@@ -38,7 +38,7 @@ async function handleGetOrders(req, res) {
       .select(`
         *,
         order_items (*),
-        order_shipping_addresses (*)
+        shipping_addresses (*)
       `);
 
     if (userId) {
@@ -96,7 +96,21 @@ async function handleCreateOrder(req, res) {
   }
 
   try {
-    // Start a transaction-like operation
+    // Get default shipping address if not provided
+    let shippingAddressId = null;
+    if (shippingAddress || !shippingAddress) {
+      const { data: addresses } = await supabase
+        .from('shipping_addresses')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('is_default', true)
+        .single();
+      
+      if (addresses) {
+        shippingAddressId = addresses.id;
+      }
+    }
+
     // 1. Insert order
     const { data: orderData, error: orderError } = await supabase
       .from('orders')
@@ -111,7 +125,9 @@ async function handleCreateOrder(req, res) {
         customer_phone: customerPhone || null,
         subtotal: parseFloat(subtotal) || 0,
         shipping: parseFloat(shipping) || 0,
-        total: parseFloat(total) || 0
+        total_amount: parseFloat(total) || 0,
+        shipping_address_id: shippingAddressId,
+        placed_at: timestamp || new Date().toISOString()
       })
       .select()
       .single();
@@ -146,29 +162,7 @@ async function handleCreateOrder(req, res) {
       throw itemsError;
     }
 
-    // 3. Insert shipping address if provided
-    if (shippingAddress) {
-      const { error: addressError } = await supabase
-        .from('order_shipping_addresses')
-        .insert({
-          order_id: dbOrderId,
-          full_name: shippingAddress.full_name || null,
-          phone: shippingAddress.phone || null,
-          address_line1: shippingAddress.address_line1 || null,
-          address_line2: shippingAddress.address_line2 || null,
-          city: shippingAddress.city || null,
-          province: shippingAddress.province || null,
-          postal_code: shippingAddress.postal_code || null,
-          country: shippingAddress.country || 'Philippines'
-        });
-
-      if (addressError) {
-        console.error('Shipping address insert error:', addressError);
-        // Continue anyway - shipping address is not critical
-      }
-    }
-
-    // 4. Create notification
+    // 3. Create notification
     const { error: notifError } = await supabase
       .from('order_notifications')
       .insert({

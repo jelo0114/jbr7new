@@ -178,222 +178,166 @@ FROM information_schema.columns
 WHERE table_name = 'users' 
 ORDER BY ordinal_position;
 
--- ============================================
--- SHIPPING ADDRESSES TABLE
--- ============================================
+-- Users are assumed to be identified by UUID from Supabase Auth (auth.uid()).
+-- Adjust product_id type if your products table uses a different type.
+
+-- Shipping addresses (one user can have many addresses)
 CREATE TABLE IF NOT EXISTS shipping_addresses (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    address_type VARCHAR(20) NOT NULL CHECK (address_type IN ('home', 'office')),
-    is_default BOOLEAN DEFAULT FALSE,
-    
-    -- Home Address Fields
-    first_name VARCHAR(100),
-    middle_name VARCHAR(100),
-    last_name VARCHAR(100),
-    
-    -- Office Address Fields
-    recipient_name VARCHAR(200),
-    company_name VARCHAR(200),
-    office_phone VARCHAR(50),
-    
-    -- Contact Information
-    mobile_number VARCHAR(50),
-    alternate_number VARCHAR(50),
-    email_address VARCHAR(255),
-    
-    -- Home Address Details
-    house_unit_number VARCHAR(100),
-    subdivision_village VARCHAR(200),
-    landmark_delivery_notes TEXT,
-    
-    -- Office Address Details
-    building_name VARCHAR(200),
-    floor_unit_number VARCHAR(100),
-    office_hours VARCHAR(200),
-    additional_instructions TEXT,
-    
-    -- Common Address Fields
-    street_name VARCHAR(255),
-    barangay VARCHAR(200),
-    city_municipality VARCHAR(200) NOT NULL,
-    province_state VARCHAR(200) NOT NULL,
-    postal_zip_code VARCHAR(20) NOT NULL,
-    country VARCHAR(100) DEFAULT 'Philippines',
-    
-    -- Location Coordinates
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
-    formatted_address TEXT,
-    
-    -- Timestamps
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL, -- references auth.users (logical link; foreign key to that table is optional)
+  label text, -- e.g., "Home", "Office"
+  full_name text NOT NULL,
+  company text,
+  phone text,
+  street_address text NOT NULL,
+  street_address2 text,
+  city text NOT NULL,
+  state text,
+  postal_code text,
+  country text NOT NULL,
+  is_default boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz
 );
 
--- Indexes for shipping_addresses
-CREATE INDEX idx_shipping_user_id ON shipping_addresses(user_id);
-CREATE INDEX idx_shipping_default ON shipping_addresses(is_default);
-CREATE INDEX idx_shipping_type ON shipping_addresses(address_type);
+CREATE INDEX IF NOT EXISTS idx_shipping_addresses_user_id ON shipping_addresses(user_id);
+CREATE INDEX IF NOT EXISTS idx_shipping_addresses_user_default ON shipping_addresses(user_id, is_default);
 
--- ============================================
--- USER PREFERENCES TABLE
--- ============================================
-CREATE TABLE IF NOT EXISTS user_preferences (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
-    default_payment VARCHAR(50),
-    default_courier VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+-- Orders
+CREATE TABLE IF NOT EXISTS orders (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  order_number text NOT NULL UNIQUE, -- human-friendly order id
+  status text NOT NULL DEFAULT 'pending', -- e.g., pending, paid, shipped, cancelled, refunded
+  total_amount numeric(12,2) NOT NULL DEFAULT 0.00, -- total at time of order
+  currency varchar(3) NOT NULL DEFAULT 'USD',
+  shipping_address_id uuid, -- FK to shipping_addresses.id
+  placed_at timestamptz, -- when order was placed
+  paid_at timestamptz,
+  shipped_at timestamptz,
+  canceled_at timestamptz,
+  metadata jsonb, -- additional arbitrary data (coupons, source, channel)
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz
 );
 
--- Index for user_preferences
-CREATE INDEX idx_preferences_user_id ON user_preferences(user_id);
+ALTER TABLE orders
+  ADD CONSTRAINT fk_orders_shipping_address
+  FOREIGN KEY (shipping_address_id) REFERENCES shipping_addresses(id) ON DELETE SET NULL;
 
--- ============================================
--- NOTIFICATION PREFERENCES TABLE
--- ============================================
-CREATE TABLE IF NOT EXISTS notification_preferences (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL UNIQUE,
-    order_status BOOLEAN DEFAULT TRUE,
-    cart_reminder BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE INDEX IF NOT EXISTS idx_orders_user_id ON orders(user_id);
+CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
+
+-- Order items (line items snapshot important product details to preserve history)
+CREATE TABLE IF NOT EXISTS order_items (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL,
+  product_id uuid, -- adjust type if products use integer ids
+  product_sku text,
+  product_name text NOT NULL,
+  quantity integer NOT NULL DEFAULT 1 CHECK (quantity > 0),
+  unit_price numeric(12,2) NOT NULL DEFAULT 0.00, -- price per unit at time of order
+  tax_amount numeric(12,2) NOT NULL DEFAULT 0.00,
+  discount_amount numeric(12,2) NOT NULL DEFAULT 0.00,
+  line_total numeric(12,2) NOT NULL, -- should equal quantity * unit_price - discount + tax (enforced by app or triggers)
+  metadata jsonb,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  deleted_at timestamptz
 );
 
--- Index for notification_preferences
-CREATE INDEX idx_notif_user_id ON notification_preferences(user_id);
+ALTER TABLE order_items
+  ADD CONSTRAINT fk_order_items_order
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
 
--- ============================================
--- ADD PHONE COLUMN TO USERS TABLE (if not exists)
--- ============================================
-ALTER TABLE users 
-ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
 
--- ============================================
--- TRIGGER TO UPDATE updated_at TIMESTAMP
--- ============================================
+-- Receipts (payment records)
+CREATE TABLE IF NOT EXISTS receipts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id uuid NOT NULL UNIQUE, -- one receipt per order (adjust if multiple receipts allowed)
+  user_id uuid NOT NULL,
+  payment_provider text NOT NULL, -- e.g., stripe, paypal
+  payment_provider_id text, -- provider's payment id / charge id
+  amount numeric(12,2) NOT NULL,
+  currency varchar(3) NOT NULL DEFAULT 'USD',
+  status text NOT NULL DEFAULT 'succeeded', -- pending, succeeded, failed, refunded
+  captured_at timestamptz, -- when payment was captured/settled
+  refunded_at timestamptz,
+  refund_amount numeric(12,2),
+  raw_response jsonb, -- full provider response for audit/debug
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
 
--- For shipping_addresses
-CREATE OR REPLACE FUNCTION update_shipping_addresses_updated_at()
-RETURNS TRIGGER AS $$
+ALTER TABLE receipts
+  ADD CONSTRAINT fk_receipts_order
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE;
+
+CREATE INDEX IF NOT EXISTS idx_receipts_user_id ON receipts(user_id);
+CREATE INDEX IF NOT EXISTS idx_receipts_payment_provider_id ON receipts(payment_provider_id);
+
+-- Login history (audit of user sign-ins)
+CREATE TABLE IF NOT EXISTS login_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  provider text NOT NULL DEFAULT 'email', -- e.g., email, google, apple
+  success boolean NOT NULL DEFAULT true,
+  ip_address inet,
+  user_agent text,
+  device text,
+  location jsonb, -- optional geo data (city, region, country) from IP lookup
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_history_user_id ON login_history(user_id);
+CREATE INDEX IF NOT EXISTS idx_login_history_created_at ON login_history(created_at);
+
+-- Trigger helpers: auto-update updated_at timestamps
+CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+RETURNS trigger AS $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
+  NEW.updated_at = now();
+  RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
-CREATE TRIGGER trigger_shipping_addresses_updated_at
-    BEFORE UPDATE ON shipping_addresses
-    FOR EACH ROW
-    EXECUTE FUNCTION update_shipping_addresses_updated_at();
-
--- For user_preferences
-CREATE OR REPLACE FUNCTION update_user_preferences_updated_at()
-RETURNS TRIGGER AS $$
+-- Attach triggers to tables that have updated_at
+DO $$
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'orders_set_updated_at'
+  ) THEN
+    CREATE TRIGGER orders_set_updated_at
+      BEFORE UPDATE ON orders
+      FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'order_items_set_updated_at'
+  ) THEN
+    CREATE TRIGGER order_items_set_updated_at
+      BEFORE UPDATE ON order_items
+      FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'receipts_set_updated_at'
+  ) THEN
+    CREATE TRIGGER receipts_set_updated_at
+      BEFORE UPDATE ON receipts
+      FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger WHERE tgname = 'shipping_addresses_set_updated_at'
+  ) THEN
+    CREATE TRIGGER shipping_addresses_set_updated_at
+      BEFORE UPDATE ON shipping_addresses
+      FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at();
+  END IF;
 END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_user_preferences_updated_at
-    BEFORE UPDATE ON user_preferences
-    FOR EACH ROW
-    EXECUTE FUNCTION update_user_preferences_updated_at();
-
--- For notification_preferences
-CREATE OR REPLACE FUNCTION update_notification_preferences_updated_at()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE TRIGGER trigger_notification_preferences_updated_at
-    BEFORE UPDATE ON notification_preferences
-    FOR EACH ROW
-    EXECUTE FUNCTION update_notification_preferences_updated_at();
-
--- ============================================
--- SAMPLE DATA FOR TESTING
--- ============================================
-
--- Insert test shipping address (adjust user_id as needed)
-INSERT INTO shipping_addresses (
-    user_id, address_type, is_default,
-    first_name, last_name, mobile_number,
-    house_unit_number, street_name, barangay,
-    city_municipality, province_state, postal_zip_code
-) VALUES (
-    1, 'home', TRUE,
-    'Juan', 'Dela Cruz', '09171234567',
-    '123', 'Rizal Street', 'Barangay 1',
-    'Baliuag', 'Bulacan', '3006'
-) ON CONFLICT DO NOTHING;
-
--- Insert test user preferences
-INSERT INTO user_preferences (user_id, default_payment, default_courier)
-VALUES (1, 'cod', 'jnt')
-ON CONFLICT (user_id) DO NOTHING;
-
--- Insert test notification preferences
-INSERT INTO notification_preferences (user_id, order_status, cart_reminder)
-VALUES (1, TRUE, TRUE)
-ON CONFLICT (user_id) DO NOTHING;
-
--- ============================================
--- VERIFICATION QUERIES
--- ============================================
-
--- Check if all tables exist
-SELECT table_name 
-FROM information_schema.tables 
-WHERE table_schema = 'public' 
-AND table_name IN ('shipping_addresses', 'user_preferences', 'notification_preferences')
-ORDER BY table_name;
-
--- Check shipping_addresses structure
-SELECT column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'shipping_addresses'
-ORDER BY ordinal_position;
-
--- Check user_preferences structure
-SELECT column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'user_preferences'
-ORDER BY ordinal_position;
-
--- Check notification_preferences structure
-SELECT column_name, data_type, is_nullable
-FROM information_schema.columns
-WHERE table_name = 'notification_preferences'
-ORDER BY ordinal_position;
-
--- Count records in each table
-SELECT 
-    'shipping_addresses' as table_name, 
-    COUNT(*) as record_count 
-FROM shipping_addresses
-UNION ALL
-SELECT 'user_preferences', COUNT(*) FROM user_preferences
-UNION ALL
-SELECT 'notification_preferences', COUNT(*) FROM notification_preferences;
-
--- ============================================
--- CLEANUP (Use only if you need to start fresh)
--- ============================================
-
--- DROP TABLE IF EXISTS shipping_addresses CASCADE;
--- DROP TABLE IF EXISTS user_preferences CASCADE;
--- DROP TABLE IF EXISTS notification_preferences CASCADE;
+$$;

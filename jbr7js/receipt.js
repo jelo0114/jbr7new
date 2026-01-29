@@ -1,195 +1,165 @@
-// receipt.js - UPDATED to use Supabase API for saving receipts
-(function(){
-  function fmt(n){ return '₱' + Number(n).toFixed(2); }
+// pages/api/receipts.js
+// Receipts endpoint for saving and retrieving receipts
 
-  // Check if pendingCheckout exists
-  const raw = localStorage.getItem('pendingCheckout');
-  
-  if (!raw) {
-    console.error('No pendingCheckout data found in localStorage');
-    alert('No receipt data found. Redirecting to cart...');
-    window.location.href = 'cart.html';
-    return;
+import { supabase } from '../../lib/supabaseClient';
+
+export default async function handler(req, res) {
+  // Only allow POST and GET requests
+  if (req.method !== 'POST' && req.method !== 'GET') {
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  let data;
   try {
-    data = JSON.parse(raw);
-    console.log('Receipt data loaded:', data);
-  } catch(e) {
-    console.error('Failed to parse pendingCheckout:', e);
-    alert('Error loading receipt data. Redirecting to cart...');
-    window.location.href = 'cart.html';
-    return;
-  }
-
-  // Populate order info
-  document.getElementById('orderId').textContent = 'Order ID: ' + (data.orderId || 'N/A');
-  document.getElementById('orderDate').textContent = 'Date: ' + (data.timestamp ? new Date(data.timestamp).toLocaleString() : new Date().toLocaleString());
-  document.getElementById('payment').textContent = 'Payment: ' + (data.payment || 'Not specified');
-  document.getElementById('courier').textContent = 'Courier: ' + (data.courier || 'Not specified');
-
-  // Populate items table
-  const tbody = document.querySelector('#itemsTable tbody');
-  tbody.innerHTML = '';
-  
-  let items = data.items || [];
-  console.log('Rendering items (raw):', items);
-
-  // Normalize each item
-  items = (items || []).map(it => {
-    const clone = Object.assign({}, it);
-    if (typeof clone.unitPrice === 'undefined') {
-      if (typeof clone.price !== 'undefined') clone.unitPrice = parseFloat(String(clone.price).toString().replace(/[^0-9\.-]/g, '')) || 0;
-      else if (typeof clone.basePrice !== 'undefined') clone.unitPrice = Number(clone.basePrice) || 0;
-      else clone.unitPrice = 0;
+    if (req.method === 'GET') {
+      return await handleGetReceipts(req, res);
+    } else if (req.method === 'POST') {
+      return await handleSaveReceipt(req, res);
     }
-    clone.quantity = Number(clone.quantity || clone.qty || 1) || 1;
-    if (typeof clone.lineTotal === 'undefined' || !clone.lineTotal) {
-      clone.lineTotal = +(clone.unitPrice * clone.quantity).toFixed(2);
-    }
-    return clone;
-  });
-
-  console.log('Rendering items (normalized):', items);
-
-  if (items.length === 0) {
-    const tr = document.createElement('tr');
-    const td = document.createElement('td');
-    td.colSpan = 4;
-    td.textContent = 'No items in this order';
-    td.style.textAlign = 'center';
-    td.style.color = '#999';
-    tr.appendChild(td);
-    tbody.appendChild(tr);
-  } else {
-    items.forEach(it => {
-      const tr = document.createElement('tr');
-      
-      const tdName = document.createElement('td');
-      let itemDetails = `<div style="font-weight:700">${escapeHtml(it.name || 'Unknown Item')}</div>`;
-      if (it.size || it.color) {
-        let subtext = [];
-        if (it.size) subtext.push('Size: ' + escapeHtml(it.size));
-        if (it.color) subtext.push('Color: ' + escapeHtml(it.color));
-        itemDetails += `<div style="font-size:0.9rem;color:#666">${subtext.join(' • ')}</div>`;
-      }
-      tdName.innerHTML = itemDetails;
-      
-      const tdUnit = document.createElement('td');
-      tdUnit.className = 'right';
-      tdUnit.textContent = fmt(it.unitPrice || it.price || 0);
-      
-      const tdQty = document.createElement('td');
-      tdQty.className = 'right';
-      tdQty.textContent = it.quantity || 1;
-      
-      const tdLine = document.createElement('td');
-      tdLine.className = 'right';
-      tdLine.textContent = fmt(it.lineTotal || ((it.unitPrice || it.price || 0) * (it.quantity || 1)));
-      
-      tr.appendChild(tdName);
-      tr.appendChild(tdUnit);
-      tr.appendChild(tdQty);
-      tr.appendChild(tdLine);
-      tbody.appendChild(tr);
+  } catch (error) {
+    console.error('Receipts API Error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Internal server error'
     });
   }
+}
 
-  // Populate totals
-  let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
-  let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
+// ==================== GET RECEIPTS ====================
+async function handleGetReceipts(req, res) {
+  const { userId, orderId, receiptId } = req.query;
 
-  if (subtotalVal === null || subtotalVal === 0) {
-    subtotalVal = items.reduce((s,it)=> s + (Number(it.lineTotal) || 0), 0);
-  }
-  if (shippingVal === null) {
-    shippingVal = subtotalVal > 50 ? 0 : 5.99;
-  }
-  
-  let totalVal = +(subtotalVal + shippingVal).toFixed(2);
-
-  document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
-  document.getElementById('shipping').textContent = (shippingVal === 0) ? 'FREE' : fmt(shippingVal || 0);
-  document.getElementById('total').textContent = fmt(totalVal || 0);
-
-  // Customer info
-  const cust = [];
-  if (data.customerEmail) cust.push(data.customerEmail);
-  if (data.customerPhone) cust.push(data.customerPhone);
-  document.getElementById('custContact').textContent = cust.join(' • ') || '—';
-
-  // Shipping Address
-  if (data.shippingAddress) {
-    const addr = data.shippingAddress;
-    if (addr.full_name) document.getElementById('shippingName').textContent = addr.full_name;
-    if (addr.phone) document.getElementById('shippingPhone').textContent = 'Phone: ' + addr.phone;
-    if (addr.address_line1) document.getElementById('shippingAddressLine1').textContent = addr.address_line1;
-    if (addr.address_line2) document.getElementById('shippingAddressLine2').textContent = addr.address_line2;
-    const cityProvince = [];
-    if (addr.city) cityProvince.push(addr.city);
-    if (addr.province) cityProvince.push(addr.province);
-    if (cityProvince.length > 0) document.getElementById('shippingCityProvince').textContent = cityProvince.join(', ');
-    if (addr.postal_code) document.getElementById('shippingPostalCode').textContent = addr.postal_code;
-    if (addr.country) document.getElementById('shippingCountry').textContent = addr.country;
-  } else {
-    document.getElementById('shippingAddress').innerHTML = '<div style="color:#999;font-style:italic">No shipping address provided</div>';
+  if (!userId && !orderId && !receiptId) {
+    return res.status(400).json({ error: 'userId, orderId, or receiptId is required' });
   }
 
-  // Save receipt to database using Supabase API
-  saveReceiptToDatabase(data);
+  try {
+    let query = supabase.from('receipts').select('*');
 
-  // Back button
-  document.getElementById('backBtn').addEventListener('click', ()=>{ 
-    window.location.href = 'explore.html'; 
-  });
-
-  function escapeHtml(s){ 
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); 
-  }
-
-  // UPDATED: Save receipt using Supabase API
-  function saveReceiptToDatabase(receiptData) {
-    console.log('Attempting to save receipt to database via Supabase API...', receiptData);
-    
-    const userId = sessionStorage.getItem('jbr7_user_id');
-    
-    if (!userId) {
-      console.warn('No user ID found, cannot save receipt to database');
-      return;
+    if (receiptId) {
+      query = query.eq('id', receiptId).single();
+    } else if (orderId) {
+      query = query.eq('order_id', orderId).single();
+    } else if (userId) {
+      query = query.eq('user_id', userId).order('created_at', { ascending: false });
     }
 
-    fetch('/api/receipts', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'same-origin',
-      body: JSON.stringify({
-        userId: parseInt(userId),
-        receiptData: receiptData
-      })
-    })
-    .then(response => {
-      console.log('Receipt save response status:', response.status);
-      if (!response.ok) {
-        return response.text().then(text => {
-          console.error('HTTP error response:', text);
-          throw new Error(`HTTP ${response.status}: ${text}`);
-        });
-      }
-      return response.json();
-    })
-    .then(data => {
-      console.log('Receipt save response data:', data);
-      if (data.success) {
-        console.log('✅ Receipt saved to database successfully! Receipt ID:', data.receipt_id);
-      } else {
-        console.error('❌ Failed to save receipt:', data.error);
-        console.warn('Receipt data is still available locally in pendingCheckout');
-      }
-    })
-    .catch(error => {
-      console.error('❌ Error saving receipt:', error);
-      console.warn('Receipt data is still available locally in pendingCheckout');
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    return res.status(200).json({
+      success: true,
+      data: data
+    });
+  } catch (error) {
+    console.error('Get receipts error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message
     });
   }
-})();
+}
+
+// ==================== SAVE RECEIPT ====================
+async function handleSaveReceipt(req, res) {
+  const { userId, receiptData } = req.body;
+
+  // Validation
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+  if (!receiptData) {
+    return res.status(400).json({ error: 'receiptData is required' });
+  }
+
+  try {
+    // First, try to find the order by order_id or order_number
+    let dbOrderId = null;
+    
+    if (receiptData.orderId) {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('order_id', receiptData.orderId)
+        .single();
+
+      if (!orderError && orderData) {
+        dbOrderId = orderData.id;
+      }
+    }
+
+    if (!dbOrderId && receiptData.orderNumber) {
+      const { data: orderData, error: orderError } = await supabase
+        .from('orders')
+        .select('id')
+        .eq('order_number', receiptData.orderNumber)
+        .single();
+
+      if (!orderError && orderData) {
+        dbOrderId = orderData.id;
+      }
+    }
+
+    if (!dbOrderId) {
+      console.error('Could not find order for receipt');
+      return res.status(404).json({
+        success: false,
+        error: 'Order not found for this receipt'
+      });
+    }
+
+    // Check if receipt already exists for this order
+    const { data: existingReceipt } = await supabase
+      .from('receipts')
+      .select('id')
+      .eq('order_id', dbOrderId)
+      .single();
+
+    if (existingReceipt) {
+      // Update existing receipt
+      const { data, error } = await supabase
+        .from('receipts')
+        .update({
+          receipt_data: receiptData
+        })
+        .eq('id', existingReceipt.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Receipt updated successfully',
+        receipt_id: data.id,
+        data: data
+      });
+    } else {
+      // Insert new receipt
+      const { data, error } = await supabase
+        .from('receipts')
+        .insert({
+          user_id: userId,
+          order_id: dbOrderId,
+          receipt_data: receiptData
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return res.status(200).json({
+        success: true,
+        message: 'Receipt saved successfully',
+        receipt_id: data.id,
+        data: data
+      });
+    }
+  } catch (error) {
+    console.error('Save receipt error:', error);
+    return res.status(500).json({
+      success: false,
+      error: error.message || 'Failed to save receipt'
+    });
+  }
+}
