@@ -668,6 +668,14 @@ async function checkout() {
             })
         });
         
+        // Check if response is actually JSON
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const text = await response.text();
+            console.error('Non-JSON response:', text);
+            throw new Error('Server returned non-JSON response: ' + text.substring(0, 100));
+        }
+        
         const data = await response.json();
         
         if (data.success) {
@@ -688,11 +696,11 @@ async function checkout() {
             }, 800);
         } else {
             console.error('Failed to save order:', data.error);
-            showNotification('Order saved locally but failed to save to database: ' + data.error, 'error');
+            showNotification('Failed to save order: ' + data.error, 'error');
         }
     } catch (error) {
         console.error('Failed to save order:', error);
-        showNotification('Order saved locally but failed to save to database. Please check your connection.', 'error');
+        showNotification('Failed to save order: ' + error.message, 'error');
     }
 }
 
