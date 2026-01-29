@@ -193,9 +193,10 @@
       timestamp: receiptData.timestamp
     };
     
+    // Try /api/receipt first (Vercel serverless route name), then /api/receipts, then PHP
     const endpoints = [
-      { url: '/api/receipts', body: receiptPayload },
       { url: '/api/receipt', body: receiptPayload },
+      { url: '/api/receipts', body: receiptPayload },
       { url: '/jbr7php/receipt.php', body: phpReceiptPayload }
     ];
     

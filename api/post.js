@@ -110,34 +110,50 @@ import {
   }
   
   // ==================== CHANGE PASSWORD ====================
+  // Supabase stores passwords in auth.users, not public.users. Use Auth Admin API.
   async function handleChangePassword(req, res) {
     const { userId, currentPassword, newPassword } = req.body;
-  
+
     if (!userId || !currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
-  
+
     try {
-      // Get current password hash
-      const { data: userData, error: fetchError } = await supabase
-        .from('users')
-        .select('password')
-        .eq('id', userId)
-        .single();
-  
-      if (fetchError) throw fetchError;
-  
-      // In a real app, you'd verify the current password here
-      // For now, we'll just update to the new password
-      // You should use bcrypt or similar to hash passwords
-  
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ password: newPassword }) // In production, hash this!
-        .eq('id', userId);
-  
-      if (updateError) throw updateError;
-  
+      const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+
+      if (!serviceRoleKey || !supabaseUrl) {
+        return res.status(501).json({
+          success: false,
+          error: 'Password change is not configured (missing SUPABASE_SERVICE_ROLE_KEY). Use the app’s Change Password form with Supabase Auth.'
+        });
+      }
+
+      const { createClient } = await import('@supabase/supabase-js');
+      const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+        auth: { autoRefreshToken: false, persistSession: false }
+      });
+
+      let authUserId = userId;
+      // If userId looks like a numeric public.users id, try to get auth user id from public.users
+      if (/^\d+$/.test(String(userId))) {
+        const { data: row } = await supabase.from('users').select('id, auth_id, auth_user_id').eq('id', userId).single();
+        if (row && (row.auth_id || row.auth_user_id)) {
+          authUserId = row.auth_id || row.auth_user_id;
+        }
+        // Else use userId as-is (might be UUID string from session)
+      }
+
+      const { data, error } = await adminClient.auth.admin.updateUserById(authUserId, { password: newPassword });
+
+      if (error) {
+        console.error('Change password error:', error);
+        return res.status(400).json({
+          success: false,
+          error: error.message || 'Failed to update password'
+        });
+      }
+
       return res.status(200).json({
         success: true,
         message: 'Password updated successfully'
@@ -146,7 +162,7 @@ import {
       console.error('Change password error:', error);
       return res.status(500).json({
         success: false,
-        error: error.message
+        error: error.message || 'Internal server error'
       });
     }
   }

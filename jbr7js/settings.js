@@ -104,8 +104,9 @@ function populateAccountForm(user) {
     }
     
     if (phoneInput) {
-        phoneInput.value = user.phone || '';
-        console.log('Set phone to:', user.phone);
+        const number = user.phone || user.mobile || user.phone_number || user.number || '';
+        phoneInput.value = number;
+        console.log('Set phone/number to:', number);
     } else {
         console.warn('phone input not found');
     }

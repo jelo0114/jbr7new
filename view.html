@@ -259,6 +259,15 @@
 <script src="jbr7js/home.js"></script>
 <script src="jbr7js/notifications.js"></script>
 <script>
+    // Global API helper so loadProductReviews and other async code can use it
+    function apiFetch(url, options) {
+        const opts = options || {};
+        const headers = opts.headers ? { ...opts.headers } : {};
+        const uid = sessionStorage.getItem('jbr7_user_id');
+        if (uid) headers['X-User-Id'] = uid;
+        return fetch(url, { ...opts, headers });
+    }
+
     // Demo PRODUCTS array with quantities
 const PRODUCTS = [
         { id: '1', slug: 'eco-jute-tote', title: 'Eco Jute Tote Bag', price: 45.00, quantity: 104, imgs: ['Tote Bag/Black.png', 'Tote Bag/Sizes.jpg', 'Tote Bag/Colored.png', 'Tote Bag/White.png'], desc: 'Sustainable jute tote with scallop top design, perfect for everyday use. Size: 40x35cm.', attrs: ['Eco-friendly', 'Cotton straps', 'Machine wash cold'], sizes: [{label:'8x10',price:35},{label:'10x12',price:45},{label:'13x15',price:50},{label:'14x16',price:55}] },
@@ -839,7 +848,7 @@ function updateRatingSummary(summary){
                     }
                 };
 
-                fetch('image-manifest.json', {cache: 'no-store'}).then(r => {
+                fetch('JBR7 JSON/image-manifest.json', {cache: 'no-store'}).then(r => {
                     if (!r.ok) throw new Error('no-manifest');
                     return r.json();
                 }).then(manifest => {
@@ -1258,15 +1267,6 @@ function updateRatingSummary(summary){
         const showReview = qParam('review') === 'true';
         const orderItemId = qParam('order_item_id');
         
-        // Helper: add user id header for API calls
-        function apiFetch(url, options) {
-            const opts = options || {};
-            const headers = opts.headers ? { ...opts.headers } : {};
-            const uid = sessionStorage.getItem('jbr7_user_id');
-            if (uid) headers['X-User-Id'] = uid;
-            return fetch(url, { ...opts, headers });
-        }
-
         if(showReview || orderItemId){
             // Show review form for authenticated users
             apiFetch('/api/check_auth', { credentials: 'same-origin' })

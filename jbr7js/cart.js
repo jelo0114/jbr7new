@@ -699,9 +699,10 @@ async function checkout() {
 
     try {
         // Try API routes first, then PHP backend
+        // Try /api/order first (Vercel serverless route name), then /api/orders, then PHP
         const apiAttempts = [
-            { path: '/api/orders', body: orderPayload },
             { path: '/api/order', body: orderPayload },
+            { path: '/api/orders', body: orderPayload },
             { path: '/jbr7php/save_order.php', body: phpOrderPayload }
         ];
         let response = null;
