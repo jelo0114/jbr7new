@@ -1,4 +1,4 @@
-// Profile Page Functionality - Updated Version with API Integration
+// Profile Page Functionality - Fixed Version with Better Error Handling
 
 // Get user ID from session storage
 function getUserId() {
@@ -74,14 +74,28 @@ async function fetchSessionAndPopulateProfile() {
                 window.location.href = '/login.html';
                 return;
             }
+            
             // Try to read error message
+            let errorDetails = '';
             try {
                 const txt = await response.text();
-                console.warn('API returned non-ok:', response.status, txt);
+                errorDetails = txt;
+                console.error('API ERROR:', response.status, txt);
             } catch (e) {
-                console.warn('API error:', response.status);
+                console.error('API error:', response.status, e);
             }
-            populateGuestProfile();
+            
+            // Show detailed error for debugging
+            showNotification(`Server error (${response.status}). Check console for details.`, 'error');
+            
+            // Use mock data for development if server error
+            if (response.status === 500) {
+                console.warn('Server error detected. Using mock profile data for development.');
+                showNotification('Using demo data due to server error', 'info');
+                populateMockProfile();
+            } else {
+                populateGuestProfile();
+            }
             return;
         }
 
@@ -90,16 +104,71 @@ async function fetchSessionAndPopulateProfile() {
 
         if (!data || !data.success || !data.user) {
             console.error('Invalid response format:', data);
-            populateGuestProfile();
+            showNotification('Invalid server response format', 'error');
+            populateMockProfile();
             return;
         }
 
         populateProfilePage(data);
     } catch (error) {
         console.error('Error fetching profile:', error);
-        populateGuestProfile();
-        showNotification('Unable to load profile data', 'info');
+        showNotification('Network error. Using demo data.', 'info');
+        populateMockProfile();
     }
+}
+
+// Populate with mock data for development/debugging
+function populateMockProfile() {
+    console.log('Populating mock profile for development');
+    
+    const mockData = {
+        success: true,
+        user: {
+            username: "Demo User",
+            email: "demo@example.com",
+            created_at: "2024-01-15T00:00:00Z",
+            profile_picture: null,
+            points: 1250
+        },
+        stats: {
+            orders: 5,
+            saved: 3,
+            favorites: 8,
+            reviews: 2
+        },
+        items: [
+            {
+                title: "Eco-Friendly Tote Bag",
+                price: "299",
+                metadata: {
+                    image: "totebag.avif"
+                }
+            },
+            {
+                title: "Reusable Shopping Bag",
+                price: "249",
+                metadata: {
+                    image: "totebag.avif"
+                }
+            }
+        ],
+        orders: [
+            {
+                order_number: "ORD-2024-001",
+                created_at: "2024-01-20T10:00:00Z",
+                status: "delivered",
+                total: "1,295"
+            },
+            {
+                order_number: "ORD-2024-002",
+                created_at: "2024-01-25T14:30:00Z",
+                status: "processing",
+                total: "849"
+            }
+        ]
+    };
+    
+    populateProfilePage(mockData);
 }
 
 // Populate the profile page with user data
@@ -473,14 +542,6 @@ window.editAvatar = function() {
         // Trigger file picker
         document.body.appendChild(input);
         input.click();
-        
-        // Clean up if input is removed from DOM (fallback)
-        setTimeout(() => {
-            if (input.parentNode) {
-                // Input still exists, but if no file selected after 1 second, might be cancelled
-                // Don't remove it yet, wait for onchange or oncancel
-            }
-        }, 100);
         
     } catch (error) {
         console.error('Error in editAvatar:', error);
@@ -919,7 +980,7 @@ function showNotification(message, type = 'info') {
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
     notification.innerHTML = `
-        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}"></i>
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
         <span>${message}</span>
     `;
     
@@ -956,6 +1017,8 @@ if (!document.querySelector('#notification-styles')) {
         .notification i { font-size: 1.5rem; }
         .notification-success { border-left: 4px solid #006923; }
         .notification-success i { color: #006923; }
+        .notification-error { border-left: 4px solid #dc2626; }
+        .notification-error i { color: #dc2626; }
         .notification-info { border-left: 4px solid #3b5d72; }
         .notification-info i { color: #3b5d72; }
         .notification span { font-size: 0.95rem; color: #333; font-weight: 500; }
