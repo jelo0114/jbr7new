@@ -1,9 +1,27 @@
-// pages/api/orders.js
-// Orders endpoint for creating and managing orders - UPDATED FOR UUID
+// api/orders.js
+// Orders endpoint for creating and managing orders - VERCEL SERVERLESS FUNCTION
 
-import { supabase } from '../../lib/supabaseClient';
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase client
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_ANON_KEY
+);
 
 export default async function handler(req, res) {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight request
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
   // Only allow POST and GET requests
   if (req.method !== 'POST' && req.method !== 'GET') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -98,17 +116,15 @@ async function handleCreateOrder(req, res) {
   try {
     // Get default shipping address if not provided
     let shippingAddressId = null;
-    if (shippingAddress || !shippingAddress) {
-      const { data: addresses } = await supabase
-        .from('shipping_addresses')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('is_default', true)
-        .single();
-      
-      if (addresses) {
-        shippingAddressId = addresses.id;
-      }
+    const { data: addresses } = await supabase
+      .from('shipping_addresses')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('is_default', true)
+      .single();
+    
+    if (addresses) {
+      shippingAddressId = addresses.id;
     }
 
     // 1. Insert order
