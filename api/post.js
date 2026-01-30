@@ -137,17 +137,20 @@ import {
       const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       let authUserId = bodyAuthUid || userId;
       if (!UUID_REGEX.test(String(authUserId))) {
-        if (/^\d+$/.test(String(userId))) {
-          const { data: row } = await supabase.from('users').select('id, auth_id, auth_user_id').eq('id', userId).single();
-          if (row && (row.auth_id || row.auth_user_id)) {
-            authUserId = row.auth_id || row.auth_user_id;
-          }
+        const userIdKey = /^\d+$/.test(String(userId)) ? parseInt(userId, 10) : userId;
+        const { data: row } = await supabase.from('users').select('id, email, auth_id, auth_user_id').eq('id', userIdKey).single();
+        if (row && (row.auth_id || row.auth_user_id)) {
+          authUserId = row.auth_id || row.auth_user_id;
+        } else if (row && row.email) {
+          const { data: listData } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+          const authUser = (listData && listData.users) ? listData.users.find(u => (u.email || '').toLowerCase() === (row.email || '').toLowerCase()) : null;
+          if (authUser && authUser.id) authUserId = authUser.id;
         }
       }
       if (!UUID_REGEX.test(String(authUserId))) {
         return res.status(400).json({
           success: false,
-          error: 'Account not linked to sign-in. Please sign out and sign in again, or contact support.',
+          error: 'Account not linked to sign-in. Please sign out and sign in again.',
         });
       }
 
