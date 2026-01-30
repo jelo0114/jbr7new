@@ -22,7 +22,8 @@ export default async function handler(req, res) {
     }
   } catch (err) {
     console.error('Receipts API error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    const message = err && err.message ? err.message : 'Internal server error';
+    return res.status(500).json({ success: false, error: message });
   }
 }
 

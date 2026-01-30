@@ -110,10 +110,29 @@ async function fetchSessionAndPopulateProfile() {
         }
 
         populateProfilePage(data);
+        // If profile response didn't include orders, fetch them separately (e.g. API returned 500 for orders query)
+        if (!data.orders || data.orders.length === 0) {
+            loadOrdersForProfile(userId);
+        }
     } catch (error) {
         console.error('Error fetching profile:', error);
         showNotification('Network error. Using demo data.', 'info');
         populateMockProfile();
+    }
+}
+
+// Fetch orders for profile when not included in profile response
+async function loadOrdersForProfile(userId) {
+    try {
+        const res = await fetch(`/api/get?action=orders&userId=${userId}`, { credentials: 'same-origin' });
+        if (!res.ok) return;
+        const json = await res.json();
+        const orders = (json && json.orders) ? json.orders : (json && json.data) ? json.data : [];
+        if (orders.length > 0) {
+            populateOrders(orders);
+        }
+    } catch (e) {
+        console.warn('Could not load orders for profile:', e);
     }
 }
 
@@ -248,9 +267,16 @@ function populateProfilePage(data) {
     // Populate saved items (wishlist)
     populateWishlist(savedItems);
 
-    // Populate orders if available
-    if (data.orders && data.orders.length > 0) {
-        populateOrders(data.orders);
+    // Populate orders if available (array from profile or from separate orders API)
+    const orders = data.orders || [];
+    if (orders.length > 0) {
+        populateOrders(orders);
+    } else {
+        // Ensure empty state is shown
+        const ordersList = document.querySelector('#orders-section .orders-list');
+        if (ordersList) {
+            ordersList.innerHTML = '<div class="empty-orders"><p>You have no orders yet.</p></div>';
+        }
     }
 }
 

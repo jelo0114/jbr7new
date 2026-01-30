@@ -470,8 +470,22 @@ function initializeDataAttributes() {
     });
 }
 
+// Attach fallback image when product image fails to load (e.g. 404 on Vercel)
+function attachProductImageFallbacks() {
+    const fallbackSrc = 'totebag.avif';
+    document.querySelectorAll('.product-card .product-image img').forEach(function(img) {
+        if (img.dataset.fallbackAttached) return;
+        img.dataset.fallbackAttached = '1';
+        img.onerror = function() {
+            this.onerror = null;
+            if (this.src !== fallbackSrc) this.src = fallbackSrc;
+        };
+    });
+}
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
+    attachProductImageFallbacks();
     // Initialize data attributes first
     initializeDataAttributes();
     
