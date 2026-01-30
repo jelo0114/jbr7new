@@ -231,6 +231,14 @@ function populateProfilePage(data) {
     const stats = data.stats || {};
     const savedItems = data.items || data.saved_items || [];
 
+    // Sync session with DB user id so settings change-password uses the correct id
+    if (user && user.id != null && user.id !== undefined) {
+        var dbId = String(user.id).trim();
+        if (dbId && dbId !== 'undefined') {
+            sessionStorage.setItem('jbr7_user_id', dbId);
+        }
+    }
+
     console.log('Populating profile with user data:', user);
 
     // Update profile avatar

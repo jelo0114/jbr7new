@@ -621,6 +621,7 @@ export async function getUserProfile(userId) {
 
     return {
       user: {
+        id: profile.id,
         username: profile.username,
         email: profile.email,
         phone: profile.phone ?? profile.mobile ?? profile.phone_number ?? profile.number ?? null,

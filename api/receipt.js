@@ -1,18 +1,5 @@
-// pages/api/receipts.js - FIXED VERSION
-import { createClient } from '@supabase/supabase-js';
-
-// Initialize Supabase client
-let supabase;
-try {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  
-  if (supabaseUrl && supabaseKey) {
-    supabase = createClient(supabaseUrl, supabaseKey);
-  }
-} catch (err) {
-  console.error('Supabase initialization error:', err);
-}
+// api/receipt.js - uses shared Supabase client (same as get.js, post.js)
+import { supabase } from '../lib/supabaseClient';
 
 export default async function handler(req, res) {
   // CORS headers
@@ -62,12 +49,12 @@ export default async function handler(req, res) {
 
 // GET receipts
 async function handleGetReceipts(req, res) {
-  const { userId, orderId, receiptId } = req.query;
+  const { userId, orderId, orderNumber, receiptId } = req.query;
 
-  if (!userId && !orderId && !receiptId) {
+  if (!userId && !orderId && !orderNumber && !receiptId) {
     return res.status(400).json({ 
       success: false, 
-      error: 'userId, orderId, or receiptId is required' 
+      error: 'userId, orderId, orderNumber, or receiptId is required' 
     });
   }
 
@@ -78,6 +65,8 @@ async function handleGetReceipts(req, res) {
       query = query.eq('id', parseInt(receiptId)).limit(1);
     } else if (orderId) {
       query = query.eq('order_id', parseInt(orderId));
+    } else if (orderNumber) {
+      query = query.eq('order_number', orderNumber);
     } else if (userId) {
       query = query.eq('user_id', parseInt(userId)).order('created_at', { ascending: false });
     }
