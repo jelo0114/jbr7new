@@ -493,6 +493,7 @@ function populateOrders(orders) {
         buttonsHtml += '<button type="button" class="btn-secondary profile-view-details-btn" data-order-number="' + escapeHtml(order.order_number || '') + '" data-product-title="' + escapeHtml(itemName) + '">View Details</button>';
         if (showCancel) buttonsHtml += '<button type="button" class="btn-cancel-order profile-cancel-btn">Cancel Order</button>';
         if (showTrack) buttonsHtml += '<button type="button" class="btn-secondary profile-track-btn"><i class="fas fa-map-marker-alt"></i> Track Order</button>';
+        if (showLeaveReview) buttonsHtml += '<button type="button" class="btn-primary profile-leave-review-btn" data-product-title="' + escapeHtml(itemName) + '" data-order-number="' + escapeHtml(order.order_number || '') + '">Leave Review</button>';
         buttonsHtml += '</div>';
 
         orderCard.innerHTML = `
@@ -510,6 +511,10 @@ function populateOrders(orders) {
             </div>
         `;
 
+        var viewDetailsBtn = orderCard.querySelector('.profile-view-details-btn');
+        if (viewDetailsBtn) viewDetailsBtn.addEventListener('click', function () {
+            viewOrderDetails(this.getAttribute('data-order-number') || '', this.getAttribute('data-product-title') || '');
+        });
         if (showLeaveReview) {
             var leaveBtn = orderCard.querySelector('.profile-leave-review-btn');
             if (leaveBtn) leaveBtn.addEventListener('click', function () {
