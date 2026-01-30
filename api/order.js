@@ -1,5 +1,6 @@
 // pages/api/orders.js - FIXED VERSION
 import { createClient } from '@supabase/supabase-js';
+import { addUserPoints } from '../supabse-conn/index.js';
 
 // Initialize Supabase client
 let supabase;
@@ -226,6 +227,14 @@ async function handleCreateOrder(req, res) {
     }
 
     console.log('✅ Order items created:', insertedItems.length, 'items');
+
+    // Award 60 points per order
+    try {
+      await addUserPoints(parseInt(userId), 60);
+      console.log('✅ +60 points awarded');
+    } catch (ptsErr) {
+      console.warn('⚠️ Failed to add order points:', ptsErr);
+    }
 
     // Optionally save shipping address if provided
     if (shippingAddress && typeof shippingAddress === 'object') {

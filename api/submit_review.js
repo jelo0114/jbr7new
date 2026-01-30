@@ -1,7 +1,7 @@
 // POST /api/submit_review — save review to Supabase reviews table (SQL: supabase_reviews_table.sql)
 // Body: item_title, rating, content; userId from body or X-User-Id header.
 
-import { submitReview } from '../supabse-conn/index.js';
+import { submitReview, addUserPoints } from '../supabse-conn/index.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -49,6 +49,11 @@ export default async function handler(req, res) {
       rating,
       comment: content || null,
     });
+    try {
+      await addUserPoints(userId, 20);
+    } catch (e) {
+      console.warn('submit_review: add points failed', e);
+    }
     return res.status(200).json({ success: true });
   } catch (err) {
     console.error('submit_review error:', err);

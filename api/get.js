@@ -106,6 +106,13 @@ try {
       result = await getUserReviews(userId);
       return res.status(200).json({ success: true, reviews: result });
     
+    case 'user-coupons':
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required for user-coupons' });
+      }
+      result = await getUserCoupons(userId);
+      return res.status(200).json({ success: true, data: result });
+    
     // ==================== NEW: RECEIPTS ACTION ====================
     case 'receipts':
       if (!userId && !orderId && !receiptId) {

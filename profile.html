@@ -130,24 +130,6 @@
                     </button>
                 </div>
 
-                <!-- Loyalty Card -->
-                <div class="loyalty-card">
-                    <div class="loyalty-header">
-                        <i class="fas fa-crown"></i>
-                        <span>Gold Member</span>
-                    </div>
-                    <div class="loyalty-points">
-                        <h3>2,450</h3>
-                        <p>Loyalty Points</p>
-                    </div>
-                    <div class="loyalty-progress">
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: 65%;"></div>
-                        </div>
-                        <p>550 points to Platinum</p>
-                    </div>
-                    <button class="loyalty-btn" onclick="viewRewards()">View Rewards</button>
-                </div>
             </div>
 
             <!-- Main Content -->
@@ -200,30 +182,31 @@
         
         <div class="rewards-available">
             <h3>Available Rewards</h3>
+            <p style="margin-bottom:1rem;color:#6b7280;font-size:0.9rem;">Earn 60 pts per order, 20 pts per review. Redeem for coupons to use at checkout.</p>
             <div class="rewards-grid">
                 <div class="reward-item">
                     <div class="reward-icon"><i class="fas fa-tag"></i></div>
                     <h4>10% Off Coupon</h4>
-                    <p class="reward-cost">500 points</p>
-                    <button class="btn-secondary" onclick="claimReward(500)">Claim</button>
-                </div>
-                <div class="reward-item">
-                    <div class="reward-icon"><i class="fas fa-shipping-fast"></i></div>
-                    <h4>Free Shipping</h4>
                     <p class="reward-cost">300 points</p>
-                    <button class="btn-secondary" onclick="claimReward(300)">Claim</button>
+                    <button class="btn-secondary" onclick="claimReward(300, 10)">Claim</button>
                 </div>
                 <div class="reward-item">
                     <div class="reward-icon"><i class="fas fa-percent"></i></div>
                     <h4>20% Off Coupon</h4>
+                    <p class="reward-cost">700 points</p>
+                    <button class="btn-secondary" onclick="claimReward(700, 20)">Claim</button>
+                </div>
+                <div class="reward-item">
+                    <div class="reward-icon"><i class="fas fa-tags"></i></div>
+                    <h4>40% Off Coupon</h4>
                     <p class="reward-cost">1000 points</p>
-                    <button class="btn-secondary" onclick="claimReward(1000)">Claim</button>
+                    <button class="btn-secondary" onclick="claimReward(1000, 40)">Claim</button>
                 </div>
                 <div class="reward-item">
                     <div class="reward-icon"><i class="fas fa-gift"></i></div>
-                    <h4>Free Custom Logo</h4>
-                    <p class="reward-cost">800 points</p>
-                    <button class="btn-secondary" onclick="claimReward(800)">Claim</button>
+                    <h4>50% Off Coupon</h4>
+                    <p class="reward-cost">1500 points</p>
+                    <button class="btn-secondary" onclick="claimReward(1500, 50)">Claim</button>
                 </div>
             </div>
         </div>

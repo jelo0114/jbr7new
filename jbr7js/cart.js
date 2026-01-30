@@ -48,12 +48,16 @@ const PRODUCT_COLORS = {
     'Eco Colored Tote Bag': ['White', 'Black', 'Red', 'Pink', 'Sky Blue', 'Navy Blue', 'Royal Blue', 'Beige', 'Cream', 'Orange', 'Olive Green', 'Emerald Green', 'Yellow', 'Charcoal Gray', 'Lavender', 'Maroon', 'Mint Green']
 };
 
+// Selected coupon from dropdown (user's claimed coupon): { id, discount_percent }
+let selectedCartCoupon = null;
+
 // Initialize cart on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadCartFromStorage();
     renderCart();
     updateSummary();
     loadDefaultPaymentAndCourier();
+    loadUserCoupons();
 });
 
 // Load cart from localStorage (user-specific)
@@ -499,6 +503,45 @@ function updateSummary() {
     if (countEl) countEl.textContent = `${itemCount} item${itemCount !== 1 ? 's' : ''} in your cart`;
 }
 
+// Load user's coupons (claimed rewards) for dropdown
+async function loadUserCoupons() {
+    const userId = sessionStorage.getItem('jbr7_user_id');
+    const selectEl = document.getElementById('coupon-select');
+    if (!selectEl) return;
+    selectEl.innerHTML = '<option value="">-- Select a coupon --</option>';
+    if (!userId || String(userId).trim() === '' || String(userId).trim() === 'undefined') return;
+    try {
+        const res = await fetch('/api/get?action=user-coupons&userId=' + encodeURIComponent(userId), { credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+            data.data.forEach(function(c) {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.discount_percent + '% off (ID: ' + c.id + ')';
+                opt.dataset.discountPercent = c.discount_percent;
+                opt.dataset.couponId = c.id;
+                selectEl.appendChild(opt);
+            });
+        }
+    } catch (e) {
+        console.error('Load user coupons error:', e);
+    }
+}
+
+function applyCartCoupon(selectEl) {
+    const val = selectEl ? selectEl.value : '';
+    if (!val) {
+        selectedCartCoupon = null;
+    } else {
+        const opt = selectEl.options[selectEl.selectedIndex];
+        selectedCartCoupon = {
+            id: opt.dataset.couponId || val,
+            discount_percent: parseInt(opt.dataset.discountPercent, 10) || 0
+        };
+    }
+    updateSummary();
+}
+
 function applyPromoCode() {
     const promoInput = document.getElementById('promo-input');
     const promoCode = promoInput.value.trim().toUpperCase();
@@ -601,7 +644,11 @@ async function checkout() {
         return sum + (price * item.quantity);
     }, 0);
     const shipping = subtotal > 50 ? 0 : 5.99;
-    const total = +(subtotal + shipping).toFixed(2);
+    let discount = 0;
+    if (selectedCartCoupon && selectedCartCoupon.discount_percent != null) {
+        discount = subtotal * (Number(selectedCartCoupon.discount_percent) / 100);
+    }
+    const total = +Math.max(0, (subtotal + shipping - discount)).toFixed(2);
 
     const customerEmail = localStorage.getItem('jbr7_customer_email') || localStorage.getItem('customerEmail') || '';
     const customerPhone = localStorage.getItem('jbr7_customer_phone') || localStorage.getItem('customerPhone') || '';
@@ -672,6 +719,8 @@ async function checkout() {
         items: checkoutData.items,
         subtotal: checkoutData.subtotal,
         shipping: checkoutData.shipping,
+        discount: checkoutData.discount,
+        couponId: checkoutData.couponId,
         total: checkoutData.total,
         payment: checkoutData.payment,
         courier: checkoutData.courier,

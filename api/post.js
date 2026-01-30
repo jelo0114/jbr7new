@@ -4,6 +4,7 @@ import {
   setDefaultShippingAddress,
   setUserPreferences,
   setNotificationPreference,
+  claimRewardCoupon,
 } from '../supabse-conn/index';
 
 import { createHash } from 'crypto';
@@ -64,6 +65,10 @@ export default async function handler(req, res) {
       // ==================== DELETE SAVED ITEM ====================
       case 'delete-saved-item':
         return await handleDeleteSavedItem(req, res);
+
+      // ==================== CLAIM REWARD (points → coupon) ====================
+      case 'claim-reward':
+        return await handleClaimReward(req, res);
 
       default:
         return res.status(400).json({ error: `Invalid action: ${action}` });
@@ -251,6 +256,26 @@ async function handleChangePassword(req, res) {
       success: false,
       error: error.message || 'Internal server error'
     });
+  }
+}
+
+// ==================== CLAIM REWARD (points → coupon) ====================
+async function handleClaimReward(req, res) {
+  const { userId, pointsCost, discountPercent } = req.body;
+  if (!userId || pointsCost == null || discountPercent == null) {
+    return res.status(400).json({ success: false, error: 'userId, pointsCost, and discountPercent required' });
+  }
+  const pts = parseInt(pointsCost, 10);
+  const pct = parseInt(discountPercent, 10);
+  if (isNaN(pts) || isNaN(pct) || pts < 0 || pct < 1 || pct > 100) {
+    return res.status(400).json({ success: false, error: 'Invalid pointsCost or discountPercent' });
+  }
+  try {
+    const { points } = await claimRewardCoupon(userId, pts, pct);
+    return res.status(200).json({ success: true, message: 'Coupon claimed! Use it at checkout.', points });
+  } catch (err) {
+    console.error('Claim reward error:', err);
+    return res.status(400).json({ success: false, error: err.message || 'Failed to claim reward' });
   }
 }
 

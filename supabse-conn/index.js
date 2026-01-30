@@ -677,6 +677,55 @@ export async function getUserReviews(userId) {
 
 
 // -----------------------------
+// USER COUPONS (points rewards: 300→10%, 700→20%, 1000→40%, 1500→50%)
+// -----------------------------
+
+export async function getUserCoupons(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('user_coupons')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('used', false)
+    .order('created_at', { ascending: false });
+  if (error) {
+    console.error('getUserCoupons error:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function claimRewardCoupon(userId, pointsCost, discountPercent) {
+  if (!userId || !pointsCost || discountPercent == null) throw new Error('userId, pointsCost, and discountPercent required');
+  const { data: userRow, error: userErr } = await supabase
+    .from('users')
+    .select('id, points')
+    .eq('id', userId)
+    .single();
+  if (userErr || !userRow) throw new Error('User not found');
+  const currentPoints = parseInt(userRow.points, 10) || 0;
+  if (currentPoints < pointsCost) throw new Error(`Not enough points. You have ${currentPoints}, need ${pointsCost}.`);
+  const newPoints = currentPoints - pointsCost;
+  const { error: updateErr } = await supabase.from('users').update({ points: newPoints }).eq('id', userId);
+  if (updateErr) throw updateErr;
+  const { error: insertErr } = await supabase.from('user_coupons').insert({
+    user_id: userId,
+    points_spent: pointsCost,
+    discount_percent: discountPercent,
+    used: false,
+  });
+  if (insertErr) throw insertErr;
+  return { points: newPoints };
+}
+
+export async function addUserPoints(userId, amount) {
+  if (!userId || amount == null) return;
+  const { data: userRow } = await supabase.from('users').select('points').eq('id', userId).single();
+  const current = parseInt(userRow?.points, 10) || 0;
+  await supabase.from('users').update({ points: current + amount }).eq('id', userId);
+}
+
+// -----------------------------
 // HELPER FUNCTIONS
 // -----------------------------
 

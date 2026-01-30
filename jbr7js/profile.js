@@ -1071,24 +1071,48 @@ function deleteReview(button) {
     }
 }
 
-// Rewards Functions
+// Rewards: 300→10%, 700→20%, 1000→40%, 1500→50%. Earn 60 pts/order, 20 pts/review.
 function viewRewards() {
     showProfileSection('rewards');
 }
 
 function redeemPoints() {
-    showNotification('Opening rewards redemption...', 'info');
+    showProfileSection('rewards');
 }
 
-function claimReward(pointsCost) {
-    const currentPoints = 2450;
-    
-    if (currentPoints >= pointsCost) {
-        if (confirm(`Redeem ${pointsCost} points for this reward?`)) {
-            showNotification(`Reward claimed! ${pointsCost} points deducted.`, 'success');
+async function claimReward(pointsCost, discountPercent) {
+    var userId = getUserId();
+    if (!userId) {
+        showNotification('Please log in to claim rewards', 'info');
+        return;
+    }
+    if (!confirm('Redeem ' + pointsCost + ' points for ' + discountPercent + '% off coupon? You can use it at checkout.')) {
+        return;
+    }
+    try {
+        var response = await fetch('/api/post', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'claim-reward',
+                userId: userId,
+                pointsCost: pointsCost,
+                discountPercent: discountPercent
+            })
+        });
+        var data = await response.json();
+        if (data.success) {
+            showNotification('Coupon claimed! Use it at checkout.', 'success');
+            var pointsEl = document.querySelector('.rewards-card-large h3');
+            if (pointsEl && data.points != null) pointsEl.textContent = data.points + ' Points';
+            if (typeof fetchSessionAndPopulateProfile === 'function') fetchSessionAndPopulateProfile();
+        } else {
+            showNotification(data.error || 'Failed to claim reward', 'info');
         }
-    } else {
-        showNotification(`You need ${pointsCost - currentPoints} more points for this reward`, 'info');
+    } catch (e) {
+        console.error('Claim reward error:', e);
+        showNotification('Failed to claim reward. Try again.', 'info');
     }
 }
 

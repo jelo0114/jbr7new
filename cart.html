@@ -102,6 +102,16 @@
                         <span>Shipping:</span>
                         <span id="shipping">₱0.00</span>
                     </div>
+                    <div class="summary-row coupon-row" id="coupon-row" style="display: none;">
+                        <span>Coupon:</span>
+                        <span id="coupon-discount">-₱0.00</span>
+                    </div>
+                    <div class="form-group" style="margin-top: 0.75rem;">
+                        <label style="font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem;">Apply coupon</label>
+                        <select id="coupon-select" class="payment-select" onchange="applyCartCoupon(this)">
+                            <option value="">-- Select a coupon --</option>
+                        </select>
+                    </div>
                     <div class="summary-row total-row">
                         <span>Total:</span>
                         <span id="total">₱0.00</span>
