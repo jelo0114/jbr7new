@@ -12,6 +12,13 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    return res.status(503).json({
+      success: false,
+      error: 'Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in Vercel.',
+    });
+  }
+
   try {
     if (req.method === 'GET') {
       return await handleGetOrders(req, res);
@@ -22,7 +29,8 @@ export default async function handler(req, res) {
     }
   } catch (err) {
     console.error('Orders API error:', err);
-    return res.status(500).json({ success: false, error: 'Internal server error' });
+    const message = err && err.message ? err.message : 'Internal server error';
+    return res.status(500).json({ success: false, error: message });
   }
 }
 

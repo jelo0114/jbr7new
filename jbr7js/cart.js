@@ -681,29 +681,10 @@ async function checkout() {
         timestamp: checkoutData.timestamp
     };
 
-    // PHP expects orderId (not orderNumber) and same keys; session supplies userId
-    const phpOrderPayload = {
-        orderId: checkoutData.orderId,
-        orderNumber: checkoutData.orderNumber,
-        items: checkoutData.items,
-        subtotal: checkoutData.subtotal,
-        shipping: checkoutData.shipping,
-        total: checkoutData.total,
-        payment: checkoutData.payment,
-        courier: checkoutData.courier,
-        customerEmail: checkoutData.customerEmail,
-        customerPhone: checkoutData.customerPhone,
-        shippingAddress: checkoutData.shippingAddress,
-        timestamp: checkoutData.timestamp
-    };
-
     try {
-        // Try API routes first, then PHP backend
-        // Try /api/order first (Vercel serverless route name), then /api/orders, then PHP
         const apiAttempts = [
             { path: '/api/order', body: orderPayload },
-            { path: '/api/orders', body: orderPayload },
-            { path: '/jbr7php/save_order.php', body: phpOrderPayload }
+            { path: '/api/orders', body: orderPayload }
         ];
         let response = null;
         let lastError = null;

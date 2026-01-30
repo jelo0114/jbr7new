@@ -163,7 +163,7 @@
       return;
     }
     
-    // Payload for /api/receipts or /api/receipt (Supabase-style)
+    // Supabase API payload (no PHP)
     const receiptPayload = {
       userId: parseInt(userId),
       receiptData: {
@@ -177,27 +177,10 @@
         raw_response: receiptData
       }
     };
-
-    // Payload for /jbr7php/receipt.php (flat keys, session auth)
-    const phpReceiptPayload = {
-      orderId: receiptData.orderId || receiptData.orderNumber,
-      orderNumber: receiptData.orderNumber || receiptData.orderId,
-      total: receiptData.total,
-      subtotal: receiptData.subtotal,
-      shipping: receiptData.shipping,
-      payment: receiptData.payment,
-      courier: receiptData.courier,
-      customerEmail: receiptData.customerEmail,
-      customerPhone: receiptData.customerPhone,
-      shippingAddress: receiptData.shippingAddress,
-      timestamp: receiptData.timestamp
-    };
     
-    // Try /api/receipt first (Vercel serverless route name), then /api/receipts, then PHP
     const endpoints = [
       { url: '/api/receipt', body: receiptPayload },
-      { url: '/api/receipts', body: receiptPayload },
-      { url: '/jbr7php/receipt.php', body: phpReceiptPayload }
+      { url: '/api/receipts', body: receiptPayload }
     ];
     
     let saved = false;
