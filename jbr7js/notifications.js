@@ -8,19 +8,28 @@
     const STORAGE_KEY = 'jbr7_notifications';
     const NS = 'jbr7'; // namespace prefix for DOM classes to avoid collisions
 
-    // No dummy notifications; start with empty list when none in storage
     const DEFAULT_NOTIFICATIONS = [];
 
     function loadNotifications() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
+                localStorage.setItem(STORAGE_KEY, '[]');
                 return [];
             }
-            return JSON.parse(raw) || [];
+            const arr = JSON.parse(raw) || [];
+            // Remove any old dummy/sample notifications (Order Shipped, Special Discount, etc.)
+            const dummyTitles = ['Order Shipped', 'Special Discount', 'New Product Launch'];
+            const filtered = Array.isArray(arr) ? arr.filter(function (n) {
+                return !n || !dummyTitles.some(function (t) { return (n.title || '').indexOf(t) !== -1; });
+            }) : [];
+            if (filtered.length !== (Array.isArray(arr) ? arr.length : 0)) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(filtered));
+            }
+            return filtered;
         } catch (e) {
             console.error('Failed to load notifications', e);
+            localStorage.setItem(STORAGE_KEY, '[]');
             return [];
         }
     }

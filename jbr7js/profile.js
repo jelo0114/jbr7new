@@ -50,8 +50,7 @@ async function fetchSessionAndPopulateProfile() {
     const userId = getUserId();
     
     if (!userId) {
-        console.warn('No user ID found, redirecting to login');
-        window.location.href = '/login.html';
+        window.location.href = 'signin.html';
         return;
     }
 
@@ -69,9 +68,7 @@ async function fetchSessionAndPopulateProfile() {
 
         if (!response.ok) {
             if (response.status === 401) {
-                // Not authenticated - redirect to login
-                console.warn('Not authenticated, redirecting to login');
-                window.location.href = '/login.html';
+                window.location.href = 'signin.html';
                 return;
             }
             
@@ -85,13 +82,7 @@ async function fetchSessionAndPopulateProfile() {
                 console.error('API error:', response.status, e);
             }
             
-            // Show detailed error for debugging
-            showNotification(`Server error (${response.status}). Check console for details.`, 'error');
-            
-            // Use mock data for development if server error
             if (response.status === 500) {
-                console.warn('Server error detected. Using mock profile data for development.');
-                showNotification('Using demo data due to server error', 'info');
                 populateMockProfile();
             } else {
                 populateGuestProfile();
@@ -1052,19 +1043,24 @@ if (!document.querySelector('#notification-styles')) {
     document.head.appendChild(notificationStyles);
 }
 
-// Initialize on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOMContentLoaded - initializing profile page');
-        showProfileSection('orders');
-        fetchSessionAndPopulateProfile();
-        setupAvatarButton();
-    });
-} else {
-    console.log('Document already loaded - initializing profile page');
+// Run profile load once per page; avoid refresh loop when user is logged in
+var profileLoadDone = false;
+function initProfilePage() {
+    if (profileLoadDone) return;
+    var userId = getUserId();
+    if (!userId) {
+        window.location.href = 'signin.html';
+        return;
+    }
+    profileLoadDone = true;
     showProfileSection('orders');
     fetchSessionAndPopulateProfile();
     setupAvatarButton();
+}
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initProfilePage);
+} else {
+    initProfilePage();
 }
 
 // Setup avatar button event listener as fallback

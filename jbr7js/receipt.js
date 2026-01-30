@@ -1,4 +1,4 @@
-// receipt.js - FALLBACK VERSION with multiple endpoint attempts
+// this is receipt.js from jbr7js folder - FALLBACK VERSION with multiple endpoint attempts
 (function(){
   function fmt(n){ return '₱' + Number(n).toFixed(2); }
 

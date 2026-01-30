@@ -103,10 +103,10 @@
             })
             .then(data => {
                 if (data.success) {
-                    // CRITICAL: Set user ID immediately in sessionStorage before redirect
                     if (data.user_id) {
-                        sessionStorage.setItem('jbr7_user_id', data.user_id.toString());
-                        console.log('User ID set immediately:', data.user_id);
+                        var uid = data.user_id.toString();
+                        sessionStorage.setItem('jbr7_user_id', uid);
+                        sessionStorage.setItem('jbr7_auth_uid', uid);
                     }
                     
                     // Clear any legacy/guest cart data

@@ -40,8 +40,7 @@ async function loadUserData() {
     const userId = getUserId();
     
     if (!userId) {
-        console.warn('No user ID found, redirecting to login');
-        window.location.href = '/login.html';
+        window.location.href = 'signin.html';
         return;
     }
 
@@ -204,6 +203,7 @@ async function changePassword() {
             body: JSON.stringify({
                 action: 'change-password',
                 userId,
+                authUserId: sessionStorage.getItem('jbr7_auth_uid') || userId,
                 currentPassword,
                 newPassword
             })
@@ -445,7 +445,7 @@ async function loadAddresses() {
         
         if (!response.ok) {
             if (response.status === 401) {
-                window.location.href = '/login.html';
+                window.location.href = 'signin.html';
                 return;
             }
             throw new Error('Failed to load addresses');
