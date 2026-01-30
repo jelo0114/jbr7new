@@ -104,19 +104,67 @@ async function fetchSessionAndPopulateProfile() {
     }
 }
 
-// Fetch orders for profile when not included in profile response
-async function loadOrdersForProfile(userId) {
+// Fetch orders for profile (single source, robust)
+async function fetchProfileOrders(userId) {
+    if (!userId) return [];
     try {
         const res = await fetch(`/api/get?action=orders&userId=${userId}`, { credentials: 'same-origin' });
-        if (!res.ok) return;
+        if (!res.ok) return [];
         const json = await res.json();
         const orders = (json && json.orders) ? json.orders : (json && json.data) ? json.data : [];
-        if (orders.length > 0) {
-            populateOrders(orders);
-        }
+        return Array.isArray(orders) ? orders : [];
     } catch (e) {
-        console.warn('Could not load orders for profile:', e);
+        console.warn('Could not fetch orders for profile:', e);
+        return [];
     }
+}
+
+// Load orders into UI (called after fetch; starts poll if not already running)
+async function loadOrdersForProfile(userId) {
+    const orders = await fetchProfileOrders(userId);
+    if (orders.length > 0) {
+        populateOrders(orders);
+    } else {
+        const ordersList = document.querySelector('#orders-section .orders-list') || document.getElementById('ordersList');
+        if (ordersList) {
+            ordersList.innerHTML = '<div class="empty-orders"><p>You have no orders yet.</p></div>';
+        }
+    }
+    startProfileOrdersPoll(userId);
+}
+
+// Time-based display status: processing → shipped after 30s, shipped → delivered after 1 min (from created_at)
+function getDisplayStatus(order) {
+    var status = (order && order.status) ? String(order.status).toLowerCase() : 'processing';
+    var created = order && order.created_at ? new Date(order.created_at).getTime() : Date.now();
+    var elapsedSec = (Date.now() - created) / 1000;
+    if (status === 'delivered' || elapsedSec >= 90) return 'delivered';
+    if (status === 'shipped' || elapsedSec >= 30) return 'shipped';
+    return 'processing';
+}
+
+var profileOrdersPollTimer = null;
+function startProfileOrdersPoll(userId) {
+    if (!userId || profileOrdersPollTimer !== null) return;
+    profileOrdersPollTimer = setInterval(async function () {
+        var uid = getUserId();
+        if (!uid) {
+            clearProfileOrdersPoll();
+            return;
+        }
+        var orders = await fetchProfileOrders(uid);
+        if (orders.length > 0) populateOrders(orders);
+    }, 30000);
+}
+
+function clearProfileOrdersPoll() {
+    if (profileOrdersPollTimer !== null) {
+        clearInterval(profileOrdersPollTimer);
+        profileOrdersPollTimer = null;
+    }
+}
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeunload', clearProfileOrdersPoll);
 }
 
 // Populate with mock data for development/debugging
@@ -338,7 +386,7 @@ function populateWishlist(items) {
     });
 }
 
-// Populate orders section (also exposed as renderOrders for profile.html inline loadOrders)
+// Populate orders section; uses getDisplayStatus for time-based status (30s → shipped, 1 min after that → delivered)
 function populateOrders(orders) {
     const ordersList = document.querySelector('#orders-section .orders-list') || document.getElementById('ordersList');
     if (!ordersList) return;
@@ -351,20 +399,21 @@ function populateOrders(orders) {
     }
 
     orders.forEach(order => {
+        var displayStatus = getDisplayStatus(order);
         const orderCard = document.createElement('div');
         orderCard.className = 'order-card';
-        orderCard.setAttribute('data-status', order.status || 'processing');
-        
-        const statusClass = getStatusClass(order.status || 'processing');
+        orderCard.setAttribute('data-status', displayStatus);
+
+        const statusClass = getStatusClass(displayStatus);
         const formattedDate = formatOrderDate(order.created_at);
-        
+
         orderCard.innerHTML = `
             <div class="order-header">
                 <div class="order-info">
                     <h3>Order #${escapeHtml(order.order_number)}</h3>
                     <p class="order-date">${formattedDate}</p>
                 </div>
-                <span class="order-status ${statusClass}">${escapeHtml(order.status)}</span>
+                <span class="order-status ${statusClass}">${escapeHtml(displayStatus)}</span>
             </div>
             <div class="order-details">
                 <p class="order-total">Total: ₱${escapeHtml(order.total)}</p>
