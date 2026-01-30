@@ -259,7 +259,7 @@
 <script src="jbr7js/home.js"></script>
 <script src="jbr7js/notifications.js"></script>
 <script>
-    // Global API helper so loadProductReviews and other async code can use it
+    // Global API helper so loadProductReviews and other async code can use it (assign to window for async callbacks)
     function apiFetch(url, options) {
         const opts = options || {};
         const headers = opts.headers ? { ...opts.headers } : {};
@@ -267,6 +267,7 @@
         if (uid) headers['X-User-Id'] = uid;
         return fetch(url, { ...opts, headers });
     }
+    window.apiFetch = apiFetch;
 
     // Demo PRODUCTS array with quantities
 const PRODUCTS = [
@@ -610,7 +611,8 @@ let REVIEWS = [];
                 return;
             }
             
-            const response = await apiFetch('/api/submit_review', {
+            const submitFetch = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+            const response = await submitFetch('/api/submit_review', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -673,7 +675,8 @@ async function loadProductReviews(productTitle){
         const normalizedTitle = productTitle.trim();
         console.log('Loading reviews for product:', normalizedTitle);
         
-        const response = await apiFetch('/api/get_product_reviews?product=' + encodeURIComponent(normalizedTitle), {
+        const fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+        const response = await fetchFn('/api/get_product_reviews?product=' + encodeURIComponent(normalizedTitle), {
             credentials: 'same-origin'
         });
         
@@ -785,17 +788,16 @@ function updateRatingSummary(summary){
         document.getElementById('productDesc').textContent = product.desc;
         const main = document.getElementById('mainImg');
         const firstImg = product.imgs && product.imgs.length > 0 ? product.imgs[0] : 'totebag.avif';
-        // Ensure image path is correct
+        // Use relative path so it works from any base URL (Vercel, local, subpath)
         let imgPath = firstImg;
-        if (!imgPath.startsWith('http') && !imgPath.startsWith('//') && !imgPath.startsWith('/') && !imgPath.startsWith('data:')) {
-            imgPath = '/' + imgPath;
+        if (!imgPath.startsWith('http') && !imgPath.startsWith('//') && !imgPath.startsWith('data:')) {
+            if (!imgPath.startsWith('/')) imgPath = imgPath; // keep relative
         }
         main.src = imgPath;
-        // Ensure image loads correctly
+        const fallbackImg = 'totebag.avif';
         main.onerror = function() {
-            console.warn('Image failed to load:', imgPath, 'falling back to totebag.avif');
-            this.onerror = null; // Prevent infinite loop
-            this.src = '/totebag.avif';
+            this.onerror = null;
+            this.src = fallbackImg;
         };
         // Wait for image to load before rendering reviews
         main.onload = function() {
@@ -811,9 +813,11 @@ function updateRatingSummary(summary){
 
         const thumbs = document.getElementById('thumbs');
         thumbs.innerHTML = '';
+        const thumbFallback = 'totebag.avif';
         product.imgs.forEach((src, i) => {
             const img = document.createElement('img');
             img.src = src;
+            img.onerror = function(){ this.onerror=null; this.src=thumbFallback; };
             if(i===0) img.classList.add('active');
             img.addEventListener('click', () => {
                 document.querySelectorAll('.thumbs img').forEach(t=>t.classList.remove('active'));
@@ -832,39 +836,50 @@ function updateRatingSummary(summary){
                 const thumbs = document.getElementById('thumbs');
                 const main = document.getElementById('mainImg');
 
+                const fallbackThumb = 'totebag.avif';
                 const addThumb = (path, insertAtSecondForSizes=false) => {
                     if (product.imgs.includes(path)) return;
                     if (insertAtSecondForSizes) {
                         product.imgs.splice(1, 0, path);
                         const timg = document.createElement('img'); timg.src = path;
+                        timg.onerror = function(){ this.onerror=null; this.src=fallbackThumb; };
                         timg.addEventListener('click', () => { document.querySelectorAll('.thumbs img').forEach(t=>t.classList.remove('active')); timg.classList.add('active'); main.src = path; });
                         const firstThumb = thumbs.querySelector('img');
                         if (firstThumb && firstThumb.nextSibling) thumbs.insertBefore(timg, firstThumb.nextSibling); else thumbs.appendChild(timg);
                     } else {
                         product.imgs.push(path);
                         const timg = document.createElement('img'); timg.src = path;
+                        timg.onerror = function(){ this.onerror=null; this.src=fallbackThumb; };
                         timg.addEventListener('click', () => { document.querySelectorAll('.thumbs img').forEach(t=>t.classList.remove('active')); timg.classList.add('active'); main.src = path; });
                         thumbs.appendChild(timg);
                     }
                 };
 
-                fetch('JBR7 JSON/image-manifest.json', {cache: 'no-store'}).then(r => {
-                    if (!r.ok) throw new Error('no-manifest');
-                    return r.json();
-                }).then(manifest => {
-                    const entries = manifest[folderName];
-                    if (Array.isArray(entries) && entries.length) {
-                        entries.forEach(name => {
-                            const path = folderName + '/' + name;
-                            if (name.toLowerCase() === 'sizes.jpg') addThumb(path, true);
-                            else addThumb(path, false);
-                        });
-                        return;
+                // Try root first (Vercel), then JBR7 JSON folder (local / deployments that keep structure)
+                function loadManifest() {
+                    const urls = ['image-manifest.json', 'JBR7 JSON/image-manifest.json'];
+                    let i = 0;
+                    function tryNext() {
+                        if (i >= urls.length) { runCandidateProbe(folderName); return; }
+                        fetch(urls[i], {cache: 'no-store'}).then(r => {
+                            if (!r.ok) throw new Error('no-manifest');
+                            return r.json();
+                        }).then(manifest => {
+                            const entries = manifest[folderName];
+                            if (Array.isArray(entries) && entries.length) {
+                                entries.forEach(name => {
+                                    const path = folderName + '/' + name;
+                                    if (name.toLowerCase() === 'sizes.jpg') addThumb(path, true);
+                                    else addThumb(path, false);
+                                });
+                                return;
+                            }
+                            runCandidateProbe(folderName);
+                        }).catch(() => { i++; tryNext(); });
                     }
-                    runCandidateProbe(folderName);
-                }).catch(() => {
-                    runCandidateProbe(folderName);
-                });
+                    tryNext();
+                }
+                loadManifest();
 
                 function runCandidateProbe(folderName){
                     const folder = folderName;

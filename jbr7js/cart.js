@@ -727,8 +727,10 @@ async function checkout() {
                     response = null;
                     continue;
                 }
+                // 405 (e.g. PHP not allowing POST) or 500: try next endpoint
                 if (!response.ok) {
                     lastError = new Error(`HTTP ${response.status}`);
+                    response = null;
                     continue;
                 }
                 break;
@@ -747,7 +749,8 @@ async function checkout() {
                     throw new Error('API_NOT_CONFIGURED');
                 }
             }
-            throw lastError || new Error('API_NOT_CONFIGURED');
+            // 405, 500, or no response: use fallback so user can still complete checkout
+            throw new Error('API_NOT_CONFIGURED');
         }
         
         const contentType = response.headers.get("content-type");
