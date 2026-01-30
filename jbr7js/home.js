@@ -686,7 +686,7 @@ async function initHeaderFromServer() {
                 return;
             }
             
-            const response = await fetch(`/jbr7php/search_all.php?q=${encodeURIComponent(query)}&type=all`);
+            const response = await fetch(`/api/get?action=search&q=${encodeURIComponent(query)}`, { credentials: 'same-origin' });
             const data = await response.json();
             
             if (!data.success) {

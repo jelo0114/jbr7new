@@ -1,16 +1,39 @@
 /* Shared notifications library for all pages
-   - Uses localStorage key 'jbr7_notifications' to persist notifications across pages
-   - Exposes functions to render a panel (used by notification.html), update the badge,
-     mark read, clear, and add notifications.
+   - When user is logged in, fetches notifications from API (every order + every status change).
+   - Uses localStorage key 'jbr7_notifications' when not logged in.
+   - Exposes functions to render a panel, update the badge, mark read, and add notifications.
 */
 
 (function(){
     const STORAGE_KEY = 'jbr7_notifications';
     const NS = 'jbr7'; // namespace prefix for DOM classes to avoid collisions
+    var serverNotificationsCache = null; // when logged in, list from API
 
-    const DEFAULT_NOTIFICATIONS = [];
+    function getUserId() {
+        try {
+            return sessionStorage.getItem('jbr7_user_id') || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function formatTime(createdAt) {
+        if (!createdAt) return 'Just now';
+        var d = new Date(createdAt);
+        var now = new Date();
+        var diff = (now - d) / 60000;
+        if (diff < 1) return 'Just now';
+        if (diff < 60) return Math.floor(diff) + 'm ago';
+        if (diff < 1440) return Math.floor(diff / 60) + 'h ago';
+        if (diff < 10080) return Math.floor(diff / 1440) + 'd ago';
+        return d.toLocaleDateString();
+    }
 
     function loadNotifications() {
+        var userId = getUserId();
+        if (userId && serverNotificationsCache) {
+            return serverNotificationsCache;
+        }
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) {
@@ -18,7 +41,6 @@
                 return [];
             }
             const arr = JSON.parse(raw) || [];
-            // Remove any old dummy/sample notifications (Order Shipped, Special Discount, etc.)
             const dummyTitles = ['Order Shipped', 'Special Discount', 'New Product Launch'];
             const filtered = Array.isArray(arr) ? arr.filter(function (n) {
                 return !n || !dummyTitles.some(function (t) { return (n.title || '').indexOf(t) !== -1; });
@@ -32,6 +54,32 @@
             localStorage.setItem(STORAGE_KEY, '[]');
             return [];
         }
+    }
+
+    function fetchServerNotifications() {
+        var userId = getUserId();
+        if (!userId) return Promise.resolve([]);
+        return fetch('/api/get?action=notifications&userId=' + encodeURIComponent(userId), { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                var list = (data && data.data && Array.isArray(data.data)) ? data.data : [];
+                serverNotificationsCache = list.map(function (n) {
+                    return {
+                        id: n.id,
+                        type: (n.notification_type === 'order_status' ? 'orders' : n.notification_type) || 'orders',
+                        title: n.title || 'Notification',
+                        message: n.message || '',
+                        time: formatTime(n.created_at),
+                        read: !!n.is_read,
+                        icon: n.notification_type === 'order_status' ? 'fa-box' : 'fa-info-circle'
+                    };
+                });
+                return serverNotificationsCache;
+            })
+            .catch(function (e) {
+                console.error('Failed to fetch notifications', e);
+                return serverNotificationsCache || [];
+            });
     }
 
     function saveNotifications(arr) {
@@ -123,7 +171,7 @@
 
     function updateNotificationBadge() {
         const notifications = loadNotifications();
-        const unreadCount = notifications.filter(n => !n.read).length;
+        const unreadCount = notifications.filter(function (n) { return !n.read; }).length;
         const bellIcon = document.querySelector('a[data-page="notifications"]');
         if (!bellIcon) return;
         updateBadgeElement(bellIcon, unreadCount);
@@ -229,7 +277,14 @@
         document.body.style.overflow = 'hidden';
 
         const container = panel.querySelector('.' + NS + '-notifications-list');
-        applyFilter('all', container);
+        if (getUserId()) {
+            fetchServerNotifications().then(function () {
+                updateNotificationBadge();
+                applyFilter('all', container);
+            });
+        } else {
+            applyFilter('all', container);
+        }
 
         // wire filter buttons (idempotent)
         filterBtns.forEach(btn => {
@@ -276,12 +331,17 @@
         addNotification
     });
 
-    // Initialize badge and bell behavior
+    // Initialize badge and bell behavior; when logged in, fetch from server so badge is correct
     document.addEventListener('DOMContentLoaded', function() {
-        updateNotificationBadge();
-        const bell = document.querySelector('a[data-page="notifications"]');
+        if (getUserId()) {
+            fetchServerNotifications().then(function () {
+                updateNotificationBadge();
+            });
+        } else {
+            updateNotificationBadge();
+        }
+        var bell = document.querySelector('a[data-page="notifications"]');
         if (bell) {
-            // prevent default anchor navigation and open panel instead
             bell.addEventListener('click', function(e) {
                 e.preventDefault();
                 if (window.JBR7Notifications && typeof window.JBR7Notifications.openPanel === 'function') {

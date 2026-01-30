@@ -23,6 +23,37 @@ export async function getItemsWithRatings() {
   return data || [];
 }
 
+/** Search items by title, description, category (for header search). */
+export async function searchItems(query) {
+  if (!query || typeof query !== 'string') return [];
+  const q = String(query).trim();
+  if (!q) return [];
+
+  const escaped = q.replace(/'/g, "''");
+  const pattern = `%${escaped}%`;
+  const { data, error } = await supabase
+    .from('items')
+    .select('id, item_id, title, description, price, image, category, rating, review_count, created_at')
+    .or(`title.ilike.${pattern},description.ilike.${pattern},category.ilike.${pattern}`)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) {
+    throw new Error(`searchItems failed: ${error.message}`);
+  }
+  return (data || []).map((item) => ({
+    id: item.id,
+    item_id: item.item_id,
+    title: item.title,
+    description: item.description,
+    price: parseFloat(item.price) || 0,
+    image: item.image,
+    category: item.category,
+    rating: Math.min(5, Math.max(0, parseFloat(item.rating) || 0)),
+    review_count: parseInt(item.review_count, 10) || 0,
+  }));
+}
+
 // -----------------------------
 // SAVED ITEMS (get_saved_items.php, save_item.php, delete_saved_item.php, delete_all_saved_items.php)
 // -----------------------------
@@ -257,6 +288,68 @@ export async function createOrderNotification(userId, { order_id, order_number }
   if (error) {
     throw new Error(`createOrderNotification failed: ${error.message}`);
   }
+}
+
+/** Create a notification when order status changes (processing, shipped, delivered, cancelled, etc.) */
+export async function createOrderStatusNotification(userId, { order_id, order_number, status }) {
+  const statusLabels = {
+    processing: 'Order received',
+    confirmed: 'Order confirmed',
+    shipped: 'Order shipped',
+    delivered: 'Order delivered',
+    cancelled: 'Order cancelled',
+  };
+  const title = statusLabels[status] || `Order ${status}`;
+  const ref = order_number || order_id || '';
+  const message = status === 'processing'
+    ? `Your order ${ref} has been received and is being processed.`
+    : status === 'shipped'
+    ? `Your order ${ref} has been shipped.`
+    : status === 'delivered'
+    ? `Your order ${ref} has been delivered.`
+    : status === 'cancelled'
+    ? `Your order ${ref} has been cancelled.`
+    : `Your order ${ref} status: ${status}.`;
+
+  const { error } = await supabase.from('notifications').insert({
+    user_id: userId,
+    notification_type: 'order_status',
+    title,
+    message,
+    related_id: order_id || null,
+  });
+
+  if (error) {
+    throw new Error(`createOrderStatusNotification failed: ${error.message}`);
+  }
+}
+
+/** Get one order by id (for user_id and order_number). */
+export async function getOrderById(orderId) {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('id, user_id, order_number')
+    .eq('id', orderId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(`getOrderById failed: ${error.message}`);
+  }
+  return data;
+}
+
+/** Get all notifications for a user (for notification panel). */
+export async function getNotifications(userId) {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('id, notification_type, title, message, is_read, related_id, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`getNotifications failed: ${error.message}`);
+  }
+  return data || [];
 }
 
 // -----------------------------

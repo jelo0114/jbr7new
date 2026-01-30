@@ -341,7 +341,102 @@ function viewFullHistory() {
     loadLoginHistory();
 }
 
-// Download all user data (profile, orders, addresses, reviews, saved items, coupons, points history, login history, preferences)
+// Helper: wrap text to fit page width (jsPDF)
+function getWrappedLines(doc, text, maxWidth) {
+    try {
+        const lines = doc.splitTextToSize(String(text || ''), maxWidth);
+        return Array.isArray(lines) ? lines : [String(text || '')];
+    } catch (e) {
+        return [String(text || '')];
+    }
+}
+
+// Build PDF from exported user data
+function buildUserDataPdf(exportData) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const margin = 14;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const maxWidth = pageWidth - margin * 2;
+    let y = margin;
+    const lineHeight = 6;
+    const sectionGap = 4;
+
+    function addSection(title, content) {
+        if (y > 270) { doc.addPage(); y = margin; }
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.text(title, margin, y);
+        y += lineHeight + 2;
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(10);
+        const lines = getWrappedLines(doc, content, maxWidth);
+        lines.forEach(function (line) {
+            if (y > 275) { doc.addPage(); y = margin; }
+            doc.text(line, margin, y);
+            y += lineHeight;
+        });
+        y += sectionGap;
+    }
+
+    function addObjectSection(title, obj) {
+        addSection(title, typeof obj === 'object' && obj !== null ? JSON.stringify(obj, null, 2) : String(obj));
+    }
+
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('JBR7 Bags – Your Data Export', margin, y);
+    y += lineHeight + 4;
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(10);
+    doc.text('Exported: ' + (exportData.exported_at ? new Date(exportData.exported_at).toLocaleString() : new Date().toLocaleString()), margin, y);
+    y += lineHeight + sectionGap;
+
+    if (exportData.profile) {
+        addObjectSection('Profile', exportData.profile);
+    }
+    if (exportData.shipping_addresses && exportData.shipping_addresses.length) {
+        addSection('Shipping Addresses', exportData.shipping_addresses.map(function (a, i) {
+            return (i + 1) + '. ' + (a.street || '') + ', ' + (a.city || '') + ', ' + (a.state || '') + ' ' + (a.postal_code || '') + (a.country ? ', ' + a.country : '');
+        }).join('\n'));
+    }
+    if (exportData.orders && exportData.orders.length) {
+        addSection('Orders', exportData.orders.map(function (o) {
+            return 'Order #' + (o.order_number || o.id) + ' – ' + (o.status || '') + ' – Total: ' + (o.total != null ? o.total : '') + ' – ' + (o.created_at || '');
+        }).join('\n'));
+    }
+    if (exportData.reviews && exportData.reviews.length) {
+        addSection('Reviews', exportData.reviews.map(function (r) {
+            return (r.product_title || r.title || '') + ' – ' + (r.rating || '') + ' stars – ' + (r.comment || '').slice(0, 80);
+        }).join('\n'));
+    }
+    if (exportData.saved_items && exportData.saved_items.length) {
+        addSection('Saved Items', exportData.saved_items.map(function (s) {
+            return (s.title || '') + ' – ' + (s.price != null ? s.price : '');
+        }).join('\n'));
+    }
+    if (exportData.coupons && exportData.coupons.length) {
+        addSection('Coupons', exportData.coupons.map(function (c) {
+            return (c.discount_percent || 0) + '% off – ' + (c.used_at ? 'Used' : 'Available');
+        }).join('\n'));
+    }
+    if (exportData.points_history && exportData.points_history.length) {
+        addSection('Points History', exportData.points_history.map(function (p) {
+            return (p.description || '') + ' – ' + (p.points_change != null ? p.points_change : '') + ' – ' + (p.date || '');
+        }).join('\n'));
+    }
+    if (exportData.login_history && exportData.login_history.length) {
+        addSection('Login History', exportData.login_history.map(function (l) {
+            return (l.login_time || '') + ' – ' + (l.ip_address || '') + ' ' + (l.user_agent || '').slice(0, 40);
+        }).join('\n'));
+    }
+    if (exportData.preferences) {
+        addObjectSection('Preferences', exportData.preferences);
+    }
+    return doc;
+}
+
+// Download all user data as PDF (and optionally JSON)
 async function downloadUserData() {
     const userId = getUserId();
     if (!userId) {
@@ -359,14 +454,21 @@ async function downloadUserData() {
             showNotification(data.error || 'Failed to export data', 'info');
             return;
         }
-        const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        showNotification('Data downloaded', 'success');
+        const exportData = data.data;
+        if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
+            const doc = buildUserDataPdf(exportData);
+            doc.save('jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.pdf');
+            showNotification('Data downloaded as PDF', 'success');
+        } else {
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+            showNotification('Data downloaded (JSON)', 'success');
+        }
     } catch (e) {
         console.error('Download data error:', e);
         showNotification('Failed to download data', 'info');

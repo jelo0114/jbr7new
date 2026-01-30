@@ -8,6 +8,8 @@ import {
   setUserPreferences,
   setNotificationPreference,
   createOrderNotification,
+  createOrderStatusNotification,
+  getOrderById,
   saveOrderWithItems,
   cancelOrder,
   updateOrderStatus,
@@ -214,7 +216,16 @@ export default async function handler(req, res) {
         if (!payload.orderId || !payload.status) {
           return res.status(400).json({ error: 'orderId and status are required' });
         }
+        const order = await getOrderById(payload.orderId);
+        if (!order || !order.user_id) {
+          return res.status(404).json({ error: 'Order not found' });
+        }
         await updateOrderStatus(payload.orderId, payload.status);
+        await createOrderStatusNotification(order.user_id, {
+          order_id: order.id,
+          order_number: order.order_number,
+          status: payload.status,
+        });
         break;
       
       // ==================== REVIEWS & NOTIFICATIONS ====================

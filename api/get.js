@@ -13,6 +13,7 @@ import {
   getUserCoupons,
   getPointsHistory,
   getLoginHistory,
+  searchItems,
 } from '../supabse-conn/index';
 
 import { supabase } from '../lib/supabaseClient';
@@ -37,6 +38,9 @@ try {
     case 'items':
       result = await getItemsWithRatings();
       return res.status(200).json({ success: true, data: result });
+    
+    case 'search':
+      return await handleSearch(req, res, (q != null ? String(q).trim() : ''));
     
     case 'saved-items':
       if (!userId) {
@@ -128,6 +132,13 @@ try {
         return res.status(400).json({ error: 'userId is required for login-history' });
       }
       result = await getLoginHistory(userId);
+      return res.status(200).json({ success: true, data: result });
+    
+    case 'notifications':
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required for notifications' });
+      }
+      result = await getNotifications(userId);
       return res.status(200).json({ success: true, data: result });
     
     case 'export-user-data':
@@ -243,6 +254,72 @@ try {
     error: err.message || 'Failed to get receipts'
   });
 }
+}
+
+// ==================== SEARCH (products + page/settings suggestions) ====================
+const SYSTEM_SUGGESTIONS = [
+  { text: 'Home', url: 'home.html', icon: 'fa-home', match: ['home', 'main', 'landing', 'start'] },
+  { text: 'Explore Products', url: 'explore.html', icon: 'fa-compass', match: ['explore', 'products', 'shop', 'browse', 'catalog', 'collection'] },
+  { text: 'My Cart', url: 'cart.html', icon: 'fa-shopping-cart', match: ['cart', 'basket', 'checkout', 'buy', 'purchase'] },
+  { text: 'Saved Items', url: 'saved.html', icon: 'fa-bookmark', match: ['saved', 'bookmark', 'wishlist', 'favorite', 'favourite'] },
+  { text: 'My Profile', url: 'profile.html', icon: 'fa-user-circle', match: ['profile', 'account', 'user', 'my profile', 'my account'] },
+  { text: 'Track Order', url: 'track-order.html', icon: 'fa-truck', match: ['track', 'order', 'tracking', 'status', 'delivery', 'shipment'] },
+  { text: 'Notifications', url: 'notification.html', icon: 'fa-bell', match: ['notification', 'alert', 'reminder', 'notify', 'message'] },
+  { text: 'Contact Us', url: 'contact.html', icon: 'fa-envelope', match: ['contact', 'help', 'support', 'faq', 'question', 'inquiry'] },
+  { text: 'About Us', url: 'about.html', icon: 'fa-info-circle', match: ['about', 'company', 'us', 'information'] },
+  { text: 'Receipt', url: 'receipt.html', icon: 'fa-receipt', match: ['receipt', 'invoice', 'order confirmation', 'purchase'] },
+  { text: 'Settings > Shipping Addresses', url: 'settings.html#shipping', icon: 'fa-truck', match: ['address', 'shipping address', 'delivery address', 'location', 'where'] },
+  { text: 'Settings > Payment Methods', url: 'settings.html#payment', icon: 'fa-credit-card', match: ['payment', 'card', 'pay', 'method', 'credit', 'debit', 'billing'] },
+  { text: 'Settings > Account Information', url: 'settings.html#account', icon: 'fa-user-circle', match: ['account info', 'account information', 'personal', 'details', 'name', 'email', 'phone'] },
+  { text: 'Settings > Privacy & Security', url: 'settings.html#privacy', icon: 'fa-lock', match: ['privacy', 'security', 'password', 'login', 'change password', 'secure'] },
+  { text: 'Settings > Notifications', url: 'settings.html#notifications', icon: 'fa-bell', match: ['notification settings', 'alert settings', 'preferences'] },
+  { text: 'Settings > Couriers', url: 'settings.html#couriers', icon: 'fa-truck', match: ['courier', 'courier settings', 'delivery option'] },
+  { text: 'Settings > Help & Support', url: 'settings.html#help', icon: 'fa-question-circle', match: ['help', 'support', 'assistance'] },
+  { text: 'Privacy Policy', url: 'privacy-policy.html', icon: 'fa-shield-alt', match: ['privacy policy', 'privacy', 'data protection'] },
+  { text: 'Terms of Service', url: 'terms-of-service.html', icon: 'fa-file-contract', match: ['terms', 'terms of service', 'conditions', 'agreement'] },
+  { text: 'Warranty', url: 'warranty.html', icon: 'fa-certificate', match: ['warranty', 'guarantee', 'return', 'refund'] },
+  { text: 'Sign In', url: 'signin.html', icon: 'fa-sign-in-alt', match: ['sign in', 'login', 'log in', 'signin'] },
+  { text: 'Sign Up', url: 'signup.html', icon: 'fa-user-plus', match: ['sign up', 'register', 'registration', 'signup', 'create account'] },
+];
+
+function scoreSuggestion(queryLower, suggestion) {
+  let score = 0;
+  const queryWords = queryLower.split(/\s+/).filter(Boolean);
+  for (const matchTerm of suggestion.match) {
+    const matchLower = matchTerm.toLowerCase();
+    if (matchLower === queryLower) return 100;
+    if (queryLower.includes(matchLower)) score += 50;
+    else if (matchLower.includes(queryLower)) score += 30;
+    for (const word of queryWords) {
+      if (word.length > 2 && matchLower.includes(word)) score += 10;
+    }
+  }
+  return score;
+}
+
+async function handleSearch(req, res, q) {
+  if (!q) {
+    return res.status(400).json({ success: false, error: 'Search query required' });
+  }
+  try {
+    const [products, _] = await Promise.all([
+      searchItems(q),
+      Promise.resolve(),
+    ]);
+    const queryLower = q.toLowerCase();
+    const scored = SYSTEM_SUGGESTIONS.map((s) => ({ ...s, score: scoreSuggestion(queryLower, s) })).filter((s) => s.score > 0);
+    scored.sort((a, b) => b.score - a.score);
+    const suggestions = scored.slice(0, 10).map(({ text, url, icon }) => ({ text, url, icon }));
+    return res.status(200).json({
+      success: true,
+      query: q,
+      results: { products, suggestions },
+      count: { products: products.length, suggestions: suggestions.length },
+    });
+  } catch (err) {
+    console.error('handleSearch error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Search failed' });
+  }
 }
 
 // ==================== EXPORT USER DATA (download all user data) ====================

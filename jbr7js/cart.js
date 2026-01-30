@@ -488,10 +488,28 @@ function updateSummary() {
     }, 0);
     
     const shipping = subtotal > 50 ? 0 : 0.00;
-    const total = subtotal + shipping;
+    // Apply coupon % off to subtotal (discount reduces total)
+    let discount = 0;
+    if (selectedCartCoupon && selectedCartCoupon.discount_percent != null) {
+        const pct = Number(selectedCartCoupon.discount_percent) || 0;
+        if (pct > 0 && pct <= 100) {
+            discount = subtotal * (pct / 100);
+        }
+    }
+    const total = Math.max(0, subtotal + shipping - discount);
 
     document.getElementById('subtotal').textContent = `₱${subtotal.toFixed(2)}`;
     document.getElementById('shipping').textContent = shipping === 0 ? 'FREE' : `₱${shipping.toFixed(2)}`;
+    const couponRow = document.getElementById('coupon-row');
+    const couponDiscountEl = document.getElementById('coupon-discount');
+    if (couponRow && couponDiscountEl) {
+        if (discount > 0) {
+            couponRow.style.display = 'flex';
+            couponDiscountEl.textContent = '-₱' + discount.toFixed(2);
+        } else {
+            couponRow.style.display = 'none';
+        }
+    }
     document.getElementById('total').textContent = `₱${total.toFixed(2)}`;
     
     const itemCount = (() => {
