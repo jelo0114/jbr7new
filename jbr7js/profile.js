@@ -1,4 +1,7 @@
-// Profile Page Functionality - Fixed Version with Better Error Handling
+// Profile Page Functionality (API/Supabase)
+// Flow: 1) Init checks session (getUserId) -> redirect signin if none. 2) showProfileSection('orders'), fetchSessionAndPopulateProfile(), setupAvatarButton() run once.
+// 3) fetchSessionAndPopulateProfile: GET /api/get?action=profile&userId= -> 401 redirect signin; !ok -> populateGuestProfile(); success -> populateProfilePage(data); if no orders -> loadOrdersForProfile(userId).
+// 4) populateProfilePage: avatar, name, email, member since, stat cards, points, populateWishlist(items), populateOrders(orders). 5) Section switch (showProfileSection): reviews -> loadUserReviews(); rewards/activity -> loadUserActivities().
 
 // Get user ID from session storage
 function getUserId() {
@@ -72,21 +75,13 @@ async function fetchSessionAndPopulateProfile() {
                 return;
             }
             
-            // Try to read error message
-            let errorDetails = '';
             try {
                 const txt = await response.text();
-                errorDetails = txt;
                 console.error('API ERROR:', response.status, txt);
             } catch (e) {
                 console.error('API error:', response.status, e);
             }
-            
-            if (response.status === 500) {
-                populateMockProfile();
-            } else {
-                populateGuestProfile();
-            }
+            populateGuestProfile();
             return;
         }
 
@@ -95,20 +90,17 @@ async function fetchSessionAndPopulateProfile() {
 
         if (!data || !data.success || !data.user) {
             console.error('Invalid response format:', data);
-            showNotification('Invalid server response format', 'error');
-            populateMockProfile();
+            populateGuestProfile();
             return;
         }
 
         populateProfilePage(data);
-        // If profile response didn't include orders, fetch them separately (e.g. API returned 500 for orders query)
         if (!data.orders || data.orders.length === 0) {
             loadOrdersForProfile(userId);
         }
     } catch (error) {
         console.error('Error fetching profile:', error);
-        showNotification('Network error. Using demo data.', 'info');
-        populateMockProfile();
+        populateGuestProfile();
     }
 }
 
@@ -346,9 +338,9 @@ function populateWishlist(items) {
     });
 }
 
-// Populate orders section
+// Populate orders section (also exposed as renderOrders for profile.html inline loadOrders)
 function populateOrders(orders) {
-    const ordersList = document.querySelector('#orders-section .orders-list');
+    const ordersList = document.querySelector('#orders-section .orders-list') || document.getElementById('ordersList');
     if (!ordersList) return;
 
     ordersList.innerHTML = '';
@@ -361,9 +353,9 @@ function populateOrders(orders) {
     orders.forEach(order => {
         const orderCard = document.createElement('div');
         orderCard.className = 'order-card';
-        orderCard.setAttribute('data-status', order.status);
+        orderCard.setAttribute('data-status', order.status || 'processing');
         
-        const statusClass = getStatusClass(order.status);
+        const statusClass = getStatusClass(order.status || 'processing');
         const formattedDate = formatOrderDate(order.created_at);
         
         orderCard.innerHTML = `
@@ -384,6 +376,7 @@ function populateOrders(orders) {
         ordersList.appendChild(orderCard);
     });
 }
+window.renderOrders = populateOrders;
 
 // Remove saved item - Updated to use API
 async function removeSavedItem(encodedTitle, buttonEl) {
@@ -775,7 +768,7 @@ async function loadUserReviews() {
                         <div style="flex: 1;">
                             <h3 style="margin: 0 0 0.5rem 0; font-size: 1.1rem;">${escapeHtml(productTitle)}</h3>
                             <div style="margin-bottom: 0.5rem;">${starsHtml}</div>
-                            <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">${review.date}</p>
+                            <p style="color: #6b7280; font-size: 0.9rem; margin: 0;">${review.date || (review.created_at ? formatOrderDate(review.created_at) : '')}</p>
                         </div>
                         <div style="display: flex; gap: 0.5rem;">
                             <button onclick="editReviewFromProfile('${review.id}', '${escapeHtml(productTitle)}')" 

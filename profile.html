@@ -302,31 +302,28 @@
               
     
     
-    <!-- jbr7js files were removed; inline scripts below handle profile behavior -->
-
+    <!-- Profile orders/filter use profile.js (getUserId, renderOrders = populateOrders); session checked so no refresh unless user refreshes -->
     <script>
         let currentStatusFilter = 'all';
         let allOrders = [];
 
-        // Helper: add user id header for API calls
         function apiFetch(url, options) {
             const opts = options || {};
             const headers = opts.headers ? { ...opts.headers } : {};
-            const uid = sessionStorage.getItem('jbr7_user_id');
+            const uid = typeof getUserId === 'function' ? getUserId() : sessionStorage.getItem('jbr7_user_id');
             if (uid) headers['X-User-Id'] = uid;
             return fetch(url, { ...opts, headers });
         }
 
-        // Load orders from database
         async function loadOrders(status = null) {
     const container = document.getElementById('ordersList');
-    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</p>';
-
-    const userId = sessionStorage.getItem('jbr7_user_id');
+    if (!container) return;
+    const userId = typeof getUserId === 'function' ? getUserId() : sessionStorage.getItem('jbr7_user_id');
     if (!userId) {
         container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #dc2626;">Please log in to view orders.</p>';
         return;
     }
+    container.innerHTML = '<p style="text-align: center; padding: 2rem; color: #6b7280;">Loading orders...</p>';
 
     try {
         // FIXED: Changed endpoint
@@ -521,19 +518,17 @@ async function loadUserActivities() {
             });
         }
 
-        // Load orders and reviews on page load
+        // Run only when DOM and profile.js are ready; use session so we don't run without user
         document.addEventListener('DOMContentLoaded', () => {
-            loadOrders();
-            // Reviews and activities will load when sections are shown
-            // Set initial filter button
-            const filterAll = document.getElementById('filterAll');
+            var uid = typeof getUserId === 'function' ? getUserId() : sessionStorage.getItem('jbr7_user_id');
+            if (uid) loadOrders();
+            var filterAll = document.getElementById('filterAll');
             if (filterAll) {
                 filterAll.classList.remove('btn-secondary');
                 filterAll.classList.add('btn-primary');
             }
         });
     </script>
-   <!-- Required JavaScript files -->
    <script src="jbr7js/user-storage.js"></script>
    <script src="jbr7js/home.js"></script>
    <script src="jbr7js/notifications.js"></script>

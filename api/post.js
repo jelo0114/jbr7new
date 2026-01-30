@@ -112,7 +112,9 @@ import {
   // ==================== CHANGE PASSWORD ====================
   // Supabase stores passwords in auth.users, not public.users. Use Auth Admin API.
   async function handleChangePassword(req, res) {
-    const { userId, authUserId: bodyAuthUid, currentPassword, newPassword } = req.body;
+    let { userId, authUserId: bodyAuthUid, currentPassword, newPassword } = req.body;
+    userId = userId != null ? String(userId).trim() : '';
+    bodyAuthUid = bodyAuthUid != null ? String(bodyAuthUid).trim() : '';
 
     if (!userId || !currentPassword || !newPassword) {
       return res.status(400).json({ error: 'Missing required fields' });
@@ -135,7 +137,7 @@ import {
       });
 
       const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      let authUserId = bodyAuthUid || userId;
+      let authUserId = (bodyAuthUid || userId || '').trim();
       if (!UUID_REGEX.test(String(authUserId))) {
         const userIdKey = /^\d+$/.test(String(userId)) ? parseInt(userId, 10) : userId;
         const { data: row } = await supabase.from('users').select('id, email, auth_id, auth_user_id').eq('id', userIdKey).single();
