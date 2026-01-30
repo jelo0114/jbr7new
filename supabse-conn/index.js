@@ -23,6 +23,38 @@ export async function getItemsWithRatings() {
   return data || [];
 }
 
+/** Get all items with ratings, optionally sorted (for explore page and highest-ratings search). */
+export async function getItemsWithRatingsSorted(sort) {
+  const cols = 'id, item_id, title, description, price, image, category, rating, review_count, created_at';
+  let query = supabase.from('items').select(cols);
+  switch (sort) {
+    case 'rating':
+      query = query.order('rating', { ascending: false }).order('review_count', { ascending: false });
+      break;
+    case 'price-low':
+      query = query.order('price', { ascending: true });
+      break;
+    case 'price-high':
+      query = query.order('price', { ascending: false });
+      break;
+    case 'newest':
+      query = query.order('created_at', { ascending: false });
+      break;
+    default:
+      query = query.order('created_at', { ascending: false });
+  }
+  const { data, error } = await query;
+  if (error) {
+    throw new Error(`getItemsWithRatingsSorted failed: ${error.message}`);
+  }
+  return (data || []).map((item) => ({
+    ...item,
+    price: parseFloat(item.price) || 0,
+    rating: Math.min(5, Math.max(0, parseFloat(item.rating) || 0)),
+    review_count: parseInt(item.review_count, 10) || 0,
+  }));
+}
+
 /** Search items by title, description, category (for header search). */
 export async function searchItems(query) {
   if (!query || typeof query !== 'string') return [];
@@ -35,8 +67,7 @@ export async function searchItems(query) {
     .from('items')
     .select('id, item_id, title, description, price, image, category, rating, review_count, created_at')
     .or(`title.ilike.${pattern},description.ilike.${pattern},category.ilike.${pattern}`)
-    .order('created_at', { ascending: false })
-    .limit(50);
+    .order('created_at', { ascending: false });
 
   if (error) {
     throw new Error(`searchItems failed: ${error.message}`);

@@ -1,6 +1,7 @@
 // pages/api/get.js - UPDATED with orders and receipts support
 import {
   getItemsWithRatings,
+  getItemsWithRatingsSorted,
   getSavedItems,
   getOrdersForUser,
   getShippingAddresses,
@@ -24,7 +25,7 @@ if (req.method !== 'GET') {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-const { action, userId, itemId, orderId, orderNumber, receiptId } = req.query;
+const { action, userId, itemId, orderId, orderNumber, receiptId, q, sort } = req.query;
 
 // Validate required parameters
 if (!action) {
@@ -36,7 +37,9 @@ try {
 
   switch (action) {
     case 'items':
-      result = await getItemsWithRatings();
+      result = sort
+        ? await getItemsWithRatingsSorted(String(sort).trim() || undefined)
+        : await getItemsWithRatings();
       return res.status(200).json({ success: true, data: result });
     
     case 'search':

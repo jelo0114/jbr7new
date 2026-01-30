@@ -1,5 +1,103 @@
 // Explore Page Functionality
 
+// Map API category to explore filter data-category
+function mapCategoryToDataCategory(category) {
+  if (!category) return 'other';
+  const c = String(category).toLowerCase();
+  if (c.includes('tote') || c.includes('jute') || c.includes('katsa')) return 'jute-tote';
+  if (c.includes('backpack')) return 'backpack';
+  if (c.includes('envelop') || c.includes('module')) return 'envelop-module';
+  if (c.includes('riki')) return 'riki';
+  if (c.includes('vanity')) return 'vanity';
+  if (c.includes('ringlight') || c.includes('ring light')) return 'ringlight';
+  if (c.includes('boys') && c.includes('kiddie')) return 'boys-kiddie';
+  if (c.includes('girls') && c.includes('kiddie')) return 'girls-kiddie';
+  if (c.includes('kiddie')) return 'boys-kiddie';
+  return c.replace(/\s+/g, '-').replace(/[^a-z0-9-]/gi, '') || 'other';
+}
+
+// Build star HTML for rating (0-5)
+function buildStarsHtml(rating) {
+  const r = Math.min(5, Math.max(0, parseFloat(rating) || 0));
+  const full = Math.floor(r);
+  const hasHalf = (r % 1) >= 0.5;
+  let html = '';
+  for (let i = 0; i < full; i++) html += '<i class="fas fa-star"></i>';
+  if (hasHalf) html += '<i class="fas fa-star-half-alt"></i>';
+  for (let i = full + (hasHalf ? 1 : 0); i < 5; i++) html += '<i class="far fa-star"></i>';
+  return html;
+}
+
+// Load all items from API (tracks all items; supports sort=rating for highest ratings)
+function loadItemsFromAPI() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const sortParam = urlParams.get('sort') || '';
+  const sortQuery = sortParam === 'rating' || sortParam === 'price-low' || sortParam === 'price-high' || sortParam === 'newest' ? sortParam : '';
+
+  const apiUrl = '/api/get?action=items' + (sortQuery ? '&sort=' + encodeURIComponent(sortQuery) : '');
+  return fetch(apiUrl, { credentials: 'same-origin' })
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      if (!data.success || !Array.isArray(data.data)) return null;
+      return data.data;
+    })
+    .catch(function () { return null; });
+}
+
+// Render product grid from API items (replaces static cards so we track all items)
+function renderProductsGrid(items) {
+  const grid = document.getElementById('productsGrid');
+  if (!grid || !items || items.length === 0) return;
+
+  const dateStr = function (d) {
+    if (!d) return new Date().toISOString().slice(0, 10);
+    return new Date(d).toISOString().slice(0, 10);
+  };
+  const escape = function (s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  };
+
+  grid.innerHTML = items.map(function (item) {
+    const title = escape(item.title);
+    const desc = escape((item.description || '').slice(0, 200));
+    const img = escape(item.image || 'totebag.avif');
+    const price = (parseFloat(item.price) || 0).toFixed(2);
+    const rating = Math.min(5, Math.max(0, parseFloat(item.rating) || 0));
+    const reviewCount = parseInt(item.review_count, 10) || 0;
+    const dataCategory = mapCategoryToDataCategory(item.category);
+    const stars = buildStarsHtml(rating);
+    const reviewText = reviewCount === 0 ? '(0 reviews)' : reviewCount === 1 ? '(1 review)' : '(' + reviewCount + ' reviews)';
+    const viewUrl = 'view.html?title=' + encodeURIComponent(item.title) + '&from=explore';
+    const safeHref = viewUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    return (
+      '<div class="product-card" data-category="' + dataCategory + '" data-price="' + price + '" data-rating="' + rating + '" data-date="' + dateStr(item.created_at) + '" data-href="' + safeHref + '">' +
+        '<div class="product-image">' +
+          '<img src="' + img + '" alt="' + title + '" onerror="this.src=\'totebag.avif\'">' +
+          '<button class="save-btn" onclick="toggleSave(this)"><i class="far fa-bookmark"></i></button>' +
+        '</div>' +
+        '<div class="product-info">' +
+          '<h3>' + title + '</h3>' +
+          '<p class="product-description">' + (desc ? desc : '') + '</p>' +
+          '<div class="rating">' +
+            stars +
+            '<span class="rating-number">' + rating.toFixed(1) + '</span>' +
+            '<span class="review-count">' + reviewText + '</span>' +
+            '<span class="rating-percentage" style="display:none;margin-left:0.5rem;color:#6b7280;font-size:0.85rem;font-weight:500;"></span>' +
+          '</div>' +
+          '<div class="product-footer"><span class="price">₱' + price + '</span></div>' +
+        '</div>' +
+      '</div>'
+    );
+  }).join('');
+
+  grid.originalOrder = Array.from(grid.querySelectorAll('.product-card'));
+}
+
 // Product mapping to match view.html PRODUCTS array
 const PRODUCT_MAP = {
     'Eco Colored Tote Bag': { id: '7', slug: 'eco-colored-tote' },
@@ -483,26 +581,60 @@ function attachProductImageFallbacks() {
     });
 }
 
-// Initialize on page load
+// Initialize on page load — load all items from API (track all items; highest ratings when sort=rating)
 document.addEventListener('DOMContentLoaded', function() {
     attachProductImageFallbacks();
-    // Initialize data attributes first
-    initializeDataAttributes();
-    
-    // Load centralized prices (if available) and then restore saved states
-    loadPrices().then(() => {
-        loadSavedStates();
+
+    loadItemsFromAPI().then(function(items) {
+        if (items && items.length > 0) {
+            renderProductsGrid(items);
+            var sortParam = new URLSearchParams(window.location.search).get('sort');
+            var sortSelect = document.getElementById('sortFilter');
+            if (sortSelect && (sortParam === 'rating' || sortParam === 'price-low' || sortParam === 'price-high' || sortParam === 'newest')) {
+                sortSelect.value = sortParam;
+            }
+            if (typeof initializeDataAttributes === 'function') initializeDataAttributes();
+            loadSavedStates();
+            updateCartCount();
+            handleSearchQuery();
+        } else {
+            initializeDataAttributes();
+            loadPrices().then(function() {
+                loadSavedStates();
+                updateCartCount();
+            }).catch(function() {
+                loadSavedStates();
+                updateCartCount();
+            });
+            updateCartCount();
+            handleSearchQuery();
+        }
+    }).catch(function() {
+        initializeDataAttributes();
+        loadPrices().then(function() {
+            loadSavedStates();
+            updateCartCount();
+        }).catch(function() {
+            loadSavedStates();
+            updateCartCount();
+        });
         updateCartCount();
-    }).catch(() => {
-        // If prices.json is missing or fails, continue with existing values
-        loadSavedStates();
-        updateCartCount();
+        handleSearchQuery();
     });
-    updateCartCount();
-    
-    // Handle search query from URL
-    handleSearchQuery();
-    
+
+    // Click on product card (except save button) goes to product view
+    var productsGridEl = document.getElementById('productsGrid');
+    if (productsGridEl) {
+        productsGridEl.addEventListener('click', function(e) {
+            if (e.target.closest('.save-btn')) return;
+            var card = e.target.closest('.product-card');
+            if (card) {
+                var href = card.getAttribute('data-href');
+                if (href) window.location.href = href;
+            }
+        });
+    }
+
     // Add smooth scroll behavior
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {

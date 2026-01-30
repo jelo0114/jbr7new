@@ -704,27 +704,25 @@ async function initHeaderFromServer() {
             dropdown.style.cssText += 'display: block !important; visibility: visible !important; opacity: 1 !important; position: absolute !important; z-index: 99999 !important;';
             console.log('performSearch - Dropdown should be visible. Display:', dropdown.style.display, 'Children:', dropdown.children.length);
             
-            // Show "Highest Ratings" option - only show if searching for products/bags specifically
-            if (query.toLowerCase().includes('bag') || query.toLowerCase().includes('bags') || query.toLowerCase().includes('product') || query.toLowerCase().includes('rating') || products.length > 0) {
-                const highestRatingOption = document.createElement('div');
-                highestRatingOption.className = 'suggestion-item suggestion-filter';
-                highestRatingOption.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; background: #f8f9fa;';
-                highestRatingOption.innerHTML = `
-                    <i class="fas fa-star" style="color: #fbbf24;"></i>
-                    <div style="flex: 1;">
-                        <strong>Highest Ratings</strong>
-                        <div style="font-size: 0.85rem; color: #666;">View all products sorted by rating</div>
-                    </div>
-                `;
-                highestRatingOption.onclick = function() {
-                    if (query) {
-                        window.location.href = `explore.html?sort=rating&q=${encodeURIComponent(query)}`;
-                    } else {
-                        window.location.href = 'explore.html?sort=rating';
-                    }
-                };
-                dropdown.appendChild(highestRatingOption);
-            }
+            // Always show "Highest Ratings" — view all items sorted by rating (track all items)
+            const highestRatingOption = document.createElement('div');
+            highestRatingOption.className = 'suggestion-item suggestion-filter';
+            highestRatingOption.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; background: #f8f9fa;';
+            highestRatingOption.innerHTML = `
+                <i class="fas fa-star" style="color: #fbbf24;"></i>
+                <div style="flex: 1;">
+                    <strong>Highest Ratings</strong>
+                    <div style="font-size: 0.85rem; color: #666;">View all products sorted by rating</div>
+                </div>
+            `;
+            highestRatingOption.onclick = function() {
+                if (query) {
+                    window.location.href = `explore.html?sort=rating&q=${encodeURIComponent(query)}`;
+                } else {
+                    window.location.href = 'explore.html?sort=rating';
+                }
+            };
+            dropdown.appendChild(highestRatingOption);
             
             // Show "View All Bags" if searching for "bag" or "bags"
             if (query.toLowerCase().includes('bag') || query.toLowerCase().includes('bags')) {
