@@ -1196,53 +1196,32 @@ function updateRatingSummary(summary){
             }
 
             if(qTitle){
-                let imgVal = qImg ? normalizeImgPath(qImg) : '';
-                // Parse price - handle both string and number, ensure it's a valid number
-                let parsedPrice = 0;
-                if (qPrice) {
-                    parsedPrice = parseFloat(qPrice);
-                    if (isNaN(parsedPrice)) parsedPrice = 0;
-                }
-                // If price is still 0, try to find product in PRODUCTS array to get default price
-                if (parsedPrice === 0 || !imgVal) {
-                    const foundProduct = PRODUCTS.find(p => 
-                        p.title.toLowerCase() === decodeURIComponent(qTitle).toLowerCase() ||
-                        p.slug === decodeURIComponent(qTitle).toLowerCase().replace(/[^a-z0-9]+/g,'-')
-                    );
-                    if (foundProduct) {
-                        if (parsedPrice === 0) {
-                            parsedPrice = foundProduct.price || 0;
-                        }
-                        // Also get images if not provided
-                        if (!imgVal && foundProduct.imgs && foundProduct.imgs.length > 0) {
-                            imgVal = foundProduct.imgs[0];
-                        }
+                const decodedTitle = decodeURIComponent(qTitle);
+                const foundProduct = PRODUCTS.find(p => 
+                    p.title.toLowerCase() === decodedTitle.toLowerCase() ||
+                    p.slug === decodedTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-')
+                );
+                if (foundProduct) {
+                    product = foundProduct;
+                } else {
+                    let imgVal = qImg ? normalizeImgPath(qImg) : '';
+                    let parsedPrice = 0;
+                    if (qPrice) {
+                        parsedPrice = parseFloat(qPrice);
+                        if (isNaN(parsedPrice)) parsedPrice = 0;
                     }
+                    if (!imgVal) imgVal = 'totebag.avif';
+                    product = {
+                        id: 'p-' + Date.now(),
+                        slug: qTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+                        title: decodedTitle,
+                        price: parsedPrice,
+                        imgs: [imgVal],
+                        desc: qDesc ? decodeURIComponent(qDesc) : '',
+                        attrs: qAttrs ? decodeURIComponent(qAttrs).split('|') : [],
+                        quantity: 100
+                    };
                 }
-                // Ensure imgVal is properly formatted
-                if (!imgVal) {
-                    imgVal = 'totebag.avif';
-                }
-                // Ensure image path doesn't start with / if it's a relative path from root
-                if (imgVal && !imgVal.startsWith('http') && !imgVal.startsWith('//') && !imgVal.startsWith('data:')) {
-                    // Keep relative paths as-is (they'll be resolved relative to current page)
-                    if (imgVal.startsWith('/')) {
-                        // Already absolute from root, keep it
-                    } else {
-                        // Relative path, keep as-is
-                    }
-                }
-                
-                product = {
-                    id: 'p-' + Date.now(),
-                    slug: qTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
-                    title: decodeURIComponent(qTitle),
-                    price: parsedPrice,
-                    imgs: [imgVal],
-                    desc: qDesc ? decodeURIComponent(qDesc) : '',
-                    attrs: qAttrs ? decodeURIComponent(qAttrs).split('|') : [],
-                    quantity: 100 // Default quantity
-                };
             }
         }
        if(!product){ product = PRODUCTS[0]; }

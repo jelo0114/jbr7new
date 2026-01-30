@@ -429,7 +429,6 @@ function populateOrders(orders) {
         var priceDisplay = itemPrice != null ? itemPrice : totalDisplay;
         var attrsText = 'Quantity: ' + quantity + (color ? ' | Color: ' + escapeHtml(color) : '');
 
-        var viewDetailsOnclick = "viewOrderDetails('" + String(order.order_number || '').replace(/'/g, "\\'") + "')";
         var showCancel = displayStatus === 'processing';
         var showTrack = displayStatus === 'shipped';
         var showLeaveReview = displayStatus === 'delivered' || displayStatus === 'shipped';
@@ -446,7 +445,7 @@ function populateOrders(orders) {
             : `<div class="order-content"><div class="order-details"><h3>Order #${escapeHtml(order.order_number)}</h3><p class="order-price">Total: ₱${escapeHtml(String(totalDisplay))}</p></div></div>`;
 
         var buttonsHtml = '<div class="order-actions">';
-        buttonsHtml += '<button class="btn-secondary" onclick="' + viewDetailsOnclick + '">View Details</button>';
+        buttonsHtml += '<button type="button" class="btn-secondary profile-view-details-btn" data-order-number="' + escapeHtml(order.order_number || '') + '" data-product-title="' + escapeHtml(itemName) + '">View Details</button>';
         if (showCancel) buttonsHtml += '<button type="button" class="btn-cancel-order profile-cancel-btn">Cancel Order</button>';
         if (showTrack) buttonsHtml += '<button type="button" class="btn-secondary profile-track-btn"><i class="fas fa-map-marker-alt"></i> Track Order</button>';
         if (showLeaveReview) buttonsHtml += '<button type="button" class="btn-primary profile-leave-review-btn" data-product-title="' + escapeHtml(itemName) + '" data-order-number="' + escapeHtml(order.order_number || '') + '">Leave Review</button>';
@@ -815,8 +814,12 @@ function getFirstProductTitleFromOrder(order) {
     return '';
 }
 
-function viewOrderDetails(orderNumber) {
-    showNotification(`Opening order ${orderNumber}...`, 'info');
+function viewOrderDetails(orderNumber, productTitle) {
+    if (productTitle) {
+        window.location.href = 'view.html?title=' + encodeURIComponent(productTitle) + '&from=profile&order_number=' + encodeURIComponent(orderNumber || '');
+    } else {
+        showNotification('Product info not available', 'info');
+    }
 }
 
 function leaveReviewFromOrder(productTitle, orderNumber) {

@@ -169,13 +169,13 @@ async function saveAccountInfo() {
     }
 }
 
-// Change password - Updated to use API
+// Change password - sync session from profile first so API finds the user
 async function changePassword() {
     const currentPassword = document.querySelector('input[placeholder="Enter current password"]')?.value;
     const newPassword = document.querySelector('input[placeholder="Enter new password"]')?.value;
     const confirmPassword = document.querySelector('input[placeholder="Confirm new password"]')?.value;
-    const rawUserId = getUserId();
-    const userId = rawUserId && String(rawUserId).trim() && String(rawUserId).trim() !== 'undefined' ? String(rawUserId).trim() : null;
+    let rawUserId = getUserId();
+    let userId = rawUserId && String(rawUserId).trim() && String(rawUserId).trim() !== 'undefined' ? String(rawUserId).trim() : null;
     
     if (!userId) {
         showNotification('Please log in first', 'info');
@@ -197,20 +197,48 @@ async function changePassword() {
         return;
     }
     
+    var userEmail = '';
     try {
+        // Sync session with DB user id from profile API so change-password finds the user
+        try {
+            const profileRes = await fetch('/api/get?action=profile&userId=' + encodeURIComponent(userId), {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (profileRes.ok) {
+                const profileData = await profileRes.json();
+                if (profileData && profileData.success && profileData.user) {
+                    if (profileData.user.id != null) {
+                        var dbId = String(profileData.user.id).trim();
+                        if (dbId && dbId !== 'undefined') {
+                            sessionStorage.setItem('jbr7_user_id', dbId);
+                            userId = dbId;
+                        }
+                    }
+                    if (profileData.user.email) userEmail = String(profileData.user.email).trim();
+                }
+            }
+        } catch (e) {
+            // continue with existing userId
+        }
+
+        var body = {
+            action: 'change-password',
+            userId,
+            authUserId: getAuthUserId() || userId,
+            currentPassword,
+            newPassword
+        };
+        if (userEmail) body.email = userEmail;
+
         const response = await fetch('/api/post', {
             method: 'POST',
             credentials: 'same-origin',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                action: 'change-password',
-                userId,
-                authUserId: getAuthUserId() || userId,
-                currentPassword,
-                newPassword
-            })
+            body: JSON.stringify(body)
         });
         
         const data = await response.json();

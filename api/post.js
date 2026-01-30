@@ -114,7 +114,7 @@ async function handleUpdateAccount(req, res) {
 // ==================== CHANGE PASSWORD ====================
 // Supports both Supabase Auth users and legacy users (password_hash in public.users).
 async function handleChangePassword(req, res) {
-  const { userId, authUserId: bodyAuthUid, currentPassword, newPassword } = req.body;
+  const { userId, authUserId: bodyAuthUid, currentPassword, newPassword, email: bodyEmail } = req.body;
   
   if (!userId || !currentPassword || !newPassword) {
     return res.status(400).json({ 
@@ -129,6 +129,7 @@ async function handleChangePassword(req, res) {
   
   const userIdStr = String(userId).trim();
   const bodyAuthUidStr = bodyAuthUid ? String(bodyAuthUid).trim() : '';
+  const emailStr = bodyEmail && String(bodyEmail).trim() ? String(bodyEmail).trim() : '';
 
   try {
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -166,6 +167,16 @@ async function handleChangePassword(req, res) {
       rowError = errStr;
     } else {
       rowError = errNum;
+    }
+
+    if (!row && emailStr) {
+      const { data: rowByEmail, error: errEmail } = await adminClient
+        .from('users')
+        .select('id, email, auth_id, auth_user_id, password_hash')
+        .eq('email', emailStr)
+        .maybeSingle();
+      if (rowByEmail) row = rowByEmail;
+      rowError = errEmail;
     }
 
     if (!row) {
