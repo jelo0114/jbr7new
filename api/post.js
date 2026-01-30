@@ -482,12 +482,12 @@ async function handleUpdateNotificationPreference(req, res) {
   }
 
   try {
-    // Get existing preferences
+    // Get existing preferences (maybeSingle so no row doesn't throw)
     const { data: existing } = await supabase
       .from('notification_preferences')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
     const updateData = {};
     if (notification_type === 'order_status') {
@@ -510,8 +510,8 @@ async function handleUpdateNotificationPreference(req, res) {
         .from('notification_preferences')
         .insert({
           user_id: userId,
-          order_status: notification_type === 'order_status' ? enabled : true,
-          cart_reminder: notification_type === 'cart_reminder' ? enabled : true
+          order_status: notification_type === 'order_status' ? isEnabled : true,
+          cart_reminder: notification_type === 'cart_reminder' ? isEnabled : true
         });
 
       if (error) throw error;

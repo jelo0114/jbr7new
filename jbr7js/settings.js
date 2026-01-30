@@ -1082,6 +1082,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (sectionName === 'shipping') {
             loadAddresses();
         }
+        if (sectionName === 'notifications') {
+            loadNotificationPreferences();
+        }
     };
 });
 
@@ -1321,18 +1324,13 @@ async function loadNotificationPreferences() {
         
         const data = await response.json();
         
-        if (data.success && data.data) {
-            // Update toggle switches
-            const orderStatusToggle = document.getElementById('pushOrderStatus');
-            const cartReminderToggle = document.getElementById('pushCartReminder');
-            
-            if (orderStatusToggle) {
-                orderStatusToggle.checked = data.data.order_status == 1;
-            }
-            if (cartReminderToggle) {
-                cartReminderToggle.checked = data.data.cart_reminder == 1;
-            }
-        }
+        const orderStatusToggle = document.getElementById('pushOrderStatus');
+        const cartReminderToggle = document.getElementById('pushCartReminder');
+        if (!orderStatusToggle || !cartReminderToggle) return;
+        // Default to on when no preference row or missing values (Supabase returns boolean true/false or null)
+        const prefs = data.success ? data.data : null;
+        orderStatusToggle.checked = prefs ? (prefs.order_status !== false && prefs.order_status !== 0) : true;
+        cartReminderToggle.checked = prefs ? (prefs.cart_reminder !== false && prefs.cart_reminder !== 0) : true;
     } catch (error) {
         console.error('Error loading notification preferences:', error);
     }

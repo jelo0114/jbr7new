@@ -1194,9 +1194,13 @@ function updateRatingSummary(summary){
 
             if(qTitle){
                 const decodedTitle = decodeURIComponent(qTitle);
+                const titleLower = decodedTitle.toLowerCase();
+                const slugFromTitle = titleLower.replace(/[^a-z0-9]+/g,'-');
+                const normalizedTitle = titleLower.replace(/[^a-z0-9]+/g,'');
                 const foundProduct = PRODUCTS.find(p => 
-                    p.title.toLowerCase() === decodedTitle.toLowerCase() ||
-                    p.slug === decodedTitle.toLowerCase().replace(/[^a-z0-9]+/g,'-')
+                    p.title.toLowerCase() === titleLower ||
+                    p.slug === slugFromTitle ||
+                    (p.slug && p.slug.replace(/-/g,'') === normalizedTitle)
                 );
                 if (foundProduct) {
                     product = foundProduct;

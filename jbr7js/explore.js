@@ -176,6 +176,7 @@ const PRODUCT_MAP = {
     'Eco Jute Tote Bag': { id: '1', slug: 'eco-jute-tote' },
     'Riki Bag': { id: '4', slug: 'riki-bag' },
     'Ring Light Bag': { id: '5', slug: 'ringlight-bag' },
+    'Ringlight Bag': { id: '5', slug: 'ringlight-bag' },
     'Vanity Mirror Bag': { id: '6', slug: 'vanity-mirror-bag' }
 };
 
