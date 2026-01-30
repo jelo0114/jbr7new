@@ -3,9 +3,12 @@
 // 3) fetchSessionAndPopulateProfile: GET /api/get?action=profile&userId= -> 401 redirect signin; !ok -> populateGuestProfile(); success -> populateProfilePage(data); if no orders -> loadOrdersForProfile(userId).
 // 4) populateProfilePage: avatar, name, email, member since, stat cards, points, populateWishlist(items), populateOrders(orders). 5) Section switch (showProfileSection): reviews -> loadUserReviews(); rewards/activity -> loadUserActivities().
 
-// Get user ID from session storage
+// Session shared with settings: jbr7_user_id (public id), jbr7_auth_uid (Supabase Auth UUID if any).
 function getUserId() {
     return sessionStorage.getItem('jbr7_user_id');
+}
+function getAuthUserId() {
+    return sessionStorage.getItem('jbr7_auth_uid');
 }
 
 // Show specific profile section
@@ -406,6 +409,8 @@ function populateOrders(orders) {
 
         const statusClass = getStatusClass(displayStatus);
         const formattedDate = formatOrderDate(order.created_at);
+        var firstProductTitle = getFirstProductTitleFromOrder(order);
+        var showLeaveReview = (displayStatus === 'delivered' || displayStatus === 'shipped');
 
         orderCard.innerHTML = `
             <div class="order-header">
@@ -417,11 +422,19 @@ function populateOrders(orders) {
             </div>
             <div class="order-details">
                 <p class="order-total">Total: ₱${escapeHtml(order.total)}</p>
-                <button class="btn-secondary" onclick="viewOrderDetails('${escapeHtml(order.order_number)}')">
+                <button class="btn-secondary" onclick="viewOrderDetails('${escapeHtml(order.order_number).replace(/'/g, "\\'")}')">
                     View Details
                 </button>
+                <button type="button" class="btn-primary profile-leave-review-btn" data-product-title="${escapeHtml(firstProductTitle || '')}" data-order-number="${escapeHtml(order.order_number || '')}" ${showLeaveReview ? '' : ' style="display:none"'}>Leave Review</button>
             </div>
         `;
+        if (showLeaveReview) {
+            var btn = orderCard.querySelector('.profile-leave-review-btn');
+            if (btn) btn.addEventListener('click', function () {
+                var t = this.getAttribute('data-product-title') || '';
+                leaveReviewFromOrder(t, this.getAttribute('data-order-number') || '');
+            });
+        }
         ordersList.appendChild(orderCard);
     });
 }
@@ -725,12 +738,33 @@ function filterOrders(status) {
     });
 }
 
+// Get first product title from order (for Leave Review link)
+function getFirstProductTitleFromOrder(order) {
+    if (!order) return '';
+    var items = order.order_items || order.items;
+    if (Array.isArray(items) && items.length > 0) {
+        var name = items[0].item_name || items[0].name;
+        if (name) return String(name).trim();
+    }
+    if (order.items_json) {
+        try {
+            var parsed = typeof order.items_json === 'string' ? JSON.parse(order.items_json) : order.items_json;
+            if (Array.isArray(parsed) && parsed.length > 0) return String(parsed[0].name || parsed[0].item_name || '').trim();
+        } catch (e) {}
+    }
+    return '';
+}
+
 function viewOrderDetails(orderNumber) {
     showNotification(`Opening order ${orderNumber}...`, 'info');
 }
 
-function trackOrder(orderId) {
-    showNotification(`Tracking order #${orderId}...`, 'info');
+function leaveReviewFromOrder(productTitle, orderNumber) {
+    if (productTitle) {
+        window.location.href = 'view.html?title=' + encodeURIComponent(productTitle) + '&review=true&from=profile&order_number=' + encodeURIComponent(orderNumber || '');
+    } else {
+        showNotification('Product information not available', 'info');
+    }
 }
 
 function reorder(orderId) {

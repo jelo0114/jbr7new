@@ -1,8 +1,11 @@
 // Settings Page Functionality - Updated to use Next.js API with Supabase
 
-// Get user ID from session storage
+// Session shared with profile: jbr7_user_id, jbr7_auth_uid (same keys as profile.js).
 function getUserId() {
     return sessionStorage.getItem('jbr7_user_id');
+}
+function getAuthUserId() {
+    return sessionStorage.getItem('jbr7_auth_uid');
 }
 
 // Show specific settings section
@@ -203,7 +206,7 @@ async function changePassword() {
             body: JSON.stringify({
                 action: 'change-password',
                 userId,
-                authUserId: sessionStorage.getItem('jbr7_auth_uid') || userId,
+                authUserId: getAuthUserId() || userId,
                 currentPassword,
                 newPassword
             })

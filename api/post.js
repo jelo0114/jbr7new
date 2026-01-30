@@ -1,6 +1,3 @@
-// pages/api/post.js
-// POST endpoint for user actions (create, update, delete)
-
 import {
   saveShippingAddress,
   deleteShippingAddress,
@@ -9,7 +6,12 @@ import {
   setNotificationPreference,
 } from '../supabse-conn/index';
 
+import { createHash } from 'crypto';
 import { supabase } from '../lib/supabaseClient';
+
+function hashPassword(password) {
+  return createHash('sha256').update(password).digest('hex');
+}
 
 export default async function handler(req, res) {
   // Only allow POST requests
@@ -110,11 +112,10 @@ async function handleUpdateAccount(req, res) {
 }
 
 // ==================== CHANGE PASSWORD ====================
-// Supabase stores passwords in auth.users, not public.users. Use Auth Admin API.
+// Supports both Supabase Auth users and legacy users (password_hash in public.users).
 async function handleChangePassword(req, res) {
   const { userId, authUserId: bodyAuthUid, currentPassword, newPassword } = req.body;
   
-  // Validate required fields BEFORE any transformations
   if (!userId || !currentPassword || !newPassword) {
     return res.status(400).json({ 
       error: 'Missing required fields',
@@ -126,7 +127,6 @@ async function handleChangePassword(req, res) {
     });
   }
   
-  // Now safely transform the values
   const userIdStr = String(userId).trim();
   const bodyAuthUidStr = bodyAuthUid ? String(bodyAuthUid).trim() : '';
 
@@ -137,7 +137,7 @@ async function handleChangePassword(req, res) {
     if (!serviceRoleKey || !supabaseUrl) {
       return res.status(501).json({
         success: false,
-        error: 'Password change is not configured (missing SUPABASE_SERVICE_ROLE_KEY). Use the app\'s Change Password form with Supabase Auth.'
+        error: 'Password change is not configured (missing SUPABASE_SERVICE_ROLE_KEY).'
       });
     }
 
@@ -146,42 +146,66 @@ async function handleChangePassword(req, res) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
+    const userIdKey = /^\d+$/.test(String(userIdStr)) ? parseInt(userIdStr, 10) : userIdStr;
+    const { data: row, error: rowError } = await adminClient
+      .from('users')
+      .select('id, email, auth_id, auth_user_id, password_hash')
+      .eq('id', userIdKey)
+      .single();
+
+    if (rowError || !row) {
+      console.error('Change password user lookup:', rowError || 'not found');
+      return res.status(400).json({
+        success: false,
+        error: 'User not found. Please sign out and sign in again.'
+      });
+    }
+
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    let authUserId = (bodyAuthUidStr || userIdStr || '').trim();
-    
-    if (!UUID_REGEX.test(String(authUserId))) {
-      const userIdKey = /^\d+$/.test(String(userIdStr)) ? parseInt(userIdStr, 10) : userIdStr;
-      const { data: row } = await supabase.from('users').select('id, email, auth_id, auth_user_id').eq('id', userIdKey).single();
-      
-      if (row && (row.auth_id || row.auth_user_id)) {
-        authUserId = row.auth_id || row.auth_user_id;
-      } else if (row && row.email) {
-        const { data: listData } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
-        const authUser = (listData && listData.users) ? listData.users.find(u => (u.email || '').toLowerCase() === (row.email || '').toLowerCase()) : null;
-        if (authUser && authUser.id) authUserId = authUser.id;
+    let authUserId = (bodyAuthUidStr || '').trim();
+    if (!UUID_REGEX.test(String(authUserId)) && (row.auth_id || row.auth_user_id)) {
+      authUserId = String(row.auth_id || row.auth_user_id).trim();
+    }
+    if (!UUID_REGEX.test(String(authUserId)) && row.email) {
+      const { data: listData } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
+      const authUser = (listData && listData.users)
+        ? listData.users.find(u => (u.email || '').toLowerCase() === (row.email || '').toLowerCase())
+        : null;
+      if (authUser && authUser.id) authUserId = authUser.id;
+    }
+
+    if (UUID_REGEX.test(String(authUserId))) {
+      const { error } = await adminClient.auth.admin.updateUserById(authUserId, { password: newPassword });
+      if (error) {
+        console.error('Change password Auth error:', error);
+        return res.status(400).json({ success: false, error: error.message || 'Failed to update password' });
       }
-    }
-    
-    if (!UUID_REGEX.test(String(authUserId))) {
-      return res.status(400).json({
-        success: false,
-        error: 'Account not linked to sign-in. Please sign out and sign in again.',
-      });
+      return res.status(200).json({ success: true, message: 'Password updated successfully' });
     }
 
-    const { data, error } = await adminClient.auth.admin.updateUserById(authUserId, { password: newPassword });
-
-    if (error) {
-      console.error('Change password error:', error);
-      return res.status(400).json({
-        success: false,
-        error: error.message || 'Failed to update password'
-      });
+    if (row.password_hash) {
+      const currentHash = hashPassword(currentPassword);
+      if (currentHash !== row.password_hash) {
+        return res.status(400).json({
+          success: false,
+          error: 'Current password is incorrect.'
+        });
+      }
+      const newHash = hashPassword(newPassword);
+      const { error: updateError } = await adminClient
+        .from('users')
+        .update({ password_hash: newHash })
+        .eq('id', userIdKey);
+      if (updateError) {
+        console.error('Change password legacy update:', updateError);
+        return res.status(500).json({ success: false, error: 'Failed to update password.' });
+      }
+      return res.status(200).json({ success: true, message: 'Password updated successfully' });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: 'Password updated successfully'
+    return res.status(400).json({
+      success: false,
+      error: 'Account not linked to sign-in. Please sign out and sign in again.'
     });
   } catch (error) {
     console.error('Change password error:', error);
