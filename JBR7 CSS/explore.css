@@ -77,6 +77,12 @@
     box-shadow: 0 0 0 3px rgba(0, 105, 35, 0.1);
 }
 
+.filter-group label strong,
+.filter-group strong,
+.filters strong {
+    color: #000;
+}
+
 /* Products Grid */
 .products {
     padding: 3rem 5%;
@@ -258,7 +264,7 @@
 
 .rating .rating-number {
     font-weight: 600;
-    color: #333;
+    color: #000;
     margin-left: 0.3rem;
     font-size: 0.95rem;
 }
