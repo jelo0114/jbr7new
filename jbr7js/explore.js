@@ -72,10 +72,12 @@ function renderProductsGrid(items) {
     const dataCategory = mapCategoryToDataCategory(item.category);
     const stars = buildStarsHtml(rating);
     const reviewText = reviewCount === 0 ? '(0 reviews)' : reviewCount === 1 ? '(1 review)' : '(' + reviewCount + ' reviews)';
+    const percentVal = Math.round((rating / 5) * 100);
+    const percentDisplay = percentVal + '%';
     const viewUrl = 'view.html?title=' + encodeURIComponent(item.title) + '&from=explore';
     const safeHref = viewUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
     return (
-      '<div class="product-card" data-category="' + dataCategory + '" data-price="' + price + '" data-rating="' + rating + '" data-date="' + dateStr(item.created_at) + '" data-href="' + safeHref + '">' +
+      '<div class="product-card" data-category="' + dataCategory + '" data-price="' + price + '" data-rating="' + rating + '" data-date="' + dateStr(item.created_at) + '" data-href="' + safeHref + '" data-review-count="' + reviewCount + '">' +
         '<div class="product-image">' +
           '<img src="' + img + '" alt="' + title + '" onerror="this.src=\'totebag.avif\'">' +
           '<button class="save-btn" onclick="toggleSave(this)"><i class="far fa-bookmark"></i></button>' +
@@ -87,7 +89,7 @@ function renderProductsGrid(items) {
             stars +
             '<span class="rating-number">' + rating.toFixed(1) + '</span>' +
             '<span class="review-count">' + reviewText + '</span>' +
-            '<span class="rating-percentage" style="display:none;margin-left:0.5rem;color:#6b7280;font-size:0.85rem;font-weight:500;"></span>' +
+            '<span class="rating-percentage" style="margin-left:0.5rem;color:#6b7280;font-size:0.85rem;font-weight:500;">' + percentDisplay + '</span>' +
           '</div>' +
           '<div class="product-footer"><span class="price">₱' + price + '</span></div>' +
         '</div>' +
