@@ -46,7 +46,7 @@
 
 .filter-group label {
     font-weight: 600;
-    color: #333;
+    color: #000;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -63,6 +63,7 @@
     font-size: 1rem;
     cursor: pointer;
     background-color: #fff;
+    color: #000;
     transition: all 0.3s ease;
     outline: none;
 }
