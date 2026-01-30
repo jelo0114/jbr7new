@@ -1256,29 +1256,25 @@ function updateRatingSummary(summary){
             console.warn('No product title found, cannot load reviews');
         }
         
-        // Check if user wants to leave a review (from profile or order)
+        // When review=true in URL (e.g. from profile Leave Review): show review form if user is logged in
         const showReview = qParam('review') === 'true';
         const orderItemId = qParam('order_item_id');
         
         if(showReview || orderItemId){
-            // Show review form for authenticated users
-            apiFetch('/api/check_auth', { credentials: 'same-origin' })
-                .then(r => r.json())
-                .then(data => {
-                    if(data.authenticated){
-                        document.getElementById('reviewFormContainer').style.display = 'block';
-                        initStarRating();
-                        // Scroll to review form
-                        setTimeout(() => {
-                            document.getElementById('reviewFormContainer').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        }, 500);
-                    } else {
-                        if(typeof showNotification === 'function') {
-                            showNotification('Please login to leave a review', 'info');
-                        }
-                    }
-                })
-                .catch(() => {});
+            var uid = sessionStorage.getItem('jbr7_user_id');
+            var isLoggedIn = uid && String(uid).trim() !== '' && String(uid).trim() !== 'undefined';
+            if(isLoggedIn){
+                document.getElementById('reviewFormContainer').style.display = 'block';
+                initStarRating();
+                setTimeout(function(){
+                    var el = document.getElementById('reviewFormContainer');
+                    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 500);
+            } else {
+                if(typeof showNotification === 'function') {
+                    showNotification('Please login to leave a review', 'info');
+                }
+            }
         }
         
         // Initialize review form
