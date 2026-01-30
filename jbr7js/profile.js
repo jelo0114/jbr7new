@@ -476,6 +476,7 @@ function populateOrders(orders) {
 
         var showCancel = displayStatus === 'processing';
         var showTrack = displayStatus === 'shipped';
+        var showLeaveReview = displayStatus === 'delivered' || displayStatus === 'shipped';
 
         var productHtml = firstItem
             ? `<div class="order-content">
@@ -509,6 +510,12 @@ function populateOrders(orders) {
             </div>
         `;
 
+        if (showLeaveReview) {
+            var leaveBtn = orderCard.querySelector('.profile-leave-review-btn');
+            if (leaveBtn) leaveBtn.addEventListener('click', function () {
+                leaveReviewFromOrder(this.getAttribute('data-product-title') || '', this.getAttribute('data-order-number') || '');
+            });
+        }
         if (showCancel) {
             var cancelBtn = orderCard.querySelector('.profile-cancel-btn');
             if (cancelBtn) cancelBtn.addEventListener('click', function () { cancelOrder(order.id || order.order_number); });

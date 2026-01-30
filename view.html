@@ -578,9 +578,19 @@ let REVIEWS = [];
         }
     }
 
-    // Submit review
+    // Submit review — connected to Supabase reviews table (SQL: supabase_reviews_table.sql)
     async function submitReview(e){
         e.preventDefault();
+        
+        const userId = sessionStorage.getItem('jbr7_user_id');
+        if (!userId || String(userId).trim() === '' || String(userId).trim() === 'undefined') {
+            if (typeof showNotification === 'function') {
+                showNotification('Please log in to leave a review', 'info');
+            } else {
+                alert('Please log in to leave a review');
+            }
+            return;
+        }
         
         const rating = document.getElementById('reviewRating').value;
         const content = document.getElementById('reviewContent').value.trim();
@@ -596,22 +606,8 @@ let REVIEWS = [];
         
         const productTitle = document.getElementById('productTitle').textContent.trim();
         console.log('Submitting review for product:', productTitle);
-        const productPrice = document.getElementById('productPrice').textContent.replace('₱', '').trim();
-        const mainImg = document.getElementById('mainImg');
-        // Get relative path from src, handling both absolute and relative URLs
-        let productImage = mainImg ? mainImg.src : '';
-        // Convert absolute URL to relative path if needed
-        if (productImage && productImage.includes(window.location.origin)) {
-            productImage = productImage.replace(window.location.origin, '');
-        }
-        // Remove leading slash if present
-        if (productImage && productImage.startsWith('/')) {
-            productImage = productImage.substring(1);
-        }
-        const orderItemId = qParam('order_item_id');
         
         try {
-            // Parse rating - allow decimals for half stars
             const ratingValue = parseFloat(rating);
             if (isNaN(ratingValue) || ratingValue < 0.5 || ratingValue > 5) {
                 alert('Please select a valid rating (0.5 to 5 stars)');
@@ -625,7 +621,8 @@ let REVIEWS = [];
                 body: JSON.stringify({
                     item_title: productTitle,
                     rating: ratingValue,
-                    content: content
+                    content: content,
+                    userId: userId
                 })
             });
             

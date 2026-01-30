@@ -147,12 +147,14 @@ async function handleChangePassword(req, res) {
       auth: { autoRefreshToken: false, persistSession: false }
     });
 
+    // Look up user by id or email — select only columns that exist on public.users (id, email, password_hash)
     const userIdKey = /^\d+$/.test(String(userIdStr)) ? parseInt(userIdStr, 10) : userIdStr;
+    const userColumns = 'id, email, password_hash';
     let row = null;
     let rowError = null;
     const { data: rowByNum, error: errNum } = await adminClient
       .from('users')
-      .select('id, email, auth_id, auth_user_id, password_hash')
+      .select(userColumns)
       .eq('id', userIdKey)
       .maybeSingle();
     if (rowByNum) {
@@ -160,7 +162,7 @@ async function handleChangePassword(req, res) {
     } else if (userIdStr !== String(userIdKey)) {
       const { data: rowByStr, error: errStr } = await adminClient
         .from('users')
-        .select('id, email, auth_id, auth_user_id, password_hash')
+        .select(userColumns)
         .eq('id', userIdStr)
         .maybeSingle();
       if (rowByStr) row = rowByStr;
@@ -172,7 +174,7 @@ async function handleChangePassword(req, res) {
     if (!row && emailStr) {
       const { data: rowByEmail, error: errEmail } = await adminClient
         .from('users')
-        .select('id, email, auth_id, auth_user_id, password_hash')
+        .select(userColumns)
         .eq('email', emailStr)
         .maybeSingle();
       if (rowByEmail) row = rowByEmail;
@@ -180,7 +182,7 @@ async function handleChangePassword(req, res) {
     }
 
     if (!row) {
-      console.error('Change password user lookup:', rowError || 'not found', 'userId:', userIdStr);
+      console.error('Change password user lookup:', rowError || 'not found', 'userId:', userIdStr, 'email:', emailStr || '(none)');
       return res.status(400).json({
         success: false,
         error: 'User not found. Please sign out and sign in again.'
@@ -189,9 +191,6 @@ async function handleChangePassword(req, res) {
 
     const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
     let authUserId = (bodyAuthUidStr || '').trim();
-    if (!UUID_REGEX.test(String(authUserId)) && (row.auth_id || row.auth_user_id)) {
-      authUserId = String(row.auth_id || row.auth_user_id).trim();
-    }
     if (!UUID_REGEX.test(String(authUserId)) && row.email) {
       const { data: listData } = await adminClient.auth.admin.listUsers({ perPage: 1000 });
       const authUser = (listData && listData.users)
