@@ -279,7 +279,7 @@ async function handleClaimReward(req, res) {
   }
 }
 
-// ==================== DELETE ACCOUNT ====================
+// ==================== DELETE ACCOUNT (delete all user data then user) ====================
 async function handleDeleteAccount(req, res) {
   const { userId, password } = req.body;
 
@@ -287,21 +287,27 @@ async function handleDeleteAccount(req, res) {
     return res.status(400).json({ error: 'Missing required fields' });
   }
 
+  const uid = parseInt(userId, 10) || userId;
+
   try {
-    // In production, verify password first
-    // Then delete all related data and the user
+    // Delete all user data first (child tables then parent)
+    const { data: userOrders } = await supabase.from('orders').select('id').eq('user_id', uid);
+    const orderIds = (userOrders || []).map(o => o.id).filter(Boolean);
+    if (orderIds.length > 0) {
+      await supabase.from('order_items').delete().in('order_id', orderIds);
+    }
+    const tablesToClear = ['orders', 'reviews', 'saved_items', 'shipping_addresses', 'user_coupons', 'notifications', 'user_activities', 'receipts', 'login_history', 'user_preferences'];
+    for (const table of tablesToClear) {
+      const { error: delErr } = await supabase.from(table).delete().eq('user_id', uid);
+      if (delErr && !/does not exist|relation/i.test(delErr.message)) console.warn('Delete', table, delErr.message);
+    }
 
-    // Delete user (CASCADE should handle related data)
-    const { error } = await supabase
-      .from('users')
-      .delete()
-      .eq('id', userId);
-
+    const { error } = await supabase.from('users').delete().eq('id', uid);
     if (error) throw error;
 
     return res.status(200).json({
       success: true,
-      message: 'Account deleted successfully'
+      message: 'Account and all associated data deleted successfully'
     });
   } catch (error) {
     console.error('Delete account error:', error);

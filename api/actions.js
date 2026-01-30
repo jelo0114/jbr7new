@@ -13,6 +13,7 @@ import {
   updateOrderStatus,
   submitReview,
   logUserActivity,
+  logLogin,
 } from '../supabse-conn/index';
 
 import { createHash } from 'crypto';
@@ -117,6 +118,15 @@ export default async function handler(req, res) {
             success: false, 
             error: 'Invalid email or password' 
           });
+        }
+
+        try {
+          await logLogin(String(user.id), {
+            ip_address: req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || null,
+            user_agent: req.headers['user-agent'] || null,
+          });
+        } catch (e) {
+          console.warn('logLogin failed:', e);
         }
 
         return res.status(200).json({

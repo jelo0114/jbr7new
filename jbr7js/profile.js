@@ -53,6 +53,9 @@ function showProfileSection(sectionName) {
         if (typeof loadUserActivities === 'function') {
             loadUserActivities();
         }
+        if (sectionName === 'rewards' && typeof loadPointsHistory === 'function') {
+            loadPointsHistory();
+        }
     }
 }
 
@@ -1113,6 +1116,44 @@ async function claimReward(pointsCost, discountPercent) {
     } catch (e) {
         console.error('Claim reward error:', e);
         showNotification('Failed to claim reward. Try again.', 'info');
+    }
+}
+
+// Load points history (60 pts/order, 20 pts/review, -X redeemed) for Rewards section
+async function loadPointsHistory() {
+    const listEl = document.getElementById('pointsHistoryList');
+    if (!listEl) return;
+    const userId = getUserId();
+    if (!userId) {
+        listEl.innerHTML = '<p style="text-align:center;color:#9ca3af;">Please log in to view points history.</p>';
+        return;
+    }
+    try {
+        const res = await fetch('/api/get?action=points-history&userId=' + encodeURIComponent(userId), { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!data.success || !Array.isArray(data.data)) {
+            listEl.innerHTML = '<p style="text-align:center;color:#9ca3af;">No points history yet.</p>';
+            return;
+        }
+        const entries = data.data;
+        if (entries.length === 0) {
+            listEl.innerHTML = '<p style="text-align:center;color:#9ca3af;">No points history yet.</p>';
+            return;
+        }
+        listEl.innerHTML = '';
+        entries.forEach(function(entry) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            const dateStr = entry.date ? new Date(entry.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+            const pts = entry.points != null ? entry.points : 0;
+            const isRedeem = pts < 0;
+            item.innerHTML = '<div class="history-info"><strong>' + escapeHtml(entry.description || '') + '</strong><span>' + dateStr + '</span></div>' +
+                '<span class="' + (isRedeem ? 'points-redeemed' : 'points-earned') + '">' + (pts >= 0 ? '+' : '') + pts + ' pts</span>';
+            listEl.appendChild(item);
+        });
+    } catch (e) {
+        console.error('Load points history error:', e);
+        listEl.innerHTML = '<p style="text-align:center;color:#dc2626;">Failed to load points history.</p>';
     }
 }
 

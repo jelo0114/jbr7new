@@ -477,7 +477,7 @@ export async function getUserActivities(userId) {
           description: `Order #${order.order_number}`,
           time_ago: formatTimeAgo(order.created_at),
           date: new Date(order.created_at).toLocaleDateString(),
-          points: 150
+          points: 60
         });
       });
     }
@@ -489,7 +489,7 @@ export async function getUserActivities(userId) {
           description: `Reviewed ${review.product_title}`,
           time_ago: formatTimeAgo(review.created_at),
           date: new Date(review.created_at).toLocaleDateString(),
-          points: 50
+          points: 20
         });
       });
     }
@@ -504,6 +504,43 @@ export async function getUserActivities(userId) {
   } catch (error) {
     console.error('getUserActivities error:', error);
     throw error;
+  }
+}
+
+// Points history: orders +60, reviews +20, redemptions -X (for profile Points History section)
+export async function getPointsHistory(userId) {
+  if (!userId) return [];
+  const entries = [];
+  try {
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('order_number, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    (orders || []).forEach(o => {
+      entries.push({ type: 'order', description: 'Order Purchase', date: o.created_at, points: 60 });
+    });
+    const { data: reviews } = await supabase
+      .from('reviews')
+      .select('product_title, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    (reviews || []).forEach(r => {
+      entries.push({ type: 'review', description: 'Product Review', date: r.created_at, points: 20 });
+    });
+    const { data: coupons } = await supabase
+      .from('user_coupons')
+      .select('points_spent, discount_percent, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    (coupons || []).forEach(c => {
+      entries.push({ type: 'redeemed', description: `Redeemed: ${c.discount_percent}% Off Coupon`, date: c.created_at, points: -Math.abs(parseInt(c.points_spent, 10) || 0) });
+    });
+    entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+    return entries.slice(0, 50);
+  } catch (e) {
+    console.error('getPointsHistory error:', e);
+    return [];
   }
 }
 
@@ -723,6 +760,35 @@ export async function addUserPoints(userId, amount) {
   const { data: userRow } = await supabase.from('users').select('points').eq('id', userId).single();
   const current = parseInt(userRow?.points, 10) || 0;
   await supabase.from('users').update({ points: current + amount }).eq('id', userId);
+}
+
+// -----------------------------
+// LOGIN HISTORY (for settings)
+// -----------------------------
+
+export async function getLoginHistory(userId) {
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from('login_history')
+    .select('*')
+    .eq('user_id', userId)
+    .order('login_time', { ascending: false })
+    .limit(50);
+  if (error) {
+    console.error('getLoginHistory error:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function logLogin(userId, { ip_address, user_agent } = {}) {
+  if (!userId) return;
+  await supabase.from('login_history').insert({
+    user_id: userId,
+    ip_address: ip_address || null,
+    user_agent: user_agent || null,
+    login_time: new Date().toISOString(),
+  });
 }
 
 // -----------------------------

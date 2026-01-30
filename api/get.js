@@ -10,6 +10,9 @@ import {
   getUserActivities,
   getUserProfile,
   getUserReviews,
+  getUserCoupons,
+  getPointsHistory,
+  getLoginHistory,
 } from '../supabse-conn/index';
 
 import { supabase } from '../lib/supabaseClient';
@@ -113,6 +116,26 @@ try {
       result = await getUserCoupons(userId);
       return res.status(200).json({ success: true, data: result });
     
+    case 'points-history':
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required for points-history' });
+      }
+      result = await getPointsHistory(userId);
+      return res.status(200).json({ success: true, data: result });
+    
+    case 'login-history':
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required for login-history' });
+      }
+      result = await getLoginHistory(userId);
+      return res.status(200).json({ success: true, data: result });
+    
+    case 'export-user-data':
+      if (!userId) {
+        return res.status(400).json({ error: 'userId is required for export-user-data' });
+      }
+      return await handleExportUserData(req, res, userId);
+    
     // ==================== NEW: RECEIPTS ACTION ====================
     case 'receipts':
       if (!userId && !orderId && !receiptId) {
@@ -215,9 +238,43 @@ try {
   return res.status(200).json({ success: true, data: data || [] });
 } catch (err) {
   console.error('handleGetReceipts error:', err);
-  return res.status(500).json({ 
-    success: false, 
-    error: 'Failed to fetch receipts: ' + err.message 
+  return res.status(500).json({
+    success: false,
+    error: err.message || 'Failed to get receipts'
   });
 }
+}
+
+// ==================== EXPORT USER DATA (download all user data) ====================
+async function handleExportUserData(req, res, userId) {
+  try {
+    const [profile, orders, addresses, reviews, savedItems, coupons, pointsHistory, loginHistory, preferences] = await Promise.all([
+      getUserProfile(userId).catch(() => null),
+      getOrdersForUser(userId).catch(() => []),
+      getShippingAddresses(userId).catch(() => []),
+      getUserReviews(userId).catch(() => []),
+      getSavedItems(userId).catch(() => []),
+      getUserCoupons(userId).catch(() => []),
+      getPointsHistory(userId).catch(() => []),
+      getLoginHistory(userId).catch(() => []),
+      getUserPreferences(userId).catch(() => null),
+    ]);
+    const payload = {
+      exported_at: new Date().toISOString(),
+      user_id: userId,
+      profile: profile || null,
+      orders: Array.isArray(orders) ? orders : [],
+      shipping_addresses: Array.isArray(addresses) ? addresses : [],
+      reviews: Array.isArray(reviews) ? reviews : [],
+      saved_items: Array.isArray(savedItems) ? savedItems : [],
+      coupons: Array.isArray(coupons) ? coupons : [],
+      points_history: Array.isArray(pointsHistory) ? pointsHistory : [],
+      login_history: Array.isArray(loginHistory) ? loginHistory : [],
+      preferences: preferences || null,
+    };
+    return res.status(200).json({ success: true, data: payload });
+  } catch (err) {
+    console.error('handleExportUserData error:', err);
+    return res.status(500).json({ success: false, error: err.message || 'Export failed' });
+  }
 }

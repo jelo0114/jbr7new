@@ -299,30 +299,78 @@ async function loadLoginHistory() {
         </div>
     `;
     
-    // Placeholder - implement when backend endpoint is ready
-    setTimeout(() => {
-        container.innerHTML = `
-            <div style="text-align: center; padding: 2rem; color: #666;">
-                <i class="fas fa-info-circle" style="font-size: 2rem; margin-bottom: 1rem; color: #3b5d72;"></i>
-                <p>Login history feature coming soon</p>
-            </div>
-        `;
-    }, 500);
+    try {
+        const response = await fetch('/api/get?action=login-history&userId=' + encodeURIComponent(userId), {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        if (!data.success || !Array.isArray(data.data)) {
+            container.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: #666;">
+                    <i class="fas fa-sign-in-alt" style="font-size: 2rem; margin-bottom: 1rem; color: #3b5d72;"></i>
+                    <p>No login history yet</p>
+                </div>
+            `;
+            return;
+        }
+        const list = data.data;
+        if (list.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #666;"><p>No login history yet</p></div>';
+            return;
+        }
+        container.innerHTML = list.map(entry => {
+            const loginTime = entry.login_time ? new Date(entry.login_time).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
+            const ip = entry.ip_address || '—';
+            const ua = (entry.user_agent || '').substring(0, 60) + ((entry.user_agent || '').length > 60 ? '…' : '');
+            return `
+                <div style="padding: 0.75rem 0; border-bottom: 1px solid #eee;">
+                    <strong style="color: #222;">${loginTime}</strong>
+                    ${ip !== '—' ? '<div style="font-size: 0.85rem; color: #6b7280;">IP: ' + ip + '</div>' : ''}
+                    ${ua ? '<div style="font-size: 0.8rem; color: #9ca3af;">' + ua + '</div>' : ''}
+                </div>
+            `;
+        }).join('');
+    } catch (e) {
+        console.error('Load login history error:', e);
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: #dc2626;"><p>Failed to load login history</p></div>';
+    }
 }
 
 function viewFullHistory() {
     loadLoginHistory();
 }
 
-// Download user data as PDF - Updated for API (placeholder)
+// Download all user data (profile, orders, addresses, reviews, saved items, coupons, points history, login history, preferences)
 async function downloadUserData() {
     const userId = getUserId();
     if (!userId) {
         showNotification('Please log in first', 'info');
         return;
     }
-    
-    // Data export reserved for future
+    try {
+        showNotification('Preparing your data...', 'info');
+        const response = await fetch('/api/get?action=export-user-data&userId=' + encodeURIComponent(userId), {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+        const data = await response.json();
+        if (!data.success || !data.data) {
+            showNotification(data.error || 'Failed to export data', 'info');
+            return;
+        }
+        const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification('Data downloaded', 'success');
+    } catch (e) {
+        console.error('Download data error:', e);
+        showNotification('Failed to download data', 'info');
+    }
 }
 
 // Delete account - Updated to use API
