@@ -446,7 +446,17 @@ function updateQuantity(index, change) {
         removeItem(index);
     } else {
         saveCartToStorage();
-        renderCart();
+        // Update only this row's qty and line total (no full re-render = no animation)
+        const item = cartItems[index];
+        const priceNum = parseFloat(String(item.price).replace(/[^0-9\.\-]/g, '')) || 0;
+        const lineTotal = (priceNum * item.quantity).toFixed(2);
+        const row = document.querySelector('.cart-item[data-index="' + index + '"]');
+        if (row) {
+            const qtyEl = row.querySelector('.qty-display');
+            const priceEl = row.querySelector('.item-price');
+            if (qtyEl) qtyEl.textContent = item.quantity;
+            if (priceEl) priceEl.textContent = '₱' + lineTotal;
+        }
         updateSummary();
         showNotification(`Quantity updated for ${cartItems[index].name}`, 'info');
     }

@@ -100,6 +100,67 @@ function renderProductsGrid(items) {
   grid.originalOrder = Array.from(grid.querySelectorAll('.product-card'));
 }
 
+// Fetch real review data from API for each product card and update rating, review count, percentage
+function fetchAndUpdateCardRatings() {
+  var grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  var cards = grid.querySelectorAll('.product-card');
+  var fetchFn = typeof window.apiFetch === 'function' ? window.apiFetch : fetch;
+
+  function updateCardWithSummary(card, productTitle, summary) {
+    var total = summary && typeof summary.total === 'number' ? summary.total : 0;
+    var average = summary && typeof summary.average === 'number' ? summary.average : 0;
+    var clampedRating = Math.max(0, Math.min(5, average));
+
+    var ratingEl = card.querySelector('.rating-number');
+    var reviewCountEl = card.querySelector('.review-count');
+    var ratingPercentageEl = card.querySelector('.rating-percentage');
+    var starsContainer = card.querySelector('.rating');
+
+    if (ratingEl) {
+      ratingEl.textContent = average > 0 ? average.toFixed(1) : '0.0';
+      card.setAttribute('data-rating', clampedRating.toString());
+    }
+    if (reviewCountEl) {
+      if (total === 0) reviewCountEl.textContent = '(0 reviews)';
+      else if (total === 1) reviewCountEl.textContent = '(1 review)';
+      else reviewCountEl.textContent = '(' + total + ' reviews)';
+      card.setAttribute('data-review-count', String(total));
+    }
+    if (ratingPercentageEl) {
+      ratingPercentageEl.textContent = Math.round((clampedRating / 5) * 100) + '%';
+      ratingPercentageEl.style.display = 'inline';
+    }
+    if (starsContainer) {
+      var stars = starsContainer.querySelectorAll('i');
+      var fullStars = Math.floor(clampedRating);
+      var hasHalfStar = (clampedRating % 1) >= 0.5;
+      stars.forEach(function(star, index) {
+        if (index < fullStars) star.className = 'fas fa-star';
+        else if (index === fullStars && hasHalfStar) star.className = 'fas fa-star-half-alt';
+        else star.className = 'far fa-star';
+      });
+    }
+  }
+
+  cards.forEach(function(card) {
+    var titleEl = card.querySelector('h3');
+    if (!titleEl) return;
+    var productTitle = (titleEl.textContent || '').trim();
+    if (!productTitle) return;
+
+    fetchFn('/api/get_product_reviews?product=' + encodeURIComponent(productTitle), { credentials: 'same-origin' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var summary = (data && data.summary) ? data.summary : { total: 0, average: 0 };
+        updateCardWithSummary(card, productTitle, summary);
+      })
+      .catch(function() {
+        updateCardWithSummary(card, productTitle, { total: 0, average: 0 });
+      });
+  });
+}
+
 // Product mapping to match view.html PRODUCTS array
 const PRODUCT_MAP = {
     'Eco Colored Tote Bag': { id: '7', slug: 'eco-colored-tote' },
@@ -590,6 +651,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadItemsFromAPI().then(function(items) {
         if (items && items.length > 0) {
             renderProductsGrid(items);
+            fetchAndUpdateCardRatings();
             var sortParam = new URLSearchParams(window.location.search).get('sort');
             var sortSelect = document.getElementById('sortFilter');
             if (sortSelect && (sortParam === 'rating' || sortParam === 'price-low' || sortParam === 'price-high' || sortParam === 'newest')) {
