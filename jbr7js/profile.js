@@ -231,12 +231,15 @@ function populateProfilePage(data) {
     const stats = data.stats || {};
     const savedItems = data.items || data.saved_items || [];
 
-    // Sync session with DB user id so settings change-password uses the correct id
+    // Sync session with DB user id and email so settings change-password finds the user
     if (user && user.id != null && user.id !== undefined) {
         var dbId = String(user.id).trim();
         if (dbId && dbId !== 'undefined') {
             sessionStorage.setItem('jbr7_user_id', dbId);
         }
+    }
+    if (user && user.email) {
+        sessionStorage.setItem('jbr7_user_email', String(user.email).trim());
     }
 
     console.log('Populating profile with user data:', user);

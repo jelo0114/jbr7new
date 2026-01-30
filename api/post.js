@@ -229,10 +229,23 @@ async function handleChangePassword(req, res) {
       return res.status(200).json({ success: true, message: 'Password updated successfully' });
     }
 
-    return res.status(400).json({
-      success: false,
-      error: 'Account not linked to sign-in. Please sign out and sign in again.'
-    });
+    // User exists but has no password_hash (e.g. Auth-only or different schema): set password so legacy signin works
+    const newHash = hashPassword(newPassword);
+    const { error: setError } = await adminClient
+      .from('users')
+      .update({ password_hash: newHash })
+      .eq('id', row.id);
+    if (setError) {
+      if (setError.message && /column.*does not exist|password_hash/i.test(setError.message)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Account not linked to sign-in. Please sign out and sign in again.'
+        });
+      }
+      console.error('Change password set password_hash:', setError);
+      return res.status(500).json({ success: false, error: 'Failed to update password.' });
+    }
+    return res.status(200).json({ success: true, message: 'Password set successfully. You can now sign in with your email and this password.' });
   } catch (error) {
     console.error('Change password error:', error);
     return res.status(500).json({

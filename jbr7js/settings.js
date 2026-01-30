@@ -222,6 +222,7 @@ async function changePassword() {
         } catch (e) {
             // continue with existing userId
         }
+        if (!userEmail) userEmail = (sessionStorage.getItem('jbr7_user_email') || '').trim();
 
         var body = {
             action: 'change-password',
