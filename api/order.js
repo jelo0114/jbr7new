@@ -157,11 +157,12 @@ async function handleCreateOrder(req, res) {
 
     if (itemsError) {
       console.error('Order items insert error:', itemsError);
-      // Try to rollback order
       await supabase.from('orders').delete().eq('id', createdOrder.id);
-      return res.status(500).json({ 
-        success: false, 
-        error: 'Failed to create order items: ' + itemsError.message 
+      const isConfigError = itemsError.message && /relation|does not exist|table|column/i.test(itemsError.message);
+      const status = isConfigError ? 503 : 500;
+      return res.status(status).json({
+        success: false,
+        error: isConfigError ? 'Order items table not set up. Configure Supabase and create order_items table.' : ('Failed to create order items: ' + itemsError.message)
       });
     }
 

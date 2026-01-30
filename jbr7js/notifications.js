@@ -8,24 +8,20 @@
     const STORAGE_KEY = 'jbr7_notifications';
     const NS = 'jbr7'; // namespace prefix for DOM classes to avoid collisions
 
-    // Default sample notifications if none in storage
-    const DEFAULT_NOTIFICATIONS = [
-        { id: 1, type: 'orders', title: 'Order Shipped', message: 'Your order #12345 has been shipped and is on the way!', time: '2 hours ago', read: false, icon: 'fa-box' },
-        { id: 2, type: 'promotions', title: 'Special Discount', message: 'Get 20% off on all jute bags this weekend!', time: '5 hours ago', read: false, icon: 'fa-tag' },
-        { id: 3, type: 'updates', title: 'New Product Launch', message: 'Check out our new eco-friendly bag collection!', time: '1 day ago', read: true, icon: 'fa-star' }
-    ];
+    // No dummy notifications; start with empty list when none in storage
+    const DEFAULT_NOTIFICATIONS = [];
 
     function loadNotifications() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
-                return JSON.parse(JSON.stringify(DEFAULT_NOTIFICATIONS));
+                return [];
             }
             return JSON.parse(raw) || [];
         } catch (e) {
             console.error('Failed to load notifications', e);
-            return DEFAULT_NOTIFICATIONS.slice();
+            return [];
         }
     }
 

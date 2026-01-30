@@ -289,7 +289,7 @@ async function downloadUserData() {
         return;
     }
     
-    showNotification('Data export feature coming soon', 'info');
+    // Data export reserved for future
 }
 
 // Delete account - Updated to use API

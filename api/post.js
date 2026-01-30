@@ -134,6 +134,7 @@ import {
         auth: { autoRefreshToken: false, persistSession: false }
       });
 
+      const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
       let authUserId = userId;
       // If userId looks like a numeric public.users id, try to get auth user id from public.users
       if (/^\d+$/.test(String(userId))) {
@@ -141,7 +142,12 @@ import {
         if (row && (row.auth_id || row.auth_user_id)) {
           authUserId = row.auth_id || row.auth_user_id;
         }
-        // Else use userId as-is (might be UUID string from session)
+      }
+      if (!UUID_REGEX.test(String(authUserId))) {
+        return res.status(400).json({
+          success: false,
+          error: 'Account not linked to sign-in. Please sign out and sign in again, or contact support.',
+        });
       }
 
       const { data, error } = await adminClient.auth.admin.updateUserById(authUserId, { password: newPassword });

@@ -724,13 +724,21 @@ async function checkout() {
         
         if (!response || !response.ok) {
             const ct = response ? response.headers.get("content-type") : null;
+            if (response && ct && ct.includes("application/json")) {
+                try {
+                    const errData = await response.clone().json();
+                    if (errData && (errData.error || errData.message)) {
+                        // 503/500 with JSON: treat as API not configured so fallback works
+                        throw new Error('API_NOT_CONFIGURED');
+                    }
+                } catch (_) { /* not JSON or parse failed */ }
+            }
             if (response && (!ct || !ct.includes("application/json"))) {
                 const text = await response.text();
                 if (text.includes('NOT_FOUND') || text.includes('404') || text.includes('page could not be found')) {
                     throw new Error('API_NOT_CONFIGURED');
                 }
             }
-            // 405, 500, or no response: use fallback so user can still complete checkout
             throw new Error('API_NOT_CONFIGURED');
         }
         

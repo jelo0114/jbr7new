@@ -520,19 +520,19 @@ export async function getUserProfile(userId) {
     let profile;
     let profileError;
     
-    // First attempt: with profile_picture
+    // First attempt: with profile_picture and phone
     const result = await supabase
       .from('users')
-      .select('id, username, email, points, created_at, profile_picture')
+      .select('id, username, email, phone, points, created_at, profile_picture')
       .eq('id', userId)
       .single();
     
     profile = result.data;
     profileError = result.error;
     
-    // If profile_picture column doesn't exist, try without it
-    if (profileError && profileError.message.includes('profile_picture')) {
-      console.log('profile_picture column not found, fetching without it');
+    // If profile_picture or phone column doesn't exist, try without them
+    if (profileError && (profileError.message.includes('profile_picture') || profileError.message.includes('phone'))) {
+      console.log('Some columns not found, fetching without them');
       const fallbackResult = await supabase
         .from('users')
         .select('id, username, email, points, created_at')
@@ -542,9 +542,9 @@ export async function getUserProfile(userId) {
       profile = fallbackResult.data;
       profileError = fallbackResult.error;
       
-      // Add profile_picture as null
       if (profile) {
-        profile.profile_picture = null;
+        if (!('profile_picture' in profile)) profile.profile_picture = null;
+        if (!('phone' in profile)) profile.phone = null;
       }
     }
 
@@ -623,6 +623,7 @@ export async function getUserProfile(userId) {
       user: {
         username: profile.username,
         email: profile.email,
+        phone: profile.phone ?? profile.mobile ?? profile.phone_number ?? profile.number ?? null,
         points: profile.points || 0,
         created_at: profile.created_at,
         profile_picture: profile.profile_picture || null

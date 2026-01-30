@@ -205,8 +205,8 @@
             }
           }
         }
-        // 404 / NOT_FOUND expected when API routes are not deployed — try next
-        if (response.status === 404) continue;
+        // 404, 500, 503 — try next endpoint then fallback to localStorage
+        if (!response || !response.ok) continue;
       } catch (error) {
         // Network or parse error — try next endpoint (don't log 404 as error)
         if (error.message && !error.message.includes('404')) {

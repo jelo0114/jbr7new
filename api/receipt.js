@@ -181,9 +181,11 @@ async function handleSaveReceipt(req, res) {
     }
   } catch (err) {
     console.error('handleSaveReceipt error:', err);
-    return res.status(500).json({ 
-      success: false, 
-      error: 'Failed to save receipt: ' + err.message 
+    const isConfigError = err.message && /relation|does not exist|table|column/i.test(err.message);
+    const status = isConfigError ? 503 : 500;
+    return res.status(status).json({
+      success: false,
+      error: isConfigError ? 'Receipts table not set up. Configure Supabase and create receipts table.' : ('Failed to save receipt: ' + err.message)
     });
   }
 }
