@@ -147,14 +147,29 @@ async function handleChangePassword(req, res) {
     });
 
     const userIdKey = /^\d+$/.test(String(userIdStr)) ? parseInt(userIdStr, 10) : userIdStr;
-    const { data: row, error: rowError } = await adminClient
+    let row = null;
+    let rowError = null;
+    const { data: rowByNum, error: errNum } = await adminClient
       .from('users')
       .select('id, email, auth_id, auth_user_id, password_hash')
       .eq('id', userIdKey)
-      .single();
+      .maybeSingle();
+    if (rowByNum) {
+      row = rowByNum;
+    } else if (userIdStr !== String(userIdKey)) {
+      const { data: rowByStr, error: errStr } = await adminClient
+        .from('users')
+        .select('id, email, auth_id, auth_user_id, password_hash')
+        .eq('id', userIdStr)
+        .maybeSingle();
+      if (rowByStr) row = rowByStr;
+      rowError = errStr;
+    } else {
+      rowError = errNum;
+    }
 
-    if (rowError || !row) {
-      console.error('Change password user lookup:', rowError || 'not found');
+    if (!row) {
+      console.error('Change password user lookup:', rowError || 'not found', 'userId:', userIdStr);
       return res.status(400).json({
         success: false,
         error: 'User not found. Please sign out and sign in again.'
@@ -195,7 +210,7 @@ async function handleChangePassword(req, res) {
       const { error: updateError } = await adminClient
         .from('users')
         .update({ password_hash: newHash })
-        .eq('id', userIdKey);
+        .eq('id', row.id);
       if (updateError) {
         console.error('Change password legacy update:', updateError);
         return res.status(500).json({ success: false, error: 'Failed to update password.' });

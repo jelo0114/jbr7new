@@ -334,7 +334,7 @@ export async function saveOrderWithItems(userId, payload) {
 export async function getOrdersForUser(userId) {
   const { data, error } = await supabase
     .from('orders')
-    .select('*')
+    .select('*, order_items(*)')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 

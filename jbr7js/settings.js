@@ -174,7 +174,8 @@ async function changePassword() {
     const currentPassword = document.querySelector('input[placeholder="Enter current password"]')?.value;
     const newPassword = document.querySelector('input[placeholder="Enter new password"]')?.value;
     const confirmPassword = document.querySelector('input[placeholder="Confirm new password"]')?.value;
-    const userId = getUserId();
+    const rawUserId = getUserId();
+    const userId = rawUserId && String(rawUserId).trim() && String(rawUserId).trim() !== 'undefined' ? String(rawUserId).trim() : null;
     
     if (!userId) {
         showNotification('Please log in first', 'info');

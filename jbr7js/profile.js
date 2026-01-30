@@ -1,11 +1,13 @@
 // Profile Page Functionality (API/Supabase)
 // Flow: 1) Init checks session (getUserId) -> redirect signin if none. 2) showProfileSection('orders'), fetchSessionAndPopulateProfile(), setupAvatarButton() run once.
-// 3) fetchSessionAndPopulateProfile: GET /api/get?action=profile&userId= -> 401 redirect signin; !ok -> populateGuestProfile(); success -> populateProfilePage(data); if no orders -> loadOrdersForProfile(userId).
+// 3) fetchSessionAndPopulateProfile: GET /api/get?action=profile&userId= -> 401 or any failure redirect signin; success -> populateProfilePage(data); if no orders -> loadOrdersForProfile(userId).
 // 4) populateProfilePage: avatar, name, email, member since, stat cards, points, populateWishlist(items), populateOrders(orders). 5) Section switch (showProfileSection): reviews -> loadUserReviews(); rewards/activity -> loadUserActivities().
 
 // Session shared with settings: jbr7_user_id (public id), jbr7_auth_uid (Supabase Auth UUID if any).
 function getUserId() {
-    return sessionStorage.getItem('jbr7_user_id');
+    const raw = sessionStorage.getItem('jbr7_user_id');
+    if (!raw || String(raw).trim() === '' || String(raw).trim() === 'undefined') return null;
+    return String(raw).trim();
 }
 function getAuthUserId() {
     return sessionStorage.getItem('jbr7_auth_uid');
@@ -77,14 +79,13 @@ async function fetchSessionAndPopulateProfile() {
                 window.location.href = 'signin.html';
                 return;
             }
-            
             try {
                 const txt = await response.text();
                 console.error('API ERROR:', response.status, txt);
             } catch (e) {
                 console.error('API error:', response.status, e);
             }
-            populateGuestProfile();
+            window.location.href = 'signin.html';
             return;
         }
 
@@ -93,7 +94,7 @@ async function fetchSessionAndPopulateProfile() {
 
         if (!data || !data.success || !data.user) {
             console.error('Invalid response format:', data);
-            populateGuestProfile();
+            window.location.href = 'signin.html';
             return;
         }
 
@@ -103,7 +104,7 @@ async function fetchSessionAndPopulateProfile() {
         }
     } catch (error) {
         console.error('Error fetching profile:', error);
-        populateGuestProfile();
+        window.location.href = 'signin.html';
     }
 }
 
@@ -389,7 +390,7 @@ function populateWishlist(items) {
     });
 }
 
-// Populate orders section; uses getDisplayStatus for time-based status (30s → shipped, 1 min after that → delivered)
+// Populate orders section; layout: header (order #, date, total, status) + product section (image, name, qty|color, price) + action buttons by status
 function populateOrders(orders) {
     const ordersList = document.querySelector('#orders-section .orders-list') || document.getElementById('ordersList');
     if (!ordersList) return;
@@ -404,36 +405,73 @@ function populateOrders(orders) {
     orders.forEach(order => {
         var displayStatus = getDisplayStatus(order);
         const orderCard = document.createElement('div');
-        orderCard.className = 'order-card';
+        orderCard.className = 'order-card order-item';
         orderCard.setAttribute('data-status', displayStatus);
 
         const statusClass = getStatusClass(displayStatus);
         const formattedDate = formatOrderDate(order.created_at);
-        var firstProductTitle = getFirstProductTitleFromOrder(order);
-        var showLeaveReview = (displayStatus === 'delivered' || displayStatus === 'shipped');
+        var items = getOrderItems(order);
+        var firstItem = items.length > 0 ? items[0] : null;
+        var itemName = firstItem ? (firstItem.item_name || firstItem.name || '').trim() : '';
+        var quantity = firstItem ? (parseInt(firstItem.quantity, 10) || 1) : 0;
+        var color = firstItem ? (firstItem.color || firstItem.selectedColor || '').trim() : '';
+        var itemPrice = firstItem ? (firstItem.line_total != null ? firstItem.line_total : (firstItem.item_price != null ? firstItem.item_price : order.total)) : order.total;
+        var itemImage = getItemImageUrl(firstItem);
+        var totalDisplay = order.total != null ? order.total : (order.total_amount != null ? order.total_amount : '0');
+        var priceDisplay = itemPrice != null ? itemPrice : totalDisplay;
+        var attrsText = 'Quantity: ' + quantity + (color ? ' | Color: ' + escapeHtml(color) : '');
+
+        var viewDetailsOnclick = "viewOrderDetails('" + String(order.order_number || '').replace(/'/g, "\\'") + "')";
+        var showCancel = displayStatus === 'processing';
+        var showTrack = displayStatus === 'shipped';
+        var showLeaveReview = displayStatus === 'delivered' || displayStatus === 'shipped';
+
+        var productHtml = firstItem
+            ? `<div class="order-content">
+                <img class="order-image" src="${escapeHtml(itemImage)}" alt="${escapeHtml(itemName)}" onerror="this.src='totebag.avif'">
+                <div class="order-details">
+                    <h3>${escapeHtml(itemName || 'Item')}</h3>
+                    <p class="order-meta">${attrsText}</p>
+                    <p class="order-price">₱${escapeHtml(String(priceDisplay))}</p>
+                </div>
+               </div>`
+            : `<div class="order-content"><div class="order-details"><h3>Order #${escapeHtml(order.order_number)}</h3><p class="order-price">Total: ₱${escapeHtml(String(totalDisplay))}</p></div></div>`;
+
+        var buttonsHtml = '<div class="order-actions">';
+        buttonsHtml += '<button class="btn-secondary" onclick="' + viewDetailsOnclick + '">View Details</button>';
+        if (showCancel) buttonsHtml += '<button type="button" class="btn-cancel-order profile-cancel-btn">Cancel Order</button>';
+        if (showTrack) buttonsHtml += '<button type="button" class="btn-secondary profile-track-btn"><i class="fas fa-map-marker-alt"></i> Track Order</button>';
+        if (showLeaveReview) buttonsHtml += '<button type="button" class="btn-primary profile-leave-review-btn" data-product-title="' + escapeHtml(itemName) + '" data-order-number="' + escapeHtml(order.order_number || '') + '">Leave Review</button>';
+        buttonsHtml += '</div>';
 
         orderCard.innerHTML = `
             <div class="order-header">
                 <div class="order-info">
                     <h3>Order #${escapeHtml(order.order_number)}</h3>
                     <p class="order-date">${formattedDate}</p>
+                    <p class="order-total">Total: ₱${escapeHtml(String(totalDisplay))}</p>
                 </div>
                 <span class="order-status ${statusClass}">${escapeHtml(displayStatus)}</span>
             </div>
-            <div class="order-details">
-                <p class="order-total">Total: ₱${escapeHtml(order.total)}</p>
-                <button class="btn-secondary" onclick="viewOrderDetails('${escapeHtml(order.order_number).replace(/'/g, "\\'")}')">
-                    View Details
-                </button>
-                <button type="button" class="btn-primary profile-leave-review-btn" data-product-title="${escapeHtml(firstProductTitle || '')}" data-order-number="${escapeHtml(order.order_number || '')}" ${showLeaveReview ? '' : ' style="display:none"'}>Leave Review</button>
+            <div class="order-body">
+                ${productHtml}
+                ${buttonsHtml}
             </div>
         `;
+
         if (showLeaveReview) {
-            var btn = orderCard.querySelector('.profile-leave-review-btn');
-            if (btn) btn.addEventListener('click', function () {
-                var t = this.getAttribute('data-product-title') || '';
-                leaveReviewFromOrder(t, this.getAttribute('data-order-number') || '');
+            var leaveBtn = orderCard.querySelector('.profile-leave-review-btn');
+            if (leaveBtn) leaveBtn.addEventListener('click', function () {
+                leaveReviewFromOrder(this.getAttribute('data-product-title') || '', this.getAttribute('data-order-number') || '');
             });
+        }
+        if (showCancel) {
+            var cancelBtn = orderCard.querySelector('.profile-cancel-btn');
+            if (cancelBtn) cancelBtn.addEventListener('click', function () { cancelOrder(order.id || order.order_number); });
+        }
+        if (showTrack) {
+            var trackBtn = orderCard.querySelector('.profile-track-btn');
+            if (trackBtn) trackBtn.addEventListener('click', function () { trackOrder(order.order_number); });
         }
         ordersList.appendChild(orderCard);
     });
@@ -738,19 +776,33 @@ function filterOrders(status) {
     });
 }
 
-// Get first product title from order (for Leave Review link)
-function getFirstProductTitleFromOrder(order) {
-    if (!order) return '';
+// Get order items array (order_items, items, or parsed items_json)
+function getOrderItems(order) {
+    if (!order) return [];
     var items = order.order_items || order.items;
-    if (Array.isArray(items) && items.length > 0) {
-        var name = items[0].item_name || items[0].name;
-        if (name) return String(name).trim();
-    }
+    if (Array.isArray(items) && items.length > 0) return items;
     if (order.items_json) {
         try {
             var parsed = typeof order.items_json === 'string' ? JSON.parse(order.items_json) : order.items_json;
-            if (Array.isArray(parsed) && parsed.length > 0) return String(parsed[0].name || parsed[0].item_name || '').trim();
+            if (Array.isArray(parsed)) return parsed;
         } catch (e) {}
+    }
+    return [];
+}
+
+// Resolve product image URL for order item (relative path or fallback)
+function getItemImageUrl(item) {
+    if (!item) return 'totebag.avif';
+    var img = item.item_image || item.image || (item.metadata && item.metadata.image) || '';
+    if (img && String(img).trim()) return String(img).trim();
+    return 'totebag.avif';
+}
+
+function getFirstProductTitleFromOrder(order) {
+    var items = getOrderItems(order);
+    if (items.length > 0) {
+        var name = items[0].item_name || items[0].name;
+        if (name) return String(name).trim();
     }
     return '';
 }
@@ -769,6 +821,14 @@ function leaveReviewFromOrder(productTitle, orderNumber) {
 
 function reorder(orderId) {
     showNotification('Adding items to cart...', 'success');
+}
+
+function trackOrder(orderNumber) {
+    if (orderNumber) {
+        window.location.href = 'track-order.html?order=' + encodeURIComponent(orderNumber);
+    } else {
+        showNotification('Order number not available', 'info');
+    }
 }
 
 function cancelOrder(orderId) {
@@ -1040,13 +1100,9 @@ function escapeHtml(text) {
 }
 
 function getStatusClass(status) {
-    const statusMap = {
-        'processing': 'status-processing',
-        'shipped': 'status-shipped',
-        'delivered': 'status-delivered',
-        'cancelled': 'status-cancelled'
-    };
-    return statusMap[status.toLowerCase()] || 'status-processing';
+    const s = (status || '').toLowerCase();
+    if (s === 'processing' || s === 'shipped' || s === 'delivered' || s === 'cancelled') return s;
+    return 'processing';
 }
 
 function formatOrderDate(dateString) {
