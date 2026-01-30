@@ -1,6 +1,6 @@
 // pages/api/orders.js - FIXED VERSION
 import { createClient } from '@supabase/supabase-js';
-import { addUserPoints } from '../supabse-conn/index.js';
+import { addUserPoints, markCouponUsed } from '../supabse-conn/index.js';
 
 // Initialize Supabase client
 let supabase;
@@ -276,6 +276,16 @@ async function handleCreateOrder(req, res) {
     } catch (notifErr) {
       console.warn('⚠️ Failed to create notification:', notifErr);
       // Continue - notification is optional
+    }
+
+    // Mark coupon as used so it disappears from dropdown
+    if (couponId) {
+      try {
+        await markCouponUsed(couponId, createdOrder.id, orderNumber || orderId);
+        console.log('✅ Coupon marked as used');
+      } catch (couponErr) {
+        console.warn('⚠️ Failed to mark coupon used:', couponErr);
+      }
     }
 
     console.log('✅ Order creation complete!');

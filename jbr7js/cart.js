@@ -729,6 +729,8 @@ async function checkout() {
         items,
         subtotal: +subtotal.toFixed(2),
         shipping: +shipping.toFixed(2),
+        discount: +discount.toFixed(2),
+        couponId: selectedCartCoupon && selectedCartCoupon.id ? selectedCartCoupon.id : null,
         total: +total.toFixed(2),
         payment: paymentMethod,
         courier: courierService,

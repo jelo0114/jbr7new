@@ -351,6 +351,9 @@ async function initHeaderFromServer() {
                 width: 100% !important;
                 min-width: 300px !important;
             }
+            nav .search-suggestions .suggestion-item,
+            nav .search-suggestions .suggestion-item strong,
+            nav .search-suggestions .suggestion-item div { color: #000 !important; }
             nav .search-suggestions .suggestion-item:hover { background: #f0f0f0 !important; }
             nav .search-suggestions .suggestion-item.highlighted { background: #e8f5e9 !important; }
             @media (max-width: 480px) { 
@@ -656,8 +659,8 @@ async function initHeaderFromServer() {
                 suggestionItem.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: background 0.2s;';
                 suggestionItem.innerHTML = `
                     <i class="fas ${suggestion.icon}" style="color: #006923;"></i>
-                    <div style="flex: 1;">
-                        <strong>${suggestion.text}</strong>
+                    <div style="flex: 1; color: #000;">
+                        <strong style="color: #000;">${suggestion.text}</strong>
                     </div>
                     <i class="fas fa-chevron-right" style="color: #999; font-size: 0.85rem;"></i>
                 `;
@@ -731,9 +734,9 @@ async function initHeaderFromServer() {
                 viewAllOption.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem;';
                 viewAllOption.innerHTML = `
                     <i class="fas fa-shopping-bag" style="color: #006923;"></i>
-                    <div style="flex: 1;">
-                        <strong>View All Bags</strong>
-                        <div style="font-size: 0.85rem; color: #666;">Browse all products</div>
+                    <div style="flex: 1; color: #000;">
+                        <strong style="color: #000;">View All Bags</strong>
+                        <div style="font-size: 0.85rem; color: #333;">Browse all products</div>
                     </div>
                 `;
                 viewAllOption.onclick = function() {
@@ -757,8 +760,8 @@ async function initHeaderFromServer() {
                         suggestionItem.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: background 0.2s;';
                         suggestionItem.innerHTML = `
                             <i class="fas ${suggestion.icon}" style="color: #006923;"></i>
-                            <div style="flex: 1;">
-                                <strong>${suggestion.text}</strong>
+                            <div style="flex: 1; color: #000;">
+                                <strong style="color: #000;">${suggestion.text}</strong>
                             </div>
                             <i class="fas fa-chevron-right" style="color: #999; font-size: 0.85rem;"></i>
                         `;
@@ -789,8 +792,8 @@ async function initHeaderFromServer() {
                         suggestionItem.style.cssText = 'padding: 0.75rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.75rem; transition: background 0.2s;';
                         suggestionItem.innerHTML = `
                             <i class="fas ${suggestion.icon}" style="color: #006923;"></i>
-                            <div style="flex: 1;">
-                                <strong>${suggestion.text}</strong>
+                            <div style="flex: 1; color: #000;">
+                                <strong style="color: #000;">${suggestion.text}</strong>
                             </div>
                             <i class="fas fa-chevron-right" style="color: #999; font-size: 0.85rem;"></i>
                         `;
@@ -828,9 +831,9 @@ async function initHeaderFromServer() {
                     
                     productItem.innerHTML = `
                         <img src="${imageUrl}" alt="${product.title}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" onerror="this.src='totebag.avif'">
-                        <div style="flex: 1; min-width: 0;">
-                            <strong style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${product.title}</strong>
-                            <div style="font-size: 0.85rem; color: #666; display: flex; align-items: center; gap: 0.5rem;">
+                        <div style="flex: 1; min-width: 0; color: #000;">
+                            <strong style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #000;">${product.title}</strong>
+                            <div style="font-size: 0.85rem; color: #333; display: flex; align-items: center; gap: 0.5rem;">
                                 <span style="color: #fbbf24;">${ratingStars}</span>
                                 <span>${product.rating.toFixed(1)}</span>
                                 <span>•</span>

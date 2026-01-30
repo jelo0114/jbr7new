@@ -83,7 +83,7 @@
         }
       }
 
-      // Build receipt data structure
+      // Build receipt data structure (total = discounted total when coupon was used)
       const data = {
         orderId: receiptData.order_number || parsedReceipt.orderId,
         orderNumber: receiptData.order_number || parsedReceipt.orderNumber,
@@ -104,6 +104,7 @@
         })) : (parsedReceipt.items || []),
         subtotal: parseFloat(parsedReceipt.subtotal) || parseFloat(receiptData.amount) || 0,
         shipping: parseFloat(parsedReceipt.shipping) || 0,
+        discount: parseFloat(parsedReceipt.discount) || 0,
         total: parseFloat(receiptData.amount) || parseFloat(parsedReceipt.total) || 0
       };
 
@@ -235,9 +236,10 @@
       });
     }
 
-    // Populate totals
+    // Populate totals (use discounted total when coupon was applied)
     let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
     let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
+    const discountVal = (typeof data.discount !== 'undefined' && data.discount != null) ? Number(data.discount) : 0;
 
     if (subtotalVal === null || subtotalVal === 0) {
       subtotalVal = items.reduce((s,it)=> s + (Number(it.lineTotal) || 0), 0);
@@ -245,11 +247,26 @@
     if (shippingVal === null) {
       shippingVal = subtotalVal > 50 ? 0 : 5.99;
     }
-    
-    let totalVal = +(subtotalVal + shippingVal).toFixed(2);
+
+    let totalVal;
+    if (typeof data.total !== 'undefined' && data.total != null && data.total !== '') {
+      totalVal = Number(data.total);
+    } else {
+      totalVal = +(subtotalVal + shippingVal - discountVal).toFixed(2);
+    }
 
     document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
     document.getElementById('shipping').textContent = (shippingVal === 0) ? 'FREE' : fmt(shippingVal || 0);
+    const discountRow = document.getElementById('discount-row');
+    const discountEl = document.getElementById('discount');
+    if (discountRow && discountEl) {
+      if (discountVal > 0) {
+        discountRow.style.display = 'flex';
+        discountEl.textContent = '-' + fmt(discountVal);
+      } else {
+        discountRow.style.display = 'none';
+      }
+    }
     document.getElementById('total').textContent = fmt(totalVal || 0);
 
     // Customer info

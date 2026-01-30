@@ -879,6 +879,25 @@ export async function claimRewardCoupon(userId, pointsCost, discountPercent) {
   return { points: newPoints };
 }
 
+/** Mark a user coupon as used after order is placed (removes it from dropdown). */
+export async function markCouponUsed(couponId, orderId, orderNumber) {
+  if (!couponId) return;
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from('user_coupons')
+    .update({
+      used: true,
+      used_at: now,
+      order_id: orderId != null ? parseInt(orderId, 10) : null,
+      order_number: orderNumber || null,
+    })
+    .eq('id', couponId);
+  if (error) {
+    console.error('markCouponUsed error:', error);
+    throw new Error(`markCouponUsed failed: ${error.message}`);
+  }
+}
+
 export async function addUserPoints(userId, amount) {
   if (!userId || amount == null) return;
   const { data: userRow } = await supabase.from('users').select('points').eq('id', userId).single();

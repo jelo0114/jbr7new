@@ -47,7 +47,7 @@
 
             <div class="form-options">
                 <label class="remember-me">
-                    <input type="checkbox"> Remember me
+                    <input type="checkbox" id="remember-me" name="remember"> Remember me
                 </label>
                 <a href="#" class="forgot-pass">Forgot password</a>
             </div>
@@ -67,22 +67,32 @@
     </div>
     
     <script>
-        // Intercept form submission to set user ID immediately
+        // Pre-fill email and "Remember me" checkbox if user chose remember me last time
+        (function() {
+            var emailInput = document.querySelector('#signin-form input[name="email"]');
+            var rememberCheckbox = document.getElementById('remember-me');
+            if (localStorage.getItem('jbr7_remember_me') === '1' && localStorage.getItem('jbr7_user_email')) {
+                if (emailInput) emailInput.value = localStorage.getItem('jbr7_user_email');
+                if (rememberCheckbox) rememberCheckbox.checked = true;
+            }
+        })();
+
+        // Intercept form submission to set user ID and optionally remember me
         document.getElementById('signin-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const form = this;
             const submitBtn = document.getElementById('signin-submit-btn');
             const errorDiv = document.getElementById('signin-error');
-            const email = form.querySelector('input[name="email"]').value;
+            const email = form.querySelector('input[name="email"]').value.trim();
             const password = form.querySelector('input[name="password"]').value;
+            const rememberMe = document.getElementById('remember-me') && document.getElementById('remember-me').checked;
             
             // Show loading state
             submitBtn.disabled = true;
             submitBtn.textContent = 'Signing in...';
             errorDiv.style.display = 'none';
             
-            // FIXED: Submit via consolidated API
             fetch('/api/actions', {
                 method: 'POST',
                 credentials: 'same-origin',
@@ -108,14 +118,23 @@
                         var uid = data.user_id.toString();
                         sessionStorage.setItem('jbr7_user_id', uid);
                         sessionStorage.setItem('jbr7_auth_uid', uid);
+                        sessionStorage.setItem('jbr7_user_email', email);
                     }
                     
-                    // Clear any legacy/guest cart data
+                    if (rememberMe) {
+                        localStorage.setItem('jbr7_user_id', uid);
+                        localStorage.setItem('jbr7_user_email', email);
+                        localStorage.setItem('jbr7_remember_me', '1');
+                    } else {
+                        localStorage.removeItem('jbr7_user_id');
+                        localStorage.removeItem('jbr7_user_email');
+                        localStorage.removeItem('jbr7_remember_me');
+                    }
+                    
                     if (typeof UserStorage !== 'undefined' && UserStorage && UserStorage.clearLegacyData) {
                         UserStorage.clearLegacyData();
                     }
                     
-                    // Redirect to home
                     window.location.href = '/home.html';
                 } else {
                     throw new Error(data.error || 'Login failed');

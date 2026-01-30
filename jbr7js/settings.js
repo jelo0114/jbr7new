@@ -1165,6 +1165,9 @@ function logout() {
         localStorage.removeItem('jbr7_customer_phone');
         localStorage.removeItem('pendingCheckout');
         localStorage.removeItem('appliedPromo');
+        localStorage.removeItem('jbr7_user_id');
+        localStorage.removeItem('jbr7_user_email');
+        localStorage.removeItem('jbr7_remember_me');
         
         sessionStorage.clear();
 

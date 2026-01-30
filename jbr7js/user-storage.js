@@ -52,3 +52,20 @@ const UserStorage = {
     }
 };
 
+// Restore session from "Remember me" when user returns (e.g. after closing browser)
+(function() {
+    try {
+        if (!sessionStorage.getItem('jbr7_user_id') &&
+            localStorage.getItem('jbr7_remember_me') === '1' &&
+            localStorage.getItem('jbr7_user_id')) {
+            sessionStorage.setItem('jbr7_user_id', localStorage.getItem('jbr7_user_id'));
+            sessionStorage.setItem('jbr7_auth_uid', localStorage.getItem('jbr7_user_id'));
+            if (localStorage.getItem('jbr7_user_email')) {
+                sessionStorage.setItem('jbr7_user_email', localStorage.getItem('jbr7_user_email'));
+            }
+        }
+    } catch (e) {
+        console.warn('Remember me restore failed', e);
+    }
+})();
+
