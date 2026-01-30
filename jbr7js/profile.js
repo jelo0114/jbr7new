@@ -4,6 +4,9 @@
 // 4) populateProfilePage: avatar, name, email, member since, stat cards, points, populateWishlist(items), populateOrders(orders). 5) Section switch (showProfileSection): reviews -> loadUserReviews(); rewards/activity -> loadUserActivities().
 
 // Session shared with settings: jbr7_user_id (public id), jbr7_auth_uid (Supabase Auth UUID if any).
+// Profile cache: jbr7_profile_cache, jbr7_profile_cache_ts, jbr7_profile_cache_user — show profile immediately when revisiting.
+const PROFILE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
 function getUserId() {
     const raw = sessionStorage.getItem('jbr7_user_id');
     if (!raw || String(raw).trim() === '' || String(raw).trim() === 'undefined') return null;
@@ -53,13 +56,31 @@ function showProfileSection(sectionName) {
     }
 }
 
-// Fetch session info and populate profile page
+// Fetch session info and populate profile page (show cached data immediately if valid, then refresh in background)
 async function fetchSessionAndPopulateProfile() {
     const userId = getUserId();
     
     if (!userId) {
         window.location.href = 'signin.html';
         return;
+    }
+
+    // Show cached profile immediately so page doesn't "refresh to render" when navigating from other pages
+    const cacheRaw = sessionStorage.getItem('jbr7_profile_cache');
+    const cacheTs = sessionStorage.getItem('jbr7_profile_cache_ts');
+    const cacheUser = sessionStorage.getItem('jbr7_profile_cache_user');
+    if (cacheRaw && cacheUser === userId && cacheTs) {
+        const age = Date.now() - parseInt(cacheTs, 10);
+        if (age >= 0 && age < PROFILE_CACHE_TTL_MS) {
+            try {
+                const cached = JSON.parse(cacheRaw);
+                if (cached && cached.user) {
+                    populateProfilePage(cached);
+                }
+            } catch (e) {
+                // ignore parse error
+            }
+        }
     }
 
     try {
@@ -94,7 +115,9 @@ async function fetchSessionAndPopulateProfile() {
 
         if (!data || !data.success || !data.user) {
             console.error('Invalid response format:', data);
-            window.location.href = 'signin.html';
+            if (!cacheRaw || cacheUser !== userId) {
+                window.location.href = 'signin.html';
+            }
             return;
         }
 
@@ -104,7 +127,9 @@ async function fetchSessionAndPopulateProfile() {
         }
     } catch (error) {
         console.error('Error fetching profile:', error);
-        window.location.href = 'signin.html';
+        if (!cacheRaw || cacheUser !== userId) {
+            window.location.href = 'signin.html';
+        }
     }
 }
 
@@ -313,6 +338,23 @@ function populateProfilePage(data) {
     // Populate saved items (wishlist)
     populateWishlist(savedItems);
 
+    // Cache profile so next time we open profile we can show it immediately (no visible refresh)
+    if (user && user.id != null) {
+        try {
+            sessionStorage.setItem('jbr7_profile_cache', JSON.stringify({
+                success: true,
+                user: user,
+                stats: data.stats || {},
+                items: data.items || data.saved_items || [],
+                orders: data.orders || []
+            }));
+            sessionStorage.setItem('jbr7_profile_cache_ts', String(Date.now()));
+            sessionStorage.setItem('jbr7_profile_cache_user', String(user.id));
+        } catch (e) {
+            // ignore quota errors
+        }
+    }
+
     // Populate orders if available (array from profile or from separate orders API)
     const orders = data.orders || [];
     if (orders.length > 0) {
@@ -434,7 +476,6 @@ function populateOrders(orders) {
 
         var showCancel = displayStatus === 'processing';
         var showTrack = displayStatus === 'shipped';
-        var showLeaveReview = displayStatus === 'delivered' || displayStatus === 'shipped';
 
         var productHtml = firstItem
             ? `<div class="order-content">
@@ -451,7 +492,6 @@ function populateOrders(orders) {
         buttonsHtml += '<button type="button" class="btn-secondary profile-view-details-btn" data-order-number="' + escapeHtml(order.order_number || '') + '" data-product-title="' + escapeHtml(itemName) + '">View Details</button>';
         if (showCancel) buttonsHtml += '<button type="button" class="btn-cancel-order profile-cancel-btn">Cancel Order</button>';
         if (showTrack) buttonsHtml += '<button type="button" class="btn-secondary profile-track-btn"><i class="fas fa-map-marker-alt"></i> Track Order</button>';
-        if (showLeaveReview) buttonsHtml += '<button type="button" class="btn-primary profile-leave-review-btn" data-product-title="' + escapeHtml(itemName) + '" data-order-number="' + escapeHtml(order.order_number || '') + '">Leave Review</button>';
         buttonsHtml += '</div>';
 
         orderCard.innerHTML = `
@@ -469,12 +509,6 @@ function populateOrders(orders) {
             </div>
         `;
 
-        if (showLeaveReview) {
-            var leaveBtn = orderCard.querySelector('.profile-leave-review-btn');
-            if (leaveBtn) leaveBtn.addEventListener('click', function () {
-                leaveReviewFromOrder(this.getAttribute('data-product-title') || '', this.getAttribute('data-order-number') || '');
-            });
-        }
         if (showCancel) {
             var cancelBtn = orderCard.querySelector('.profile-cancel-btn');
             if (cancelBtn) cancelBtn.addEventListener('click', function () { cancelOrder(order.id || order.order_number); });
