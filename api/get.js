@@ -7,6 +7,7 @@ import {
   getShippingAddresses,
   getUserPreferences,
   getNotificationPreference,
+  getNotifications,
   getProductReviews,
   getUserActivities,
   getUserProfile,
