@@ -56,13 +56,29 @@
         }
     }
 
+    var lastFetchError = null;
+
     function fetchServerNotifications() {
         var userId = getUserId();
         if (!userId) return Promise.resolve([]);
-        return fetch('/api/get?action=notifications&userId=' + encodeURIComponent(userId), { credentials: 'same-origin' })
-            .then(function (r) { return r.json(); })
+        lastFetchError = null;
+        var base = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
+        var apiUrl = base + '/api/get?action=notifications&userId=' + encodeURIComponent(userId);
+        return fetch(apiUrl, { credentials: 'same-origin' })
+            .then(function (r) {
+                if (!r.ok) {
+                    lastFetchError = 'API ' + r.status;
+                    throw new Error('API returned ' + r.status);
+                }
+                return r.json();
+            })
             .then(function (data) {
-                var list = (data && data.data && Array.isArray(data.data)) ? data.data : [];
+                if (!data || !data.success) {
+                    lastFetchError = (data && data.error) ? data.error : 'Invalid response';
+                    return serverNotificationsCache || [];
+                }
+                var list = (data.data && Array.isArray(data.data)) ? data.data : [];
+                lastFetchError = null;
                 serverNotificationsCache = list.map(function (n) {
                     return {
                         id: n.id,
@@ -78,6 +94,7 @@
             })
             .catch(function (e) {
                 console.error('Failed to fetch notifications', e);
+                if (!lastFetchError) lastFetchError = e && e.message ? e.message : 'Connection failed';
                 return serverNotificationsCache || [];
             });
     }
@@ -178,7 +195,12 @@
     function renderList(filteredNotifications, container) {
         if (!container) return;
         if (!filteredNotifications || filteredNotifications.length === 0) {
-            container.innerHTML = `\n                <div class="${NS}-empty-notifications">\n                    <i class="fas fa-bell-slash"></i>\n                    <p>No notifications</p>\n                </div>\n            `;
+            var emptyMsg = lastFetchError
+                ? '<p>Unable to load notifications</p><button type="button" class="' + NS + '-retry-btn" style="margin-top:0.5rem;padding:0.4rem 0.8rem;background:#0a7a3a;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:0.9rem;">Retry</button>'
+                : '<p>No notifications</p>';
+            container.innerHTML = '<div class="' + NS + '-empty-notifications"><i class="fas fa-bell-slash"></i>' + emptyMsg + '</div>';
+            var retryBtn = container.querySelector('.' + NS + '-retry-btn');
+            if (retryBtn) retryBtn.onclick = function() { lastFetchError = null; fetchServerNotifications().then(function() { applyFilter(currentFilter, container); updateNotificationBadge(); }); };
             updateNotificationBadge();
             return;
         }
