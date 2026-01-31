@@ -385,6 +385,30 @@ export async function getNotifications(userId) {
   return data || [];
 }
 
+/** Mark a single notification as read (removes from unread list). */
+export async function markNotificationRead(userId, notificationId) {
+  const uid = userId != null ? parseInt(userId, 10) : null;
+  const nid = notificationId != null ? parseInt(notificationId, 10) : null;
+  if (uid == null || isNaN(uid) || nid == null || isNaN(nid)) return;
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', nid)
+    .eq('user_id', uid);
+  if (error) throw new Error(`markNotificationRead failed: ${error.message}`);
+}
+
+/** Mark all notifications as read for a user. */
+export async function markAllNotificationsRead(userId) {
+  const uid = userId != null ? parseInt(userId, 10) : null;
+  if (uid == null || isNaN(uid)) return;
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', uid);
+  if (error) throw new Error(`markAllNotificationsRead failed: ${error.message}`);
+}
+
 // -----------------------------
 // ORDERS + ORDER ITEMS (save_order.php, get_orders.php, cancel_order.php, update_order_status.php)
 // -----------------------------

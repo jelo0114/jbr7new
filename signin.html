@@ -68,7 +68,7 @@
     
     <script src="jbr7js/user-storage.js"></script>
     <script>
-        // Redirect remembered users who are already logged in
+        // Redirect only if user is logged in THIS session (same tab)
         (function() {
             var uid = sessionStorage.getItem('jbr7_user_id');
             if (uid && uid.trim() !== '' && uid !== 'undefined') {
@@ -76,13 +76,16 @@
                 return;
             }
         })();
-        // Pre-fill email and "Remember me" checkbox if user chose remember me last time
+        // Pre-fill email (and password if remembered) and checkbox - NO auto-login
         (function() {
             var emailInput = document.querySelector('#signin-form input[name="email"]');
+            var passwordInput = document.querySelector('#signin-form input[name="password"]');
             var rememberCheckbox = document.getElementById('remember-me');
-            if (localStorage.getItem('jbr7_remember_me') === '1' && localStorage.getItem('jbr7_user_email')) {
-                if (emailInput) emailInput.value = localStorage.getItem('jbr7_user_email');
+            if (localStorage.getItem('jbr7_remember_me') === '1') {
                 if (rememberCheckbox) rememberCheckbox.checked = true;
+                if (localStorage.getItem('jbr7_user_email') && emailInput) emailInput.value = localStorage.getItem('jbr7_user_email');
+                var savedPass = localStorage.getItem('jbr7_remember_password');
+                if (savedPass && passwordInput) passwordInput.value = savedPass;
             }
         })();
 
@@ -131,12 +134,12 @@
                     }
                     
                     if (rememberMe) {
-                        localStorage.setItem('jbr7_user_id', uid);
                         localStorage.setItem('jbr7_user_email', email);
+                        localStorage.setItem('jbr7_remember_password', password);
                         localStorage.setItem('jbr7_remember_me', '1');
                     } else {
-                        localStorage.removeItem('jbr7_user_id');
                         localStorage.removeItem('jbr7_user_email');
+                        localStorage.removeItem('jbr7_remember_password');
                         localStorage.removeItem('jbr7_remember_me');
                     }
                     

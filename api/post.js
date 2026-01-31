@@ -4,6 +4,8 @@ import {
   setDefaultShippingAddress,
   setUserPreferences,
   setNotificationPreference,
+  markNotificationRead,
+  markAllNotificationsRead,
   claimRewardCoupon,
 } from '../supabse-conn/index';
 
@@ -61,6 +63,12 @@ export default async function handler(req, res) {
       // ==================== UPDATE NOTIFICATION PREFERENCE ====================
       case 'update-notification-preference':
         return await handleUpdateNotificationPreference(req, res);
+
+      case 'mark-notification-read':
+        return await handleMarkNotificationRead(req, res);
+
+      case 'mark-all-notifications-read':
+        return await handleMarkAllNotificationsRead(req, res);
 
       // ==================== DELETE SAVED ITEM ====================
       case 'delete-saved-item':
@@ -527,6 +535,34 @@ async function handleUpdateNotificationPreference(req, res) {
       success: false,
       error: error.message
     });
+  }
+}
+
+// ==================== MARK NOTIFICATION READ ====================
+async function handleMarkNotificationRead(req, res) {
+  const { userId, notificationId } = req.body;
+  if (!userId || !notificationId) {
+    return res.status(400).json({ error: 'userId and notificationId are required' });
+  }
+  try {
+    await markNotificationRead(userId, notificationId);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+// ==================== MARK ALL NOTIFICATIONS READ ====================
+async function handleMarkAllNotificationsRead(req, res) {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: 'userId is required' });
+  }
+  try {
+    await markAllNotificationsRead(userId);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 }
 

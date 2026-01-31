@@ -1285,6 +1285,7 @@ function logout() {
         localStorage.removeItem('appliedPromo');
         localStorage.removeItem('jbr7_user_id');
         localStorage.removeItem('jbr7_user_email');
+        localStorage.removeItem('jbr7_remember_password');
         localStorage.removeItem('jbr7_remember_me');
         
         sessionStorage.clear();

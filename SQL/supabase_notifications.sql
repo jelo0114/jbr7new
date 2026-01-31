@@ -28,3 +28,6 @@ CREATE POLICY "Allow read notifications" ON notifications FOR SELECT USING (true
 
 DROP POLICY IF EXISTS "Allow insert notifications" ON notifications;
 CREATE POLICY "Allow insert notifications" ON notifications FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update notifications" ON notifications;
+CREATE POLICY "Allow update notifications" ON notifications FOR UPDATE USING (true) WITH CHECK (true);

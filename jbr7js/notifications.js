@@ -231,38 +231,83 @@
 
     let currentFilter = 'all';
 
-    function applyFilter(filter, container) {
+    // Show only UNREAD notifications (read = remove from list)
+    function getUnreadNotifications() {
         const all = loadNotifications();
-        const filtered = filter === 'all' ? all : all.filter(n => n.type === filter);
+        return all.filter(function(n) { return !n.read; });
+    }
+
+    function applyFilter(filter, container) {
+        const unread = getUnreadNotifications();
+        const filtered = filter === 'all' ? unread : unread.filter(function(n) { return n.type === filter; });
         renderList(filtered, container);
     }
 
+    // Mark as read: call API, remove from cache, refresh
     function markAsRead(id) {
-        const notifications = loadNotifications();
-        const n = notifications.find(x => x.id === id);
-        if (n && !n.read) {
-            n.read = true;
-            saveNotifications(notifications);
-            updateNotificationBadge();
+        var userId = getUserId();
+        var n = loadNotifications().find(function(x) { return x.id === id; });
+        if (!n || n.read) return;
+        if (userId) {
+            var base = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
+            fetch(base + '/api/post', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'mark-notification-read', userId: userId, notificationId: id })
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data && data.success) removeFromCache(id);
+            }).catch(function() { removeFromCache(id); });
+        } else {
+            removeFromCache(id);
         }
+    }
+
+    function removeFromCache(id) {
+        if (serverNotificationsCache) {
+            var idx = serverNotificationsCache.findIndex(function(n) { return n.id === id; });
+            if (idx >= 0) {
+                serverNotificationsCache[idx].read = true;
+            }
+        }
+        updateNotificationBadge();
+        var container = document.querySelector('.' + NS + '-notifications-list');
+        if (container) applyFilter(currentFilter, container);
     }
 
     function markAllAsRead() {
-        const notifications = loadNotifications();
-        notifications.forEach(n => n.read = true);
-        saveNotifications(notifications);
+        var userId = getUserId();
+        var unread = getUnreadNotifications();
+        if (unread.length === 0) return;
+        if (userId) {
+            var base = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
+            fetch(base + '/api/post', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'mark-all-notifications-read', userId: userId })
+            }).then(function(r) { return r.json(); }).then(function(data) {
+                if (data && data.success) { clearUnreadFromCache(); refreshDisplay(); }
+            }).catch(function() { clearUnreadFromCache(); refreshDisplay(); });
+        } else {
+            clearUnreadFromCache();
+            refreshDisplay();
+        }
+    }
+
+    function clearUnreadFromCache() {
+        if (serverNotificationsCache) serverNotificationsCache.forEach(function(n) { n.read = true; });
+    }
+
+    function refreshDisplay() {
         updateNotificationBadge();
-        const container = document.querySelector('.' + NS + '-notifications-list');
-        applyFilter(currentFilter, container);
+        var container = document.querySelector('.' + NS + '-notifications-list');
+        if (container) applyFilter(currentFilter, container);
     }
 
     function clearAllNotifications() {
-        if (confirm('Are you sure you want to clear all notifications?')) {
-            saveNotifications([]);
-            updateNotificationBadge();
-            const container = document.querySelector('.' + NS + '-notifications-list');
-            applyFilter(currentFilter, container);
-        }
+        if (getUnreadNotifications().length === 0) return;
+        if (confirm('Clear all notifications?')) markAllAsRead();
     }
 
     function addNotification(type, title, message) {
