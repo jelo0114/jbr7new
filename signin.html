@@ -68,26 +68,34 @@
     
     <script src="jbr7js/user-storage.js"></script>
     <script>
+        function applyRememberMe() {
+            try {
+                var emailInput = document.querySelector('input[name="email"]') || document.querySelector('#signin-form input[type="email"]');
+                var passwordInput = document.querySelector('input[name="password"]') || document.querySelector('#signin-form input[type="password"]');
+                var rememberCheckbox = document.getElementById('remember-me');
+                var savedEmail = localStorage.getItem('jbr7_user_email');
+                var savedPass = localStorage.getItem('jbr7_remember_password');
+                var rememberOn = localStorage.getItem('jbr7_remember_me') === '1' || localStorage.getItem('jbr7_remember_me') === 'true';
+                if (rememberCheckbox) rememberCheckbox.checked = rememberOn;
+                if (savedEmail && emailInput) emailInput.value = savedEmail;
+                if (rememberOn && savedPass && passwordInput) passwordInput.value = savedPass;
+            } catch (e) { console.warn('Remember me pre-fill error:', e); }
+        }
         // Redirect only if user is logged in THIS session (same tab)
         (function() {
             var uid = sessionStorage.getItem('jbr7_user_id');
-            if (uid && uid.trim() !== '' && uid !== 'undefined') {
+            if (uid && String(uid).trim() !== '' && String(uid) !== 'undefined') {
                 window.location.replace('home.html');
                 return;
             }
         })();
-        // Pre-fill email (and password if remembered) and checkbox - NO auto-login
-        (function() {
-            var emailInput = document.querySelector('#signin-form input[name="email"]');
-            var passwordInput = document.querySelector('#signin-form input[name="password"]');
-            var rememberCheckbox = document.getElementById('remember-me');
-            if (localStorage.getItem('jbr7_remember_me') === '1') {
-                if (rememberCheckbox) rememberCheckbox.checked = true;
-                if (localStorage.getItem('jbr7_user_email') && emailInput) emailInput.value = localStorage.getItem('jbr7_user_email');
-                var savedPass = localStorage.getItem('jbr7_remember_password');
-                if (savedPass && passwordInput) passwordInput.value = savedPass;
-            }
-        })();
+        // Pre-fill email and checkbox when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() { applyRememberMe(); setTimeout(applyRememberMe, 50); });
+        } else {
+            applyRememberMe();
+            setTimeout(applyRememberMe, 50);
+        }
 
         // Intercept form submission to set user ID and optionally remember me
         document.getElementById('signin-form').addEventListener('submit', function(e) {
@@ -132,16 +140,17 @@
                         sessionStorage.setItem('jbr7_auth_uid', uid);
                         sessionStorage.setItem('jbr7_user_email', email);
                     }
-                    
-                    if (rememberMe) {
-                        localStorage.setItem('jbr7_user_email', email);
-                        localStorage.setItem('jbr7_remember_password', password);
-                        localStorage.setItem('jbr7_remember_me', '1');
-                    } else {
-                        localStorage.removeItem('jbr7_user_email');
-                        localStorage.removeItem('jbr7_remember_password');
-                        localStorage.removeItem('jbr7_remember_me');
-                    }
+                    try {
+                        if (rememberMe) {
+                            localStorage.setItem('jbr7_user_email', String(email));
+                            localStorage.setItem('jbr7_remember_password', String(password));
+                            localStorage.setItem('jbr7_remember_me', '1');
+                        } else {
+                            localStorage.removeItem('jbr7_user_email');
+                            localStorage.removeItem('jbr7_remember_password');
+                            localStorage.removeItem('jbr7_remember_me');
+                        }
+                    } catch (e) { console.warn('Remember me save failed:', e); }
                     
                     if (typeof UserStorage !== 'undefined' && UserStorage && UserStorage.clearLegacyData) {
                         UserStorage.clearLegacyData();
