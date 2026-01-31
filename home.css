@@ -213,6 +213,42 @@ nav a:not(.active):hover {
     color: #fff;
 }
 
+/* Sign In / Sign Up links on landing page (index.html) - simpler hover */
+nav a[href="signin.html"],
+nav a[href="signup.html"] {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #333;
+    background: transparent;
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+}
+
+nav a[href="signin.html"]::before,
+nav a[href="signup.html"]::before {
+    display: none; /* remove the sliding background */
+}
+
+nav a[href="signin.html"]:hover {
+    color: #006923;
+    background: rgba(0, 105, 35, 0.08);
+    border-color: #006923;
+}
+
+nav a[href="signup.html"] {
+    background: #006923;
+    color: #fff;
+    border-color: #006923;
+}
+
+nav a[href="signup.html"]:hover {
+    background: #005219;
+    border-color: #005219;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 105, 35, 0.3);
+}
+
 nav a i {
     font-size: 1.1rem;
     position: relative;
