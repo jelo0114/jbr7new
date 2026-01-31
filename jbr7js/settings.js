@@ -436,7 +436,134 @@ function buildUserDataPdf(exportData) {
     return doc;
 }
 
-// Download all user data as PDF (and optionally JSON)
+// Render formatted address from various schema shapes
+function formatAddress(a) {
+    const parts = [
+        a.house_unit_number || a.street || a.street_address,
+        a.street_name || a.street_address2,
+        a.building_name,
+        a.city_municipality || a.city,
+        a.province_state || a.state,
+        a.postal_zip_code || a.postal_code,
+        a.country
+    ].filter(Boolean);
+    return parts.join(', ') || '—';
+}
+
+// Show data export preview modal before download
+function showDataExportPreview(exportData) {
+    const overlay = document.getElementById('dataExportOverlay');
+    if (overlay) overlay.remove();
+    const modal = document.createElement('div');
+    modal.id = 'dataExportOverlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem;box-sizing:border-box;';
+    const dateStr = exportData.exported_at ? new Date(exportData.exported_at).toLocaleString() : new Date().toLocaleString();
+    let body = '<div style="background:#fff;border-radius:12px;max-width:680px;width:100%;max-height:85vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);">';
+    body += '<div style="padding:1.25rem 1.5rem;border-bottom:1px solid #eee;background:#f9fafb;">';
+    body += '<h2 style="margin:0 0 0.25rem 0;font-size:1.25rem;color:#111;">Your Data Export</h2>';
+    body += '<p style="margin:0;font-size:0.875rem;color:#6b7280;">Exported: ' + dateStr + '</p></div>';
+    body += '<div style="flex:1;overflow-y:auto;padding:1.25rem 1.5rem;font-size:0.9rem;color:#333;">';
+    if (exportData.profile) {
+        const p = exportData.profile;
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Profile</h3>';
+        body += '<p style="margin:0.25rem 0;">' + (p.username ? '<strong>Username:</strong> ' + p.username : '') + '</p>';
+        body += '<p style="margin:0.25rem 0;">' + (p.email ? '<strong>Email:</strong> ' + p.email : '') + '</p>';
+        body += '<p style="margin:0.25rem 0;">' + (p.phone ? '<strong>Phone:</strong> ' + p.phone : '') + '</p></section>';
+    }
+    if (exportData.shipping_addresses && exportData.shipping_addresses.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Shipping Addresses</h3>';
+        exportData.shipping_addresses.forEach(function(a, i) {
+            body += '<p style="margin:0.5rem 0;padding:0.5rem;background:#f9fafb;border-radius:6px;">' + (i + 1) + '. ' + formatAddress(a) + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.orders && exportData.orders.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Orders</h3>';
+        exportData.orders.forEach(function(o) {
+            body += '<p style="margin:0.4rem 0;">Order #' + (o.order_number || o.id) + ' – ' + (o.status || '') + ' – ₱' + (o.total != null ? Number(o.total).toFixed(2) : '') + ' – ' + (o.created_at ? new Date(o.created_at).toLocaleDateString() : '') + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.reviews && exportData.reviews.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Reviews</h3>';
+        exportData.reviews.forEach(function(r) {
+            body += '<p style="margin:0.4rem 0;">' + (r.product_title || r.title || '') + ' – ' + (r.rating || '') + ' stars – ' + (r.comment || '').slice(0, 80) + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.saved_items && exportData.saved_items.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Saved Items</h3>';
+        exportData.saved_items.forEach(function(s) {
+            const m = s.metadata || {};
+            body += '<p style="margin:0.4rem 0;">' + (s.title || m.title || '') + ' – ₱' + (s.price != null ? s.price : (m.price || '')) + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.coupons && exportData.coupons.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Coupons</h3>';
+        exportData.coupons.forEach(function(c) {
+            body += '<p style="margin:0.4rem 0;">' + (c.discount_percent || 0) + '% off – ' + (c.used_at ? 'Used' : 'Available') + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.points_history && exportData.points_history.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Points History</h3>';
+        exportData.points_history.forEach(function(p) {
+            body += '<p style="margin:0.4rem 0;">' + (p.description || '') + ' – ' + (p.points_change != null ? p.points_change : '') + ' – ' + (p.date || '') + '</p>';
+        });
+        body += '</section>';
+    }
+    if (exportData.login_history && exportData.login_history.length) {
+        body += '<section style="margin-bottom:1.25rem;"><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Login History</h3>';
+        exportData.login_history.slice(0, 10).forEach(function(l) {
+            body += '<p style="margin:0.4rem 0;font-size:0.85rem;">' + (l.login_time ? new Date(l.login_time).toLocaleString() : '') + ' – ' + (l.ip_address || '') + '</p>';
+        });
+        if (exportData.login_history.length > 10) body += '<p style="margin:0.4rem 0;color:#6b7280;">... and ' + (exportData.login_history.length - 10) + ' more</p>';
+        body += '</section>';
+    }
+    if (exportData.preferences && Object.keys(exportData.preferences).length) {
+        body += '<section><h3 style="margin:0 0 0.5rem 0;font-size:1rem;color:#006923;border-bottom:1px solid #e5e7eb;padding-bottom:0.25rem;">Preferences</h3>';
+        body += '<pre style="margin:0;font-size:0.8rem;white-space:pre-wrap;background:#f9fafb;padding:0.5rem;border-radius:6px;">' + JSON.stringify(exportData.preferences, null, 2) + '</pre></section>';
+    }
+    body += '</div>';
+    body += '<div style="padding:1rem 1.5rem;border-top:1px solid #eee;display:flex;gap:0.75rem;justify-content:flex-end;">';
+    body += '<button type="button" id="dataExportClose" style="padding:0.5rem 1rem;border:1px solid #ddd;background:#fff;border-radius:6px;cursor:pointer;">Close</button>';
+    body += '<button type="button" id="dataExportJson" style="padding:0.5rem 1rem;border:1px solid #006923;background:#fff;color:#006923;border-radius:6px;cursor:pointer;"><i class="fas fa-file-code"></i> Download JSON</button>';
+    body += '<button type="button" id="dataExportPdf" style="padding:0.5rem 1rem;border:none;background:#006923;color:#fff;border-radius:6px;cursor:pointer;"><i class="fas fa-file-pdf"></i> Download PDF</button>';
+    body += '</div></div>';
+    modal.innerHTML = body;
+    modal.onclick = function(e) { if (e.target === modal) closeDataExportModal(); };
+    document.body.appendChild(modal);
+    document.getElementById('dataExportClose').onclick = closeDataExportModal;
+    document.getElementById('dataExportJson').onclick = function() {
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showNotification('Data downloaded (JSON)', 'success');
+    };
+    document.getElementById('dataExportPdf').onclick = function() {
+        if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
+            const doc = buildUserDataPdf(exportData);
+            doc.save('jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.pdf');
+            showNotification('Data downloaded as PDF', 'success');
+            closeDataExportModal();
+        } else {
+            showNotification('PDF library not loaded. Downloading JSON instead.', 'info');
+            document.getElementById('dataExportJson').click();
+        }
+    };
+}
+
+function closeDataExportModal() {
+    const el = document.getElementById('dataExportOverlay');
+    if (el) el.remove();
+}
+
+// Download all user data - fetches then shows preview before PDF/JSON download
 async function downloadUserData() {
     const userId = getUserId();
     if (!userId) {
@@ -455,20 +582,8 @@ async function downloadUserData() {
             return;
         }
         const exportData = data.data;
-        if (typeof window.jspdf !== 'undefined' && window.jspdf.jsPDF) {
-            const doc = buildUserDataPdf(exportData);
-            doc.save('jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.pdf');
-            showNotification('Data downloaded as PDF', 'success');
-        } else {
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'jbr7-user-data-' + new Date().toISOString().slice(0, 10) + '.json';
-            a.click();
-            URL.revokeObjectURL(url);
-            showNotification('Data downloaded (JSON)', 'success');
-        }
+        showNotification('Data ready. Review below before downloading.', 'success');
+        showDataExportPreview(exportData);
     } catch (e) {
         console.error('Download data error:', e);
         showNotification('Failed to download data', 'info');

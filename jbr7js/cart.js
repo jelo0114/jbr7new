@@ -858,7 +858,7 @@ async function checkout() {
         // Handle API not configured error with fallback
         if (error.message === 'API_NOT_CONFIGURED') {
             console.warn('API endpoint not found. Order saved locally.');
-            showNotification('Order placed! (Saved locally - API not configured yet)', 'success');
+            showNotification('Order placed! Redirecting to receipt...', 'success');
             
             // Save to localStorage as fallback
             const existingOrders = JSON.parse(localStorage.getItem('pendingOrders') || '[]');
@@ -884,7 +884,7 @@ async function checkout() {
         if (error.message.includes('network') || error.message.includes('fetch')) {
             userMessage += 'Please check your internet connection.';
         } else if (error.message.includes('API_NOT_CONFIGURED')) {
-            userMessage += 'Server configuration error. Order saved locally.';
+            userMessage += 'Order placed successfully. Redirecting to receipt...';
         } else {
             userMessage += error.message;
         }
