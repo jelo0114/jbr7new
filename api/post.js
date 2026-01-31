@@ -298,20 +298,58 @@ async function handleDeleteAccount(req, res) {
   const uid = parseInt(userId, 10) || userId;
 
   try {
+    // First verify the password is correct
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, password_hash')
+      .eq('id', uid)
+      .single();
+
+    if (userError || !user) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+
+    // Verify password
+    const hashedPassword = hashPassword(password);
+    if (user.password_hash !== hashedPassword) {
+      return res.status(401).json({ success: false, error: 'Incorrect password' });
+    }
+
     // Delete all user data first (child tables then parent)
     const { data: userOrders } = await supabase.from('orders').select('id').eq('user_id', uid);
     const orderIds = (userOrders || []).map(o => o.id).filter(Boolean);
     if (orderIds.length > 0) {
       await supabase.from('order_items').delete().in('order_id', orderIds);
     }
-    const tablesToClear = ['orders', 'reviews', 'saved_items', 'shipping_addresses', 'user_coupons', 'notifications', 'user_activities', 'receipts', 'login_history', 'user_preferences'];
+    
+    // Clear all related tables (notification_preferences included)
+    const tablesToClear = [
+      'orders', 
+      'reviews', 
+      'saved_items', 
+      'shipping_addresses', 
+      'user_coupons', 
+      'notifications', 
+      'notification_preferences',
+      'user_activities', 
+      'receipts', 
+      'login_history', 
+      'user_preferences'
+    ];
+    
     for (const table of tablesToClear) {
       const { error: delErr } = await supabase.from(table).delete().eq('user_id', uid);
-      if (delErr && !/does not exist|relation/i.test(delErr.message)) console.warn('Delete', table, delErr.message);
+      if (delErr && !/does not exist|relation/i.test(delErr.message)) {
+        console.warn('Delete from', table, ':', delErr.message);
+      }
     }
 
-    const { error } = await supabase.from('users').delete().eq('id', uid);
-    if (error) throw error;
+    // Finally delete the user
+    const { error: deleteUserError } = await supabase.from('users').delete().eq('id', uid);
+    if (deleteUserError) {
+      console.error('Failed to delete user:', deleteUserError);
+      throw deleteUserError;
+    }
 
     return res.status(200).json({
       success: true,
@@ -321,7 +359,7 @@ async function handleDeleteAccount(req, res) {
     console.error('Delete account error:', error);
     return res.status(500).json({
       success: false,
-      error: error.message
+      error: error.message || 'Failed to delete account'
     });
   }
 }
