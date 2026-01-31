@@ -103,8 +103,6 @@
                 <div class="${NS}-notification-filters">
                     <button class="${NS}-filter-btn active" data-filter="all">All</button>
                     <button class="${NS}-filter-btn" data-filter="orders">Orders</button>
-                    <button class="${NS}-filter-btn" data-filter="promotions">Promotions</button>
-                    <button class="${NS}-filter-btn" data-filter="updates">Updates</button>
                 </div>
                 <div class="${NS}-notifications-list"></div>
                 <div class="${NS}-notification-footer">

@@ -1,17 +1,11 @@
--- Supabase (PostgreSQL) schema for notifications
--- Run in Supabase SQL Editor
+-- Supabase (PostgreSQL) - Notifications table (fresh setup)
+-- Run in Supabase SQL Editor after deleting your existing notifications table
 
-CREATE TABLE IF NOT EXISTS notification_preferences (
-    id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    order_status BOOLEAN DEFAULT true,
-    cart_reminder BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT now(),
-    updated_at TIMESTAMPTZ DEFAULT now(),
-    UNIQUE(user_id)
-);
+-- Drop existing table (run this first if you want a clean refresh)
+DROP TABLE IF EXISTS notifications CASCADE;
 
-CREATE TABLE IF NOT EXISTS notifications (
+-- Create notifications table
+CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     notification_type TEXT NOT NULL CHECK (notification_type IN ('order_status', 'cart_reminder')),
@@ -22,12 +16,13 @@ CREATE TABLE IF NOT EXISTS notifications (
     created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read);
-CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+CREATE INDEX idx_notifications_user_id ON notifications(user_id);
+CREATE INDEX idx_notifications_user_read ON notifications(user_id, is_read);
+CREATE INDEX idx_notifications_created ON notifications(created_at DESC);
 
--- RLS: Allow SELECT for anon (API filters by user_id) so notifications panel can fetch
+-- RLS: Must allow SELECT for notifications panel to fetch
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+
 DROP POLICY IF EXISTS "Allow read notifications" ON notifications;
 CREATE POLICY "Allow read notifications" ON notifications FOR SELECT USING (true);
 

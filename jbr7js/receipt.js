@@ -236,27 +236,22 @@
       });
     }
 
-    // Populate totals (use discounted total when coupon was applied)
+    // Populate totals (free shipping app: total = subtotal - discount)
     let subtotalVal = (typeof data.subtotal !== 'undefined' && data.subtotal) ? Number(data.subtotal) : null;
-    let shippingVal = (typeof data.shipping !== 'undefined') ? Number(data.shipping) : null;
     const discountVal = (typeof data.discount !== 'undefined' && data.discount != null) ? Number(data.discount) : 0;
 
     if (subtotalVal === null || subtotalVal === 0) {
       subtotalVal = items.reduce((s,it)=> s + (Number(it.lineTotal) || 0), 0);
-    }
-    if (shippingVal === null) {
-      shippingVal = subtotalVal > 50 ? 0 : 5.99;
     }
 
     let totalVal;
     if (typeof data.total !== 'undefined' && data.total != null && data.total !== '') {
       totalVal = Number(data.total);
     } else {
-      totalVal = +(subtotalVal + shippingVal - discountVal).toFixed(2);
+      totalVal = +(subtotalVal - discountVal).toFixed(2);
     }
 
     document.getElementById('subtotal').textContent = fmt(subtotalVal || 0);
-    document.getElementById('shipping').textContent = (shippingVal === 0) ? 'FREE' : fmt(shippingVal || 0);
     const discountRow = document.getElementById('discount-row');
     const discountEl = document.getElementById('discount');
     if (discountRow && discountEl) {
