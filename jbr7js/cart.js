@@ -607,7 +607,7 @@ async function checkout() {
     if (!userId) {
         showNotification('Please log in to checkout', 'info');
         setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'signin.html';
         }, 1500);
         return;
     }

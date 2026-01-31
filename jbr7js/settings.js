@@ -62,7 +62,7 @@ async function loadUserData() {
         if (!response.ok) {
             if (response.status === 401) {
                 console.warn('Not authenticated, redirecting to login');
-                window.location.href = '/login.html';
+                window.location.href = '/signin.html';
                 return;
             }
             throw new Error('Failed to load user data');

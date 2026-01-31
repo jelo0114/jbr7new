@@ -26,7 +26,7 @@
     if (!userId) {
       console.error('No user ID found');
       alert('Please log in to view receipts');
-      window.location.href = 'login.html';
+      window.location.href = 'signin.html';
       return;
     }
 

@@ -66,7 +66,16 @@
         </form>
     </div>
     
+    <script src="jbr7js/user-storage.js"></script>
     <script>
+        // Redirect remembered users who are already logged in
+        (function() {
+            var uid = sessionStorage.getItem('jbr7_user_id');
+            if (uid && uid.trim() !== '' && uid !== 'undefined') {
+                window.location.replace('home.html');
+                return;
+            }
+        })();
         // Pre-fill email and "Remember me" checkbox if user chose remember me last time
         (function() {
             var emailInput = document.querySelector('#signin-form input[name="email"]');
