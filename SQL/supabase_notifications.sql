@@ -25,3 +25,11 @@ CREATE TABLE IF NOT EXISTS notifications (
 CREATE INDEX IF NOT EXISTS idx_notifications_user_id ON notifications(user_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_read ON notifications(user_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_notifications_created ON notifications(created_at DESC);
+
+-- RLS: Allow SELECT for anon (API filters by user_id) so notifications panel can fetch
+ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow read notifications" ON notifications;
+CREATE POLICY "Allow read notifications" ON notifications FOR SELECT USING (true);
+
+DROP POLICY IF EXISTS "Allow insert notifications" ON notifications;
+CREATE POLICY "Allow insert notifications" ON notifications FOR INSERT WITH CHECK (true);

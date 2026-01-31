@@ -371,10 +371,12 @@ export async function getOrderById(orderId) {
 
 /** Get all notifications for a user (for notification panel). */
 export async function getNotifications(userId) {
+  const uid = userId != null ? parseInt(userId, 10) : null;
+  if (uid == null || isNaN(uid)) return [];
   const { data, error } = await supabase
     .from('notifications')
     .select('id, notification_type, title, message, is_read, related_id, created_at')
-    .eq('user_id', userId)
+    .eq('user_id', uid)
     .order('created_at', { ascending: false });
 
   if (error) {
