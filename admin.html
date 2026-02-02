@@ -28,9 +28,6 @@
             <a href="#" class="nav-item" data-section="reviews"><i class="fas fa-star"></i> <span>Reviews</span></a>
             <a href="#" class="nav-item" data-section="reports"><i class="fas fa-file-download"></i> <span>Reports</span></a>
             <div class="nav-divider"></div>
-            <a href="#" class="nav-item" data-section="products-mgmt"><i class="fas fa-edit"></i> <span>Product Management</span></a>
-            <a href="#" class="nav-item" data-section="content"><i class="fas fa-pen-fancy"></i> <span>Content</span></a>
-            <a href="#" class="nav-item" data-section="customization"><i class="fas fa-palette"></i> <span>Customization</span></a>
             <a href="#" class="nav-item" data-section="analytics"><i class="fas fa-chart-line"></i> <span>Analytics</span></a>
             <a href="#" class="nav-item" data-section="settings"><i class="fas fa-cog"></i> <span>Settings</span></a>
         </nav>
@@ -72,11 +69,10 @@
                                 <th>Total</th>
                                 <th>Status</th>
                                 <th>Date</th>
-                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="orders-tbody">
-                            <tr><td colspan="7" class="empty-msg">Loading...</td></tr>
+                            <tr><td colspan="6" class="empty-msg">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -165,21 +161,36 @@
                 </div>
             </section>
 
-            <!-- Placeholder sections -->
-            <section id="section-products-mgmt" class="admin-section">
-                <div class="coming-soon"><i class="fas fa-edit"></i><h3>Product Management</h3><p>Add, edit, delete products and manage inventory. Coming soon.</p></div>
-            </section>
-            <section id="section-content" class="admin-section">
-                <div class="coming-soon"><i class="fas fa-pen-fancy"></i><h3>Content Management</h3><p>Edit homepage, About Us, promos, and footer. Coming soon.</p></div>
-            </section>
-            <section id="section-customization" class="admin-section">
-                <div class="coming-soon"><i class="fas fa-palette"></i><h3>Customization Requests</h3><p>Review and approve custom bag orders. Coming soon.</p></div>
-            </section>
+            <!-- Analytics -->
             <section id="section-analytics" class="admin-section">
                 <div class="coming-soon"><i class="fas fa-chart-line"></i><h3>Analytics & Reporting</h3><p>Sales, popular products, demographics. Coming soon.</p></div>
             </section>
+
+            <!-- Settings (with function) -->
             <section id="section-settings" class="admin-section">
-                <div class="coming-soon"><i class="fas fa-cog"></i><h3>Settings</h3><p>Payment, shipping, notifications, security. Coming soon.</p></div>
+                <div class="settings-card">
+                    <h3><i class="fas fa-user-shield"></i> Admin account</h3>
+                    <div class="settings-row">
+                        <span class="settings-label">Name</span>
+                        <span class="settings-value" id="settings-admin-name">—</span>
+                    </div>
+                    <div class="settings-row">
+                        <span class="settings-label">Email</span>
+                        <span class="settings-value" id="settings-admin-email">—</span>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3><i class="fas fa-link"></i> Store links</h3>
+                    <div class="settings-actions">
+                        <a href="home.html" class="btn btn-outline" target="_blank"><i class="fas fa-external-link-alt"></i> Open store</a>
+                        <a href="adminlogin.html" class="btn btn-outline"><i class="fas fa-sign-in-alt"></i> Admin login page</a>
+                    </div>
+                </div>
+                <div class="settings-card">
+                    <h3><i class="fas fa-sign-out-alt"></i> Session</h3>
+                    <p class="settings-desc">Sign out of the admin panel. You will need to log in again to access admin.</p>
+                    <button type="button" class="btn btn-primary" id="settings-logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                </div>
             </section>
         </main>
     </div>

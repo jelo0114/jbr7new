@@ -9,9 +9,6 @@
         items: 'Products',
         reviews: 'Reviews',
         reports: 'Download Reports',
-        'products-mgmt': 'Product Management',
-        content: 'Content Management',
-        customization: 'Customization Requests',
         analytics: 'Analytics & Reporting',
         settings: 'Settings'
     };
@@ -115,42 +112,27 @@
     function loadOrders() {
         var tbody = document.getElementById('orders-tbody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Loading...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Loading...</td></tr>';
         fetchApiGet('admin-orders').then(function(res) {
             var list = res.data || [];
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">No orders</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No orders</td></tr>';
                 return;
             }
-            var statusOptions = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
             tbody.innerHTML = list.map(function(o) {
                 var status = (o.status || 'processing').toLowerCase();
                 var customerName = (o.user && (o.user.username || o.user.email)) ? (o.user.username || o.user.email) : 'User #' + (o.user_id || '-');
                 var orderCount = o.user_order_count != null ? o.user_order_count : '-';
-                var opts = statusOptions.map(function(s) {
-                    return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
-                }).join('');
-                return '<tr data-order-id="' + o.id + '">' +
+                return '<tr>' +
                     '<td>' + (o.order_number || o.id) + '</td>' +
                     '<td>' + escapeHtml(customerName) + '</td>' +
                     '<td>' + orderCount + '</td>' +
                     '<td>' + (o.total != null ? o.total : '-') + '</td>' +
                     '<td><span class="status-badge ' + statusClass(status) + '">' + status + '</span></td>' +
-                    '<td>' + formatDate(o.created_at) + '</td>' +
-                    '<td><select class="order-status-select" data-order-id="' + o.id + '">' + opts + '</select>' +
-                    '<button type="button" class="order-status-btn" data-order-id="' + o.id + '">Update</button></td></tr>';
+                    '<td>' + formatDate(o.created_at) + '</td></tr>';
             }).join('');
-            tbody.querySelectorAll('.order-status-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var orderId = btn.getAttribute('data-order-id');
-                    var row = btn.closest('tr');
-                    var sel = row && row.querySelector('.order-status-select');
-                    var status = sel ? sel.value : 'processing';
-                    updateOrderStatus(orderId, status, function() { loadOrders(); }, function() { alert('Failed to update order status'); });
-                });
-            });
         }).catch(function() {
-            tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Failed to load orders</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load orders</td></tr>';
         });
     }
 
@@ -159,14 +141,6 @@
         var div = document.createElement('div');
         div.textContent = s;
         return div.innerHTML;
-    }
-
-    function updateOrderStatus(orderId, status, onSuccess, onError) {
-        fetchApiPost({
-            action: 'admin-update-order-status',
-            orderId: parseInt(orderId, 10),
-            status: status
-        }).then(function() { if (onSuccess) onSuccess(); }).catch(function() { if (onError) onError(); });
     }
 
     // ---------- Users ----------
@@ -308,6 +282,18 @@
         if (sectionId === 'users') loadUsers();
         if (sectionId === 'items') loadItems();
         if (sectionId === 'reviews') loadReviews();
+        if (sectionId === 'settings') loadSettings();
+    }
+
+    function loadSettings() {
+        var nameEl = document.getElementById('settings-admin-name');
+        var emailEl = document.getElementById('settings-admin-email');
+        if (nameEl) nameEl.textContent = sessionStorage.getItem('jbr7_admin_name') || '—';
+        if (emailEl) emailEl.textContent = sessionStorage.getItem('jbr7_admin_email') || '—';
+        var logoutBtn = document.getElementById('settings-logout-btn');
+        if (logoutBtn) {
+            logoutBtn.onclick = function() { logout(); };
+        }
     }
 
     function logout() {
