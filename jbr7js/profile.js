@@ -165,14 +165,10 @@ async function loadOrdersForProfile(userId) {
     startProfileOrdersPoll(userId);
 }
 
-// Time-based display status: processing → shipped after 30s, shipped → delivered after 1 min (from created_at)
+// Display status from database only (no time-based override)
 function getDisplayStatus(order) {
-    var status = (order && order.status) ? String(order.status).toLowerCase() : 'processing';
-    var created = order && order.created_at ? new Date(order.created_at).getTime() : Date.now();
-    var elapsedSec = (Date.now() - created) / 1000;
-    if (status === 'delivered' || elapsedSec >= 90) return 'delivered';
-    if (status === 'shipped' || elapsedSec >= 30) return 'shipped';
-    return 'processing';
+    var status = (order && order.status != null) ? String(order.status).trim().toLowerCase() : 'processing';
+    return status || 'processing';
 }
 
 var profileOrdersPollTimer = null;
