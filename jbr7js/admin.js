@@ -80,26 +80,48 @@
         return 'status-processing';
     }
 
+    var overviewCache = { orders: [], usersCount: 0, itemsCount: 0, reviewsCount: 0 };
+    var overviewPeriod = 'all';
+    var analyticsCache = { orders: [], itemsCount: 0, reviewsCount: 0 };
+    var analyticsPeriod = 'all';
+
+    function filterOrdersByPeriod(orders, period) {
+        if (!period || period === 'all') return orders;
+        var now = Date.now();
+        var ms = period === '7' ? 7 * 24 * 60 * 60 * 1000 : 30 * 24 * 60 * 60 * 1000;
+        var cut = now - ms;
+        return (orders || []).filter(function(o) {
+            var t = o.created_at ? new Date(o.created_at).getTime() : 0;
+            return t >= cut;
+        });
+    }
+
+    function setStat(id, val) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = val;
+    }
+
     // ---------- Overview ----------
     function loadOverview() {
-        function setStat(id, val) {
-            var el = document.getElementById(id);
-            if (el) el.textContent = val;
-        }
         setStat('stat-users', '-');
         setStat('stat-orders', '-');
         setStat('stat-items', '-');
         setStat('stat-reviews', '-');
         Promise.all([
-            fetchApiGet('admin-users').then(function(d) { return (d.data && d.data.length) || 0; }),
-            fetchApiGet('admin-orders').then(function(d) { return (d.data && d.data.length) || 0; }),
-            fetchApiGet('admin-items').then(function(d) { return (d.data && d.data.length) || 0; }),
-            fetchApiGet('admin-reviews').then(function(d) { return (d.data && d.data.length) || 0; })
+            fetchApiGet('admin-users').then(function(d) { return d.data || []; }),
+            fetchApiGet('admin-orders').then(function(d) { return d.data || []; }),
+            fetchApiGet('admin-items').then(function(d) { return d.data || []; }),
+            fetchApiGet('admin-reviews').then(function(d) { return d.data || []; })
         ]).then(function(arr) {
-            setStat('stat-users', arr[0]);
-            setStat('stat-orders', arr[1]);
-            setStat('stat-items', arr[2]);
-            setStat('stat-reviews', arr[3]);
+            var users = arr[0];
+            var orders = arr[1];
+            var items = arr[2];
+            var reviews = arr[3];
+            overviewCache.orders = orders;
+            overviewCache.usersCount = users.length;
+            overviewCache.itemsCount = items.length;
+            overviewCache.reviewsCount = reviews.length;
+            applyOverviewFilter();
         }).catch(function() {
             setStat('stat-users', '—');
             setStat('stat-orders', '—');
@@ -108,7 +130,68 @@
         });
     }
 
-    // ---------- Orders (name, order count, status badge) ----------
+    function applyOverviewFilter() {
+        setStat('stat-users', overviewCache.usersCount);
+        setStat('stat-items', overviewCache.itemsCount);
+        setStat('stat-reviews', overviewCache.reviewsCount);
+        var filtered = filterOrdersByPeriod(overviewCache.orders, overviewPeriod);
+        setStat('stat-orders', filtered.length);
+    }
+
+    // ---------- Analytics ----------
+    function loadAnalytics() {
+        setStat('analytics-revenue', '—');
+        setStat('analytics-orders', '—');
+        setStat('analytics-products', '—');
+        setStat('analytics-reviews', '—');
+        var statusEl = document.getElementById('analytics-by-status');
+        if (statusEl) statusEl.innerHTML = '<p class="empty-msg">Loading...</p>';
+        Promise.all([
+            fetchApiGet('admin-orders').then(function(d) { return d.data || []; }),
+            fetchApiGet('admin-items').then(function(d) { return d.data || []; }),
+            fetchApiGet('admin-reviews').then(function(d) { return d.data || []; })
+        ]).then(function(arr) {
+            analyticsCache.orders = arr[0];
+            analyticsCache.itemsCount = (arr[1] || []).length;
+            analyticsCache.reviewsCount = (arr[2] || []).length;
+            applyAnalyticsFilter();
+        }).catch(function() {
+            setStat('analytics-revenue', '—');
+            setStat('analytics-orders', '—');
+            setStat('analytics-products', '—');
+            setStat('analytics-reviews', '—');
+            if (statusEl) statusEl.innerHTML = '<p class="empty-msg">Failed to load</p>';
+        });
+    }
+
+    function applyAnalyticsFilter() {
+        var filtered = filterOrdersByPeriod(analyticsCache.orders, analyticsPeriod);
+        var revenue = 0;
+        filtered.forEach(function(o) {
+            var t = o.total;
+            revenue += (typeof t === 'number' ? t : parseFloat(String(t).replace(/,/g, ''))) || 0;
+        });
+        setStat('analytics-revenue', revenue.toFixed(2));
+        setStat('analytics-orders', filtered.length);
+        setStat('analytics-products', analyticsCache.itemsCount);
+        setStat('analytics-reviews', analyticsCache.reviewsCount);
+        var byStatus = {};
+        filtered.forEach(function(o) {
+            var s = (o.status || 'processing').toLowerCase();
+            byStatus[s] = (byStatus[s] || 0) + 1;
+        });
+        var statusEl = document.getElementById('analytics-by-status');
+        if (statusEl) {
+            var order = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+            var html = order.map(function(s) {
+                var count = byStatus[s] || 0;
+                return '<div class="breakdown-row"><span class="status-name">' + s + '</span><span class="status-count">' + count + '</span></div>';
+            }).join('');
+            statusEl.innerHTML = html || '<p class="empty-msg">No orders</p>';
+        }
+    }
+
+    // ---------- Orders (name, order count, status from API) ----------
     function loadOrders() {
         var tbody = document.getElementById('orders-tbody');
         if (!tbody) return;
@@ -120,15 +203,18 @@
                 return;
             }
             tbody.innerHTML = list.map(function(o) {
-                var status = (o.status || 'processing').toLowerCase();
+                var rawStatus = o.status != null ? String(o.status).trim() : '';
+                var status = (rawStatus || 'processing').toLowerCase();
                 var customerName = (o.user && (o.user.username || o.user.email)) ? (o.user.username || o.user.email) : 'User #' + (o.user_id || '-');
                 var orderCount = o.user_order_count != null ? o.user_order_count : '-';
+                var totalVal = o.total;
+                var totalStr = totalVal != null ? (typeof totalVal === 'number' ? totalVal : String(totalVal)) : '-';
                 return '<tr>' +
                     '<td>' + (o.order_number || o.id) + '</td>' +
                     '<td>' + escapeHtml(customerName) + '</td>' +
                     '<td>' + orderCount + '</td>' +
-                    '<td>' + (o.total != null ? o.total : '-') + '</td>' +
-                    '<td><span class="status-badge ' + statusClass(status) + '">' + status + '</span></td>' +
+                    '<td>' + escapeHtml(totalStr) + '</td>' +
+                    '<td><span class="status-badge ' + statusClass(status) + '">' + escapeHtml(status) + '</span></td>' +
                     '<td>' + formatDate(o.created_at) + '</td></tr>';
             }).join('');
         }).catch(function() {
@@ -282,6 +368,7 @@
         if (sectionId === 'users') loadUsers();
         if (sectionId === 'items') loadItems();
         if (sectionId === 'reviews') loadReviews();
+        if (sectionId === 'analytics') loadAnalytics();
         if (sectionId === 'settings') loadSettings();
     }
 
@@ -333,6 +420,23 @@
         if (dlUsers) dlUsers.addEventListener('click', downloadUsersReport);
         var dlProducts = document.getElementById('download-products-report');
         if (dlProducts) dlProducts.addEventListener('click', downloadProductsReport);
+
+        document.querySelectorAll('#section-overview .filter-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('#section-overview .filter-btn').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                overviewPeriod = this.getAttribute('data-period') || 'all';
+                applyOverviewFilter();
+            });
+        });
+        document.querySelectorAll('.filter-analytics').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-analytics').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                analyticsPeriod = this.getAttribute('data-period') || 'all';
+                applyAnalyticsFilter();
+            });
+        });
     }
 
     if (document.readyState === 'loading') {

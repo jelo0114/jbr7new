@@ -45,13 +45,21 @@
         <main class="admin-content">
             <!-- Overview -->
             <section id="section-overview" class="admin-section active">
-                <div class="stats-grid">
-                    <div class="stat-card"><i class="fas fa-users"></i><span class="stat-value" id="stat-users">-</span><span class="stat-label">Total Users</span></div>
-                    <div class="stat-card"><i class="fas fa-shopping-cart"></i><span class="stat-value" id="stat-orders">-</span><span class="stat-label">Total Orders</span></div>
-                    <div class="stat-card"><i class="fas fa-box"></i><span class="stat-value" id="stat-items">-</span><span class="stat-label">Products</span></div>
-                    <div class="stat-card"><i class="fas fa-star"></i><span class="stat-value" id="stat-reviews">-</span><span class="stat-label">Reviews</span></div>
+                <div class="stats-grid stats-grid-large">
+                    <div class="stat-card stat-card-large"><i class="fas fa-users"></i><span class="stat-value" id="stat-users">-</span><span class="stat-label">Total Users</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-shopping-cart"></i><span class="stat-value" id="stat-orders">-</span><span class="stat-label">Total Orders</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-box"></i><span class="stat-value" id="stat-items">-</span><span class="stat-label">Products</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-star"></i><span class="stat-value" id="stat-reviews">-</span><span class="stat-label">Reviews</span></div>
                 </div>
-                <p class="section-hint">Use the sidebar to manage orders, users, products, and download reports.</p>
+                <div class="filter-bar">
+                    <span class="filter-label">Period</span>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn active" data-period="all">All time</button>
+                        <button type="button" class="filter-btn" data-period="30">Last 30 days</button>
+                        <button type="button" class="filter-btn" data-period="7">Last 7 days</button>
+                    </div>
+                </div>
+                <p class="section-hint">Orders count respects the period filter above. Use the sidebar to manage data and reports.</p>
             </section>
 
             <!-- Orders -->
@@ -150,20 +158,52 @@
 
             <!-- Reports -->
             <section id="section-reports" class="admin-section">
-                <div class="reports-card">
-                    <h3>Download Reports</h3>
-                    <p class="reports-desc">Export store data as CSV for accounting or analysis.</p>
-                    <div class="report-buttons">
-                        <button type="button" class="btn btn-download" id="download-orders-report"><i class="fas fa-file-csv"></i> Orders Report (CSV)</button>
-                        <button type="button" class="btn btn-download" id="download-users-report"><i class="fas fa-file-csv"></i> Users Report (CSV)</button>
-                        <button type="button" class="btn btn-download" id="download-products-report"><i class="fas fa-file-csv"></i> Products Report (CSV)</button>
+                <div class="reports-header">
+                    <h3>Export Reports</h3>
+                    <p>Download store data as CSV for accounting, analysis, or backup.</p>
+                </div>
+                <div class="reports-grid">
+                    <div class="report-card">
+                        <div class="report-card-icon"><i class="fas fa-shopping-bag"></i></div>
+                        <h4>Orders Report</h4>
+                        <p>Order number, customer, total, status, and date.</p>
+                        <button type="button" class="btn btn-download" id="download-orders-report"><i class="fas fa-download"></i> Download CSV</button>
+                    </div>
+                    <div class="report-card">
+                        <div class="report-card-icon"><i class="fas fa-users"></i></div>
+                        <h4>Users Report</h4>
+                        <p>User ID, username, email, points, and join date.</p>
+                        <button type="button" class="btn btn-download" id="download-users-report"><i class="fas fa-download"></i> Download CSV</button>
+                    </div>
+                    <div class="report-card">
+                        <div class="report-card-icon"><i class="fas fa-box"></i></div>
+                        <h4>Products Report</h4>
+                        <p>Product ID, title, price, category, and rating.</p>
+                        <button type="button" class="btn btn-download" id="download-products-report"><i class="fas fa-download"></i> Download CSV</button>
                     </div>
                 </div>
             </section>
 
             <!-- Analytics -->
             <section id="section-analytics" class="admin-section">
-                <div class="coming-soon"><i class="fas fa-chart-line"></i><h3>Analytics & Reporting</h3><p>Sales, popular products, demographics. Coming soon.</p></div>
+                <div class="stats-grid stats-grid-large">
+                    <div class="stat-card stat-card-large"><i class="fas fa-coins"></i><span class="stat-value" id="analytics-revenue">—</span><span class="stat-label">Total Revenue</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-shopping-cart"></i><span class="stat-value" id="analytics-orders">—</span><span class="stat-label">Orders</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-box"></i><span class="stat-value" id="analytics-products">—</span><span class="stat-label">Products</span></div>
+                    <div class="stat-card stat-card-large"><i class="fas fa-star"></i><span class="stat-value" id="analytics-reviews">—</span><span class="stat-label">Reviews</span></div>
+                </div>
+                <div class="filter-bar">
+                    <span class="filter-label">Period</span>
+                    <div class="filter-options">
+                        <button type="button" class="filter-btn filter-analytics active" data-period="all">All time</button>
+                        <button type="button" class="filter-btn filter-analytics" data-period="30">Last 30 days</button>
+                        <button type="button" class="filter-btn filter-analytics" data-period="7">Last 7 days</button>
+                    </div>
+                </div>
+                <div class="analytics-breakdown">
+                    <h4>Orders by status</h4>
+                    <div class="breakdown-list" id="analytics-by-status"></div>
+                </div>
             </section>
 
             <!-- Settings (with function) -->

@@ -184,6 +184,7 @@ try {
       });
       result = (ordersRaw || []).map(o => ({
         ...o,
+        status: o.status != null ? String(o.status).trim() : 'processing',
         user: userMap[o.user_id] ? { username: userMap[o.user_id].username, email: userMap[o.user_id].email } : null,
         user_order_count: orderCountByUser[o.user_id] || 0
       }));
