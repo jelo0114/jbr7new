@@ -174,7 +174,19 @@ try {
     case 'admin-orders':
       if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
       if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
-      result = await getAllOrders();
+      const [ordersRaw, usersList] = await Promise.all([getAllOrders(), getAllUsers()]);
+      const userMap = {};
+      (usersList || []).forEach(u => { userMap[u.id] = u; });
+      const orderCountByUser = {};
+      (ordersRaw || []).forEach(o => {
+        const uid = o.user_id;
+        orderCountByUser[uid] = (orderCountByUser[uid] || 0) + 1;
+      });
+      result = (ordersRaw || []).map(o => ({
+        ...o,
+        user: userMap[o.user_id] ? { username: userMap[o.user_id].username, email: userMap[o.user_id].email } : null,
+        user_order_count: orderCountByUser[o.user_id] || 0
+      }));
       return res.status(200).json({ success: true, data: result });
 
     case 'admin-items':

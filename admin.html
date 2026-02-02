@@ -6,143 +6,183 @@
     <link rel="icon" href="JBR7 BAGS LOGO.jpg" type="image/jpeg">
     <title>JBR7 Bags - Admin</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="JBR7 CSS/admin.css">
 </head>
 <body>
-    <header class="admin-header">
-        <a href="home.html" class="logo" title="Store home">
-            <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-img" onerror="this.style.display='none'">
-            <div class="logo-text">
-                <h2><span>JBR7</span> BAGS</h2>
-                <span class="sub-logo">MANUFACTURING</span>
-            </div>
-        </a>
-        <div class="header-right">
+    <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+            <a href="home.html" class="logo" title="Store home">
+                <img src="JBR7 BAGS LOGO.jpg" alt="JBR7" class="logo-img" onerror="this.style.display='none'">
+                <div class="logo-text">
+                    <span class="brand">JBR7</span> BAGS
+                    <span class="sublabel">Admin</span>
+                </div>
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview"><i class="fas fa-chart-pie"></i> <span>Overview</span></a>
+            <a href="#" class="nav-item" data-section="orders"><i class="fas fa-shopping-bag"></i> <span>Orders</span></a>
+            <a href="#" class="nav-item" data-section="users"><i class="fas fa-users"></i> <span>Users</span></a>
+            <a href="#" class="nav-item" data-section="items"><i class="fas fa-box"></i> <span>Products</span></a>
+            <a href="#" class="nav-item" data-section="reviews"><i class="fas fa-star"></i> <span>Reviews</span></a>
+            <a href="#" class="nav-item" data-section="reports"><i class="fas fa-file-download"></i> <span>Reports</span></a>
+            <div class="nav-divider"></div>
+            <a href="#" class="nav-item" data-section="products-mgmt"><i class="fas fa-edit"></i> <span>Product Management</span></a>
+            <a href="#" class="nav-item" data-section="content"><i class="fas fa-pen-fancy"></i> <span>Content</span></a>
+            <a href="#" class="nav-item" data-section="customization"><i class="fas fa-palette"></i> <span>Customization</span></a>
+            <a href="#" class="nav-item" data-section="analytics"><i class="fas fa-chart-line"></i> <span>Analytics</span></a>
+            <a href="#" class="nav-item" data-section="settings"><i class="fas fa-cog"></i> <span>Settings</span></a>
+        </nav>
+        <div class="sidebar-footer">
             <span class="admin-name" id="admin-name"></span>
             <a href="adminlogin.html" class="logout-btn" id="admin-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
-    </header>
+    </aside>
 
-    <nav class="admin-nav">
-        <button type="button" class="admin-tab active" data-section="overview"><i class="fas fa-chart-line"></i> Overview</button>
-        <button type="button" class="admin-tab" data-section="orders"><i class="fas fa-shopping-bag"></i> Orders</button>
-        <button type="button" class="admin-tab" data-section="users"><i class="fas fa-users"></i> Users</button>
-        <button type="button" class="admin-tab" data-section="items"><i class="fas fa-box"></i> Products</button>
-        <button type="button" class="admin-tab" data-section="reviews"><i class="fas fa-star"></i> Reviews</button>
-    </nav>
+    <div class="admin-wrap">
+        <header class="admin-topbar">
+            <h1 class="page-title" id="page-title">Dashboard Overview</h1>
+        </header>
 
-    <main class="admin-main">
-        <!-- Overview -->
-        <section id="section-overview" class="admin-section active">
-            <h2>Dashboard Overview</h2>
-            <div class="stats-grid" id="stats-grid">
-                <div class="stat-card"><span class="stat-value" id="stat-users">-</span><span class="stat-label">Users</span></div>
-                <div class="stat-card"><span class="stat-value" id="stat-orders">-</span><span class="stat-label">Orders</span></div>
-                <div class="stat-card"><span class="stat-value" id="stat-items">-</span><span class="stat-label">Products</span></div>
-                <div class="stat-card"><span class="stat-value" id="stat-reviews">-</span><span class="stat-label">Reviews</span></div>
-            </div>
-            <p class="hint">Use the tabs above to manage orders, users, products, and reviews.</p>
-        </section>
+        <main class="admin-content">
+            <!-- Overview -->
+            <section id="section-overview" class="admin-section active">
+                <div class="stats-grid">
+                    <div class="stat-card"><i class="fas fa-users"></i><span class="stat-value" id="stat-users">-</span><span class="stat-label">Total Users</span></div>
+                    <div class="stat-card"><i class="fas fa-shopping-cart"></i><span class="stat-value" id="stat-orders">-</span><span class="stat-label">Total Orders</span></div>
+                    <div class="stat-card"><i class="fas fa-box"></i><span class="stat-value" id="stat-items">-</span><span class="stat-label">Products</span></div>
+                    <div class="stat-card"><i class="fas fa-star"></i><span class="stat-value" id="stat-reviews">-</span><span class="stat-label">Reviews</span></div>
+                </div>
+                <p class="section-hint">Use the sidebar to manage orders, users, products, and download reports.</p>
+            </section>
 
-        <!-- Orders -->
-        <section id="section-orders" class="admin-section">
-            <h2>All Orders</h2>
-            <div class="section-actions">
-                <button type="button" class="btn-refresh" id="refresh-orders"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </div>
-            <div class="table-wrap">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Order #</th>
-                            <th>User</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="orders-tbody">
-                        <tr><td colspan="6" class="empty-msg">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Orders -->
+            <section id="section-orders" class="admin-section">
+                <div class="section-toolbar">
+                    <button type="button" class="btn btn-primary" id="refresh-orders"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Customer orders</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr><td colspan="7" class="empty-msg">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <!-- Users -->
-        <section id="section-users" class="admin-section">
-            <h2>All Users</h2>
-            <div class="section-actions">
-                <button type="button" class="btn-refresh" id="refresh-users"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </div>
-            <div class="table-wrap">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Points</th>
-                            <th>Joined</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-tbody">
-                        <tr><td colspan="5" class="empty-msg">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Users -->
+            <section id="section-users" class="admin-section">
+                <div class="section-toolbar">
+                    <button type="button" class="btn btn-primary" id="refresh-users"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Username</th>
+                                <th>Email</th>
+                                <th>Points</th>
+                                <th>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-tbody">
+                            <tr><td colspan="5" class="empty-msg">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <!-- Items -->
-        <section id="section-items" class="admin-section">
-            <h2>All Products</h2>
-            <div class="section-actions">
-                <button type="button" class="btn-refresh" id="refresh-items"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </div>
-            <div class="table-wrap">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Item ID</th>
-                            <th>Title</th>
-                            <th>Price</th>
-                            <th>Category</th>
-                            <th>Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody id="items-tbody">
-                        <tr><td colspan="6" class="empty-msg">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
+            <!-- Items -->
+            <section id="section-items" class="admin-section">
+                <div class="section-toolbar">
+                    <button type="button" class="btn btn-primary" id="refresh-items"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Item ID</th>
+                                <th>Title</th>
+                                <th>Price</th>
+                                <th>Category</th>
+                                <th>Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-tbody">
+                            <tr><td colspan="6" class="empty-msg">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-        <!-- Reviews -->
-        <section id="section-reviews" class="admin-section">
-            <h2>All Reviews</h2>
-            <div class="section-actions">
-                <button type="button" class="btn-refresh" id="refresh-reviews"><i class="fas fa-sync-alt"></i> Refresh</button>
-            </div>
-            <div class="table-wrap">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Product</th>
-                            <th>Rating</th>
-                            <th>Comment</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="reviews-tbody">
-                        <tr><td colspan="5" class="empty-msg">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-    </main>
+            <!-- Reviews -->
+            <section id="section-reviews" class="admin-section">
+                <div class="section-toolbar">
+                    <button type="button" class="btn btn-primary" id="refresh-reviews"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+                <div class="table-card">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Product</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reviews-tbody">
+                            <tr><td colspan="5" class="empty-msg">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Reports -->
+            <section id="section-reports" class="admin-section">
+                <div class="reports-card">
+                    <h3>Download Reports</h3>
+                    <p class="reports-desc">Export store data as CSV for accounting or analysis.</p>
+                    <div class="report-buttons">
+                        <button type="button" class="btn btn-download" id="download-orders-report"><i class="fas fa-file-csv"></i> Orders Report (CSV)</button>
+                        <button type="button" class="btn btn-download" id="download-users-report"><i class="fas fa-file-csv"></i> Users Report (CSV)</button>
+                        <button type="button" class="btn btn-download" id="download-products-report"><i class="fas fa-file-csv"></i> Products Report (CSV)</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Placeholder sections -->
+            <section id="section-products-mgmt" class="admin-section">
+                <div class="coming-soon"><i class="fas fa-edit"></i><h3>Product Management</h3><p>Add, edit, delete products and manage inventory. Coming soon.</p></div>
+            </section>
+            <section id="section-content" class="admin-section">
+                <div class="coming-soon"><i class="fas fa-pen-fancy"></i><h3>Content Management</h3><p>Edit homepage, About Us, promos, and footer. Coming soon.</p></div>
+            </section>
+            <section id="section-customization" class="admin-section">
+                <div class="coming-soon"><i class="fas fa-palette"></i><h3>Customization Requests</h3><p>Review and approve custom bag orders. Coming soon.</p></div>
+            </section>
+            <section id="section-analytics" class="admin-section">
+                <div class="coming-soon"><i class="fas fa-chart-line"></i><h3>Analytics & Reporting</h3><p>Sales, popular products, demographics. Coming soon.</p></div>
+            </section>
+            <section id="section-settings" class="admin-section">
+                <div class="coming-soon"><i class="fas fa-cog"></i><h3>Settings</h3><p>Payment, shipping, notifications, security. Coming soon.</p></div>
+            </section>
+        </main>
+    </div>
 
     <script src="jbr7js/admin.js"></script>
 </body>
