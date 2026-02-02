@@ -976,3 +976,57 @@ function formatTimeAgo(dateString) {
   return date.toLocaleDateString();
 }
 
+// -----------------------------
+// ADMIN (admin_users, store-wide data)
+// -----------------------------
+
+export async function getAdminByEmail(email) {
+  if (!email || typeof email !== 'string') return null;
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('id, email, password_hash, name')
+    .eq('email', email.trim())
+    .maybeSingle();
+  if (error) throw new Error(`getAdminByEmail failed: ${error.message}`);
+  return data;
+}
+
+export async function getAdminById(adminId) {
+  const id = adminId != null ? parseInt(adminId, 10) : null;
+  if (id == null || isNaN(id)) return null;
+  const { data, error } = await supabase
+    .from('admin_users')
+    .select('id, email, name')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw new Error(`getAdminById failed: ${error.message}`);
+  return data;
+}
+
+export async function getAllUsers() {
+  const { data, error } = await supabase
+    .from('users')
+    .select('id, username, email, points, created_at')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`getAllUsers failed: ${error.message}`);
+  return data || [];
+}
+
+export async function getAllOrders() {
+  const { data, error } = await supabase
+    .from('orders')
+    .select('*, order_items(*)')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`getAllOrders failed: ${error.message}`);
+  return data || [];
+}
+
+export async function getAllReviews() {
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw new Error(`getAllReviews failed: ${error.message}`);
+  return data || [];
+}
+

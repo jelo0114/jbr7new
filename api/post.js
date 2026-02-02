@@ -7,6 +7,8 @@ import {
   markNotificationRead,
   markAllNotificationsRead,
   claimRewardCoupon,
+  getAdminById,
+  updateOrderStatus,
 } from '../supabse-conn/index';
 
 import { createHash } from 'crypto';
@@ -77,6 +79,10 @@ export default async function handler(req, res) {
       // ==================== CLAIM REWARD (points → coupon) ====================
       case 'claim-reward':
         return await handleClaimReward(req, res);
+
+      // ==================== ADMIN ====================
+      case 'admin-update-order-status':
+        return await handleAdminUpdateOrderStatus(req, res);
 
       default:
         return res.status(400).json({ error: `Invalid action: ${action}` });
@@ -361,6 +367,27 @@ async function handleDeleteAccount(req, res) {
       success: false,
       error: error.message || 'Failed to delete account'
     });
+  }
+}
+
+// ==================== ADMIN: UPDATE ORDER STATUS ====================
+async function handleAdminUpdateOrderStatus(req, res) {
+  const { adminId, orderId, status } = req.body;
+  if (!adminId || !orderId || !status) {
+    return res.status(400).json({ success: false, error: 'adminId, orderId, and status are required' });
+  }
+  try {
+    const admin = await getAdminById(adminId);
+    if (!admin) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    const validStatuses = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
+    if (!validStatuses.includes(String(status))) {
+      return res.status(400).json({ success: false, error: 'Invalid status. Use: processing, confirmed, shipped, delivered, cancelled' });
+    }
+    await updateOrderStatus(parseInt(orderId, 10), String(status));
+    return res.status(200).json({ success: true, message: 'Order status updated' });
+  } catch (error) {
+    console.error('Admin update order status error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to update order status' });
   }
 }
 

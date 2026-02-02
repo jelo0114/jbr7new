@@ -1,0 +1,188 @@
+/* JBR7 Admin panel */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    min-height: 100vh;
+}
+
+.admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 24px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+.admin-header .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: inherit;
+}
+.admin-header .logo-img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.admin-header .logo-text h2 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+.admin-header .logo-text .sub-logo {
+    display: block;
+    font-size: 0.75rem;
+    color: #006923;
+}
+.admin-header .logo-text span:first-of-type { color: #c50010; }
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.admin-name {
+    font-size: 0.9rem;
+    color: #555;
+}
+.logout-btn {
+    padding: 8px 14px;
+    background: #d9534f;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+.logout-btn:hover { background: #c9302c; }
+
+.admin-nav {
+    display: flex;
+    gap: 4px;
+    padding: 12px 24px;
+    background: #fff;
+    border-bottom: 1px solid #e6e9ec;
+    flex-wrap: wrap;
+}
+.admin-tab {
+    padding: 10px 18px;
+    border: none;
+    background: transparent;
+    color: #555;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.2s, color 0.2s;
+}
+.admin-tab:hover { background: #f0f2f5; color: #333; }
+.admin-tab.active { background: #006923; color: #fff; }
+
+.admin-main {
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+.admin-section {
+    display: none;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+.admin-section.active { display: block; }
+.admin-section h2 {
+    font-size: 1.35rem;
+    margin-bottom: 20px;
+    color: #222;
+}
+.section-actions { margin-bottom: 16px; }
+.btn-refresh {
+    padding: 8px 14px;
+    background: #006923;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.btn-refresh:hover { background: #005219; }
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.stat-card {
+    background: linear-gradient(135deg, #006923 0%, #008030 100%);
+    color: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+.stat-value { display: block; font-size: 1.75rem; font-weight: 700; }
+.stat-label { font-size: 0.85rem; opacity: 0.9; }
+.hint { color: #666; font-size: 0.9rem; }
+
+.table-wrap { overflow-x: auto; }
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+.admin-table th,
+.admin-table td {
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+.admin-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #444;
+}
+.admin-table tr:hover td { background: #fafafa; }
+.empty-msg { color: #888; text-align: center; padding: 24px !important; }
+
+.order-status-select {
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 0.85rem;
+    min-width: 120px;
+}
+.order-status-btn {
+    padding: 6px 12px;
+    margin-left: 4px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    background: #006923;
+    color: #fff;
+}
+.order-status-btn:hover { background: #005219; }
+.order-status-btn.cancel { background: #d9534f; }
+.order-status-btn.cancel:hover { background: #c9302c; }
+
+@media (max-width: 768px) {
+    .admin-header { flex-wrap: wrap; gap: 12px; }
+    .admin-nav { padding: 8px 16px; }
+    .admin-tab { padding: 8px 12px; font-size: 0.85rem; }
+    .admin-main { padding: 16px; }
+    .admin-table th, .admin-table td { padding: 8px 10px; font-size: 0.85rem; }
+}

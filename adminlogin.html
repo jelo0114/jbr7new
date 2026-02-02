@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="JBR7 BAGS LOGO.jpg" type="image/jpeg">
+    <title>JBR7 Bags - Admin Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="JBR7 CSS/signin.css">
+</head>
+<body>
+    <div class="logo-container">
+        <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-image" onerror="this.style.display='none'">
+        <div class="logo-text">
+            <span class="brand-name"></span>
+            <span class="brand-tagline">MANUFACTURING</span>
+        </div>
+    </div>
+
+    <div class="auth-card">
+        <h2 style="text-align:center;margin-bottom:12px;color:#333;font-size:1.35rem">Admin Login</h2>
+        <form id="admin-login-form">
+            <div class="form-group">
+                <label>Admin email</label>
+                <input type="email" name="email" placeholder="Enter admin email" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-container">
+                    <input type="password" name="password" placeholder="Enter password" required>
+                    <i class="fa-regular fa-eye-slash eye-icon" onclick="togglePassword(this)"></i>
+                </div>
+            </div>
+            <button class="main-btn" type="submit" id="admin-submit-btn">Sign In</button>
+            <div id="admin-error" style="display:none;color:#e53e3e;text-align:center;margin-top:1rem;font-size:0.9rem;"></div>
+            <div class="divider">OR</div>
+            <div style="text-align:center;margin-top:0.6rem">
+                <a href="index.html" class="return-home">Return to store</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function togglePassword(el) {
+            var inp = el.parentElement.querySelector('input');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                el.classList.remove('fa-eye-slash');
+                el.classList.add('fa-eye');
+            } else {
+                inp.type = 'password';
+                el.classList.remove('fa-eye');
+                el.classList.add('fa-eye-slash');
+            }
+        }
+        (function() {
+            var adminId = sessionStorage.getItem('jbr7_admin_id');
+            if (adminId && String(adminId).trim() !== '') {
+                window.location.replace('admin.html');
+                return;
+            }
+        })();
+        document.getElementById('admin-login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            var form = this;
+            var submitBtn = document.getElementById('admin-submit-btn');
+            var errorDiv = document.getElementById('admin-error');
+            var email = form.querySelector('input[name="email"]').value.trim();
+            var password = form.querySelector('input[name="password"]').value;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+            errorDiv.style.display = 'none';
+            fetch('/api/actions', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: JSON.stringify({ action: 'admin-login', email: email, password: password })
+            })
+            .then(function(r) { return r.ok ? r.json() : r.json().then(function(err) { return Promise.reject(err); }); })
+            .then(function(data) {
+                if (data.success && data.admin_id) {
+                    sessionStorage.setItem('jbr7_admin_id', String(data.admin_id));
+                    sessionStorage.setItem('jbr7_admin_email', data.email || email);
+                    sessionStorage.setItem('jbr7_admin_name', data.name || 'Admin');
+                    window.location.href = 'admin.html';
+                } else {
+                    throw new Error(data.error || 'Login failed');
+                }
+            })
+            .catch(function(err) {
+                errorDiv.textContent = err.error || err.message || 'Invalid admin email or password.';
+                errorDiv.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Sign In';
+            });
+        });
+    </script>
+</body>
+</html>

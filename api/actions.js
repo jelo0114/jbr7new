@@ -137,6 +137,33 @@ export default async function handler(req, res) {
           username: user.username,
           email: user.email
         });
+
+      // ==================== ADMIN AUTH ====================
+      case 'admin-login':
+        const { email: adminEmail, password: adminPassword } = payload;
+        if (!adminEmail || !adminPassword) {
+          return res.status(400).json({ success: false, error: 'Email and password are required' });
+        }
+        const adminHash = hashPassword(adminPassword);
+        const { data: admin, error: adminErr } = await supabase
+          .from('admin_users')
+          .select('id, email, name')
+          .eq('email', String(adminEmail).trim())
+          .eq('password_hash', adminHash)
+          .maybeSingle();
+        if (adminErr) {
+          console.error('Admin login error:', adminErr);
+          throw adminErr;
+        }
+        if (!admin) {
+          return res.status(401).json({ success: false, error: 'Invalid admin email or password' });
+        }
+        return res.status(200).json({
+          success: true,
+          admin_id: admin.id,
+          email: admin.email,
+          name: admin.name,
+        });
       
       // ==================== SAVED ITEMS ====================
       case 'add-saved-item':

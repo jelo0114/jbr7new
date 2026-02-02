@@ -16,6 +16,10 @@ import {
   getPointsHistory,
   getLoginHistory,
   searchItems,
+  getAdminById,
+  getAllUsers,
+  getAllOrders,
+  getAllReviews,
 } from '../supabse-conn/index';
 
 import { supabase } from '../lib/supabaseClient';
@@ -26,7 +30,7 @@ if (req.method !== 'GET') {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-const { action, userId, itemId, orderId, orderNumber, receiptId, q, sort } = req.query;
+const { action, userId, itemId, orderId, orderNumber, receiptId, q, sort, adminId } = req.query;
 
 // Validate required parameters
 if (!action) {
@@ -159,6 +163,31 @@ try {
         });
       }
       return await handleGetReceipts(req, res, { userId, orderId, receiptId });
+
+    // ==================== ADMIN (require adminId) ====================
+    case 'admin-users':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      result = await getAllUsers();
+      return res.status(200).json({ success: true, data: result });
+
+    case 'admin-orders':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      result = await getAllOrders();
+      return res.status(200).json({ success: true, data: result });
+
+    case 'admin-items':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      result = sort ? await getItemsWithRatingsSorted(String(sort).trim()) : await getItemsWithRatings();
+      return res.status(200).json({ success: true, data: result });
+
+    case 'admin-reviews':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      result = await getAllReviews();
+      return res.status(200).json({ success: true, data: result });
     
     default:
       return res.status(400).json({ error: `Invalid action: ${action}` });
