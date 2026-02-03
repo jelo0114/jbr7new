@@ -213,7 +213,7 @@
                 var opts = statusOptions.map(function(s) {
                     return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
                 }).join('');
-                return '<tr data-order-id="' + o.id + '">' +
+                return '<tr data-order-id="' + o.id + '" data-current-status="' + escapeHtml(status) + '">' +
                     '<td>' + (o.order_number || o.id) + '</td>' +
                     '<td>' + escapeHtml(customerName) + '</td>' +
                     '<td>' + orderCount + '</td>' +
@@ -222,42 +222,55 @@
                     '<td>' + formatDate(o.created_at) + '</td>' +
                     '<td class="order-actions-cell">' +
                     '<select class="order-status-select" data-order-id="' + o.id + '" aria-label="Order status">' + opts + '</select>' +
-                    '<button type="button" class="btn-order-update" data-order-id="' + o.id + '"><i class="fas fa-check"></i> Update</button>' +
                     '</td></tr>';
             }).join('');
-            tbody.querySelectorAll('.btn-order-update').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    var orderId = btn.getAttribute('data-order-id');
-                    var row = btn.closest('tr');
-                    var sel = row && row.querySelector('.order-status-select');
-                    var status = sel ? sel.value : 'processing';
-                    var label = btn.textContent.trim();
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating';
-                    updateOrderStatus(orderId, status, function() {
-                        loadOrders();
-                    }, function() {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-check"></i> Update';
-                        alert('Failed to update order status.');
-                    });
-                });
-            });
         }).catch(function() {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Failed to load orders</td></tr>';
         });
     }
 
-    function updateOrderStatus(orderId, status, onSuccess, onError) {
-        fetchApiPost({
+    function updateOrderStatus(orderId, status) {
+        return fetchApiPost({
             action: 'admin-update-order-status',
             orderId: parseInt(orderId, 10),
             status: status
-        }).then(function() {
-            if (onSuccess) onSuccess();
-        }).catch(function() {
-            if (onError) onError();
         });
+    }
+
+    function updateAllOrderChanges() {
+        var tbody = document.getElementById('orders-tbody');
+        var btn = document.getElementById('update-all-orders');
+        if (!tbody || !btn) return;
+        var rows = tbody.querySelectorAll('tr[data-order-id][data-current-status]');
+        var updates = [];
+        rows.forEach(function(tr) {
+            var select = tr.querySelector('.order-status-select');
+            var current = (tr.getAttribute('data-current-status') || '').toLowerCase();
+            var selected = select ? (select.value || 'processing').toLowerCase() : current;
+            if (selected !== current) {
+                updates.push({
+                    orderId: tr.getAttribute('data-order-id'),
+                    status: selected
+                });
+            }
+        });
+        if (updates.length === 0) {
+            return;
+        }
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating ' + updates.length + '…';
+        Promise.all(updates.map(function(u) { return updateOrderStatus(u.orderId, u.status); }))
+            .then(function() {
+                loadOrders();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-double"></i> Update all changes';
+            })
+            .catch(function() {
+                alert('Some updates failed. Refreshing list.');
+                loadOrders();
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-double"></i> Update all changes';
+            });
     }
 
     function escapeHtml(s) {
@@ -443,6 +456,8 @@
         var logoutBtn = document.getElementById('admin-logout');
         if (logoutBtn) logoutBtn.addEventListener('click', function(e) { e.preventDefault(); logout(); });
 
+        var updateAllOrders = document.getElementById('update-all-orders');
+        if (updateAllOrders) updateAllOrders.addEventListener('click', updateAllOrderChanges);
         var refreshOrders = document.getElementById('refresh-orders');
         if (refreshOrders) refreshOrders.addEventListener('click', function() { loadOrders(); });
         var refreshUsers = document.getElementById('refresh-users');

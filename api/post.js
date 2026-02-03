@@ -9,6 +9,7 @@ import {
   claimRewardCoupon,
   getAdminById,
   updateOrderStatus,
+  updateUserProfilePicture,
 } from '../supabse-conn/index';
 
 import { createHash } from 'crypto';
@@ -83,6 +84,10 @@ export default async function handler(req, res) {
       // ==================== ADMIN ====================
       case 'admin-update-order-status':
         return await handleAdminUpdateOrderStatus(req, res);
+
+      // ==================== UPLOAD PROFILE PHOTO ====================
+      case 'upload-profile-photo':
+        return await handleUploadProfilePhoto(req, res);
 
       default:
         return res.status(400).json({ error: `Invalid action: ${action}` });
@@ -367,6 +372,30 @@ async function handleDeleteAccount(req, res) {
       success: false,
       error: error.message || 'Failed to delete account'
     });
+  }
+}
+
+// ==================== UPLOAD PROFILE PHOTO ====================
+async function handleUploadProfilePhoto(req, res) {
+  const { userId, photo, contentType } = req.body || {};
+  if (!userId) {
+    return res.status(400).json({ success: false, error: 'userId is required' });
+  }
+  if (!photo || typeof photo !== 'string') {
+    return res.status(400).json({ success: false, error: 'photo (base64) is required' });
+  }
+  const maxBase64Length = 7 * 1024 * 1024; // ~5MB image as base64
+  if (photo.length > maxBase64Length) {
+    return res.status(400).json({ success: false, error: 'Image too large. Max 5MB.' });
+  }
+  const type = (contentType && contentType.startsWith('image/')) ? contentType : 'image/jpeg';
+  const dataUrl = 'data:' + type + ';base64,' + photo;
+  try {
+    await updateUserProfilePicture(userId, dataUrl);
+    return res.status(200).json({ success: true, photo_url: dataUrl });
+  } catch (error) {
+    console.error('Upload profile photo error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to save photo' });
   }
 }
 

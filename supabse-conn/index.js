@@ -932,6 +932,20 @@ export async function addUserPoints(userId, amount) {
 }
 
 // -----------------------------
+// PROFILE PICTURE (upload-profile-photo)
+// -----------------------------
+
+export async function updateUserProfilePicture(userId, profilePictureUrl) {
+  const uid = userId != null ? parseInt(userId, 10) : null;
+  if (uid == null || isNaN(uid)) throw new Error('Invalid userId');
+  const { error } = await supabase
+    .from('users')
+    .update({ profile_picture: profilePictureUrl || null })
+    .eq('id', uid);
+  if (error) throw new Error(`updateUserProfilePicture failed: ${error.message}`);
+}
+
+// -----------------------------
 // LOGIN HISTORY (for settings)
 // -----------------------------
 

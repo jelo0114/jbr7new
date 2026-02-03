@@ -660,15 +660,36 @@ window.editAvatar = function() {
             // Show loading notification
             showNotification('Uploading photo...', 'info');
             
-            // Create FormData
-            const formData = new FormData();
-            formData.append('photo', file);
+            const userId = getUserId();
+            if (!userId) {
+                showNotification('Please sign in to upload a photo.', 'error');
+                cleanupInput(input);
+                return;
+            }
             
             try {
-                const response = await fetch('/jbr7php/upload_profile_photo.php', {
+                const base64Data = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const result = reader.result;
+                        const part = (result && result.indexOf('base64,') >= 0) ? result.split('base64,')[1] : (result || '');
+                        resolve(typeof part === 'string' ? part : '');
+                    };
+                    reader.onerror = () => reject(new Error('Failed to read file'));
+                    reader.readAsDataURL(file);
+                });
+                
+                const apiBase = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
+                const response = await fetch(apiBase + '/api/post', {
                     method: 'POST',
-                    body: formData,
-                    credentials: 'same-origin'
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'upload-profile-photo',
+                        userId: userId,
+                        photo: base64Data,
+                        contentType: file.type || 'image/jpeg'
+                    })
                 });
                 
                 if (!response.ok) {
@@ -678,11 +699,9 @@ window.editAvatar = function() {
                 const data = await response.json();
                 console.log('Upload response:', data);
                 
-                if (data.success) {
+                if (data.success && data.photo_url) {
                     showNotification('Profile photo updated successfully!', 'success');
-                    // Update the avatar display on profile page
                     updateProfileAvatar(data.photo_url);
-                    // Reload profile data to get updated info
                     if (typeof fetchSessionAndPopulateProfile === 'function') {
                         fetchSessionAndPopulateProfile();
                     }

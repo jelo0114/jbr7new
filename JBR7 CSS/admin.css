@@ -247,6 +247,12 @@ body {
 }
 .btn-primary { background: var(--primary); color: #fff; }
 .btn-primary:hover { background: var(--primary-dark); }
+.btn-secondary {
+    background: var(--card-bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+}
+.btn-secondary:hover { background: #f0f2f5; border-color: var(--text-muted); }
 .btn-download {
     background: var(--card-bg);
     color: var(--primary);
