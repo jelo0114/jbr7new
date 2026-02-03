@@ -411,21 +411,27 @@ function setCartItemOption(index, key, value) {
     } else {
         cartItems[index][key] = value;
         if (key === 'selectedColor') {
-            const colorVal = (value || '').toLowerCase();
-            const sizeVal = cartItems[index].size || '';
-            const isColored = colorVal && !(/^(white|black)$/i.test(colorVal));
-            const priceMap2 = isColored ? COLORED_TOTE_SIZE_PRICES : TOTE_SIZE_PRICES;
-            if (sizeVal) {
-                if (priceMap2[sizeVal]) {
-                    cartItems[index].price = Number(priceMap2[sizeVal]);
-                    cartItems[index].basePrice = Number(priceMap2[sizeVal]);
-                }
-            } else {
-                const keys = Object.keys(priceMap2);
-                if (keys.length) {
-                    const first = keys[0];
-                    cartItems[index].price = Number(priceMap2[first]);
-                    cartItems[index].basePrice = Number(priceMap2[first]);
+            // Only apply tote size/price maps for Eco Jute Tote / Colored Tote products.
+            // Other products (e.g. Two Colored Brass Cotton Back Pack) keep their existing price; only color changes.
+            const nameLower = (cartItems[index].name || '').toLowerCase();
+            const isToteProduct = nameLower.includes('tote') || nameLower.includes('eco jute');
+            if (isToteProduct) {
+                const colorVal = (value || '').toLowerCase();
+                const sizeVal = cartItems[index].size || '';
+                const isColored = colorVal && !(/^(white|black)$/i.test(colorVal));
+                const priceMap2 = isColored ? COLORED_TOTE_SIZE_PRICES : TOTE_SIZE_PRICES;
+                if (sizeVal) {
+                    if (priceMap2[sizeVal]) {
+                        cartItems[index].price = Number(priceMap2[sizeVal]);
+                        cartItems[index].basePrice = Number(priceMap2[sizeVal]);
+                    }
+                } else {
+                    const keys = Object.keys(priceMap2);
+                    if (keys.length) {
+                        const first = keys[0];
+                        cartItems[index].price = Number(priceMap2[first]);
+                        cartItems[index].basePrice = Number(priceMap2[first]);
+                    }
                 }
             }
         }
@@ -897,9 +903,7 @@ async function loadDefaultPaymentAndCourier() {
     const paymentMapping = {
         'gcash': 'GCash',
         'paymaya': 'PayMaya',
-        'cod': 'COD',
-        'rcbc': 'RCBC',
-        'mastercard': 'Mastercard'
+        'cod': 'COD'
     };
     
     const courierMapping = {
