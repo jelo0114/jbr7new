@@ -51,6 +51,25 @@ DROP POLICY IF EXISTS "Allow delete users" ON public.users;
 CREATE POLICY "Allow delete users" ON public.users FOR DELETE USING (true);
 
 -- ============================================================================
+-- 1b. PROFILE PICTURE (ensure column + RLS for existing DBs / Storage URL)
+-- ============================================================================
+-- profile_picture stores Supabase Storage public URL. Create Storage bucket
+-- "avatars" (public) in Dashboard if using profile photo upload.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'users' AND column_name = 'profile_picture'
+  ) THEN
+    ALTER TABLE public.users ADD COLUMN profile_picture TEXT NULL;
+  END IF;
+END $$;
+
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow update users" ON public.users;
+CREATE POLICY "Allow update users" ON public.users FOR UPDATE USING (true) WITH CHECK (true);
+
+-- ============================================================================
 -- 2. SHIPPING ADDRESSES TABLE
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.shipping_addresses (
@@ -576,6 +595,7 @@ ON CONFLICT (item_id) DO UPDATE SET
 -- ============================================================================
 -- 16. ADMIN USERS TABLE (for admin login - separate from store users)
 -- ============================================================================
+-- Same as SQL/supabase_admin.sql (standalone script).
 CREATE TABLE IF NOT EXISTS public.admin_users (
   id BIGSERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
@@ -604,7 +624,8 @@ ON CONFLICT (email) DO NOTHING;
 -- DONE! All tables created successfully.
 -- ============================================================================
 -- Tables created:
---   1. users              - User accounts
+--   1. users              - User accounts (profile_picture in schema)
+--   1b. profile_picture   - Column + RLS for users (Storage URL; bucket "avatars")
 --   2. shipping_addresses - User shipping addresses (home/office)
 --   3. orders             - User orders
 --   4. order_items        - Items within orders
