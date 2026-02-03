@@ -418,6 +418,13 @@ async function handleUploadProfilePhoto(req, res) {
   try {
     const { createClient } = await import('@supabase/supabase-js');
     const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    // Ensure bucket exists (create if missing; service role can create buckets)
+    const { data: buckets } = await admin.storage.listBuckets();
+    const hasBucket = (buckets || []).some(b => (b && (b.name === PROFILE_BUCKET || b.id === PROFILE_BUCKET)));
+    if (!hasBucket) {
+      const { error: createErr } = await admin.storage.createBucket(PROFILE_BUCKET, { public: true });
+      if (createErr) console.warn('Could not create avatars bucket:', createErr.message);
+    }
     const path = `${String(userId).replace(/[^a-zA-Z0-9_-]/g, '')}.${ext}`;
     const { data: uploadData, error: uploadError } = await admin.storage
       .from(PROFILE_BUCKET)
