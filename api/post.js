@@ -376,6 +376,18 @@ async function handleDeleteAccount(req, res) {
 }
 
 // ==================== UPLOAD PROFILE PHOTO ====================
+// Uploads image to Supabase Storage and stores only the public URL in DB (avoids index size limit).
+const PROFILE_BUCKET = 'avatars';
+const MAX_BASE64_LENGTH = 5 * 1024 * 1024; // ~3.75MB image as base64
+
+function extFromContentType(contentType) {
+  const t = String(contentType || '').toLowerCase();
+  if (t.includes('png')) return 'png';
+  if (t.includes('gif')) return 'gif';
+  if (t.includes('webp')) return 'webp';
+  return 'jpg';
+}
+
 async function handleUploadProfilePhoto(req, res) {
   const body = req.body || {};
   const userId = body.userId;
@@ -387,15 +399,37 @@ async function handleUploadProfilePhoto(req, res) {
   if (!photo || typeof photo !== 'string') {
     return res.status(400).json({ success: false, error: 'photo (base64) is required' });
   }
-  const maxBase64Length = 7 * 1024 * 1024; // ~5MB image as base64
-  if (photo.length > maxBase64Length) {
-    return res.status(400).json({ success: false, error: 'Image too large. Max 5MB.' });
+  if (photo.length > MAX_BASE64_LENGTH) {
+    return res.status(400).json({ success: false, error: 'Image too large. Max ~4MB.' });
   }
   const type = (contentType && String(contentType).startsWith('image/')) ? contentType : 'image/jpeg';
-  const dataUrl = 'data:' + type + ';base64,' + photo;
+  const ext = extFromContentType(contentType);
+  let buffer;
   try {
-    await updateUserProfilePicture(userId, dataUrl);
-    return res.status(200).json({ success: true, photo_url: dataUrl });
+    buffer = Buffer.from(photo, 'base64');
+  } catch (e) {
+    return res.status(400).json({ success: false, error: 'Invalid base64 image.' });
+  }
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!supabaseUrl || !serviceRoleKey) {
+    return res.status(503).json({ success: false, error: 'Storage not configured (Supabase URL / service role).' });
+  }
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const admin = createClient(supabaseUrl, serviceRoleKey, { auth: { autoRefreshToken: false, persistSession: false } });
+    const path = `${String(userId).replace(/[^a-zA-Z0-9_-]/g, '')}.${ext}`;
+    const { data: uploadData, error: uploadError } = await admin.storage
+      .from(PROFILE_BUCKET)
+      .upload(path, buffer, { contentType: type, upsert: true });
+    if (uploadError) {
+      console.error('Profile photo storage upload error:', uploadError);
+      return res.status(500).json({ success: false, error: uploadError.message || 'Storage upload failed.' });
+    }
+    const { data: urlData } = admin.storage.from(PROFILE_BUCKET).getPublicUrl(uploadData.path);
+    const publicUrl = urlData.publicUrl;
+    await updateUserProfilePicture(userId, publicUrl);
+    return res.status(200).json({ success: true, photo_url: publicUrl });
   } catch (error) {
     const msg = error && error.message ? error.message : 'Failed to save photo';
     console.error('Upload profile photo error:', msg);

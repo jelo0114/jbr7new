@@ -1,10 +1,13 @@
 -- ============================================================================
--- JBR7 BAGS - Profile picture column (Supabase PostgreSQL)
+-- JBR7 BAGS - Profile picture (DB column + Storage)
 -- ============================================================================
--- Run in Supabase SQL Editor if profile photo upload is used.
--- Ensures users.profile_picture exists for storing photo URL or data URL.
+-- 1. Run this SQL in Supabase SQL Editor.
+-- 2. Create Storage bucket in Dashboard: Storage → New bucket → name "avatars"
+--    → set to PUBLIC so profile image URLs work. No extra policies required
+--    if using the API with SUPABASE_SERVICE_ROLE_KEY for uploads.
 -- ============================================================================
 
+-- profile_picture stores the Supabase Storage public URL (short string), not base64.
 -- Add column if it does not exist (PostgreSQL 9.5+)
 DO $$
 BEGIN
