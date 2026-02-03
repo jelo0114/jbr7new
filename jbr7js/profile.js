@@ -692,25 +692,22 @@ window.editAvatar = function() {
                     })
                 });
                 
-                if (!response.ok) {
-                    throw new Error('Upload failed with status: ' + response.status);
-                }
-                
-                const data = await response.json();
+                const data = await response.json().catch(function() { return {}; });
                 console.log('Upload response:', data);
                 
-                if (data.success && data.photo_url) {
+                if (response.ok && data.success && data.photo_url) {
                     showNotification('Profile photo updated successfully!', 'success');
                     updateProfileAvatar(data.photo_url);
                     if (typeof fetchSessionAndPopulateProfile === 'function') {
                         fetchSessionAndPopulateProfile();
                     }
                 } else {
-                    showNotification(data.error || 'Failed to upload photo', 'error');
+                    var errMsg = data.error || ('Upload failed with status: ' + response.status);
+                    showNotification(errMsg, 'error');
                 }
             } catch (error) {
                 console.error('Upload error:', error);
-                showNotification('Failed to upload photo. Please try again.', 'error');
+                showNotification(error.message || 'Failed to upload photo. Please try again.', 'error');
             }
             
             // Clean up input element

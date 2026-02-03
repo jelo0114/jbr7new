@@ -377,7 +377,10 @@ async function handleDeleteAccount(req, res) {
 
 // ==================== UPLOAD PROFILE PHOTO ====================
 async function handleUploadProfilePhoto(req, res) {
-  const { userId, photo, contentType } = req.body || {};
+  const body = req.body || {};
+  const userId = body.userId;
+  const photo = body.photo;
+  const contentType = body.contentType;
   if (!userId) {
     return res.status(400).json({ success: false, error: 'userId is required' });
   }
@@ -388,14 +391,15 @@ async function handleUploadProfilePhoto(req, res) {
   if (photo.length > maxBase64Length) {
     return res.status(400).json({ success: false, error: 'Image too large. Max 5MB.' });
   }
-  const type = (contentType && contentType.startsWith('image/')) ? contentType : 'image/jpeg';
+  const type = (contentType && String(contentType).startsWith('image/')) ? contentType : 'image/jpeg';
   const dataUrl = 'data:' + type + ';base64,' + photo;
   try {
     await updateUserProfilePicture(userId, dataUrl);
     return res.status(200).json({ success: true, photo_url: dataUrl });
   } catch (error) {
-    console.error('Upload profile photo error:', error);
-    return res.status(500).json({ success: false, error: error.message || 'Failed to save photo' });
+    const msg = error && error.message ? error.message : 'Failed to save photo';
+    console.error('Upload profile photo error:', msg);
+    return res.status(500).json({ success: false, error: msg });
   }
 }
 

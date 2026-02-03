@@ -16,4 +16,7 @@ BEGIN
   END IF;
 END $$;
 
--- Optional: index not needed for TEXT column used as URL storage
+-- Ensure RLS allows UPDATE on users (required for profile photo save)
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow update users" ON public.users;
+CREATE POLICY "Allow update users" ON public.users FOR UPDATE USING (true) WITH CHECK (true);

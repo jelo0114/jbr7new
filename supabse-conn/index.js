@@ -936,13 +936,14 @@ export async function addUserPoints(userId, amount) {
 // -----------------------------
 
 export async function updateUserProfilePicture(userId, profilePictureUrl) {
+  if (!supabase) throw new Error('Database not configured');
   const uid = userId != null ? parseInt(userId, 10) : null;
   if (uid == null || isNaN(uid)) throw new Error('Invalid userId');
   const { error } = await supabase
     .from('users')
     .update({ profile_picture: profilePictureUrl || null })
     .eq('id', uid);
-  if (error) throw new Error(`updateUserProfilePicture failed: ${error.message}`);
+  if (error) throw new Error(error.message || 'Update failed');
 }
 
 // -----------------------------
