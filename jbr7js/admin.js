@@ -213,14 +213,14 @@
                 var opts = statusOptions.map(function(s) {
                     return '<option value="' + s + '"' + (s === status ? ' selected' : '') + '>' + s + '</option>';
                 }).join('');
-                return '<tr data-order-id="' + o.id + '" data-current-status="' + escapeHtml(status) + '">' +
-                    '<td>' + (o.order_number || o.id) + '</td>' +
-                    '<td>' + escapeHtml(customerName) + '</td>' +
-                    '<td>' + orderCount + '</td>' +
-                    '<td>' + escapeHtml(totalStr) + '</td>' +
-                    '<td><span class="status-badge ' + statusClass(status) + '">' + escapeHtml(status) + '</span></td>' +
-                    '<td>' + formatDate(o.created_at) + '</td>' +
-                    '<td class="order-actions-cell">' +
+                return '<tr data-order-id="' + o.id + '" data-current-status="' + escapeHtml(status) + '" class="order-row">' +
+                    '<td data-label="Order #">' + (o.order_number || o.id) + '</td>' +
+                    '<td data-label="Customer">' + escapeHtml(customerName) + '</td>' +
+                    '<td data-label="Orders">' + orderCount + '</td>' +
+                    '<td data-label="Total">' + escapeHtml(totalStr) + '</td>' +
+                    '<td data-label="Status"><span class="status-badge ' + statusClass(status) + '">' + escapeHtml(status) + '</span></td>' +
+                    '<td data-label="Date">' + formatDate(o.created_at) + '</td>' +
+                    '<td class="order-actions-cell" data-label="Change status">' +
                     '<select class="order-status-select" data-order-id="' + o.id + '" aria-label="Order status">' + opts + '</select>' +
                     '</td></tr>';
             }).join('');
