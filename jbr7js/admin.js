@@ -441,15 +441,36 @@
         window.location.href = 'adminlogin.html';
     }
 
+    function closeSidebar() {
+        document.body.classList.remove('sidebar-open');
+    }
+
     function init() {
         if (!checkAdmin()) return;
         setAdminName();
         loadOverview();
 
+        var menuBtn = document.getElementById('admin-menu-btn');
+        var overlay = document.getElementById('sidebar-overlay');
+        if (menuBtn) {
+            menuBtn.addEventListener('click', function() {
+                document.body.classList.toggle('sidebar-open');
+                menuBtn.setAttribute('aria-label', document.body.classList.contains('sidebar-open') ? 'Close menu' : 'Open menu');
+                var icon = menuBtn.querySelector('i');
+                if (icon) {
+                    icon.className = document.body.classList.contains('sidebar-open') ? 'fas fa-times' : 'fas fa-bars';
+                }
+            });
+        }
+        if (overlay) {
+            overlay.addEventListener('click', closeSidebar);
+        }
+
         document.querySelectorAll('.nav-item').forEach(function(item) {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
                 switchSection(this.getAttribute('data-section'));
+                closeSidebar();
             });
         });
 
