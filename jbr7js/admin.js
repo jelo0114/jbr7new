@@ -324,38 +324,57 @@
                     '<td class="item-thumb-cell">' + thumb + '</td>' +
                     '<td>' + (i.id || '-') + '</td>' +
                     '<td>' + escapeHtml(i.item_id || '-') + '</td>' +
-                    '<td><input type="text" class="item-edit-title" value="' + titleVal + '" data-orig="' + titleVal + '"></td>' +
-                    '<td><input type="number" step="0.01" min="0" class="item-edit-price" value="' + priceVal + '" data-orig="' + priceVal + '"></td>' +
-                    '<td><input type="text" class="item-edit-category" value="' + catVal + '" data-orig="' + catVal + '"></td>' +
-                    '<td><input type="number" min="0" class="item-edit-quantity" value="' + qtyVal + '" data-orig="' + qtyVal + '"></td>' +
-                    '<td>' + (i.rating != null ? i.rating : '-') + '</td>' +
-                    '<td class="item-actions-cell">' +
-                    '<input type="text" class="item-edit-image" value="' + imgVal + '" placeholder="Image path" title="Image path" style="max-width:120px">' +
-                    '<button type="button" class="btn btn-sm btn-save-item" data-item-id="' + (i.id || '') + '"><i class="fas fa-save"></i> Save</button>' +
-                    '</td></tr>';
+                    '<td><input type="text" class="item-edit-title" value="' + titleVal + '"></td>' +
+                    '<td><input type="number" step="0.01" min="0" class="item-edit-price" value="' + priceVal + '"></td>' +
+                    '<td><input type="text" class="item-edit-category" value="' + catVal + '"></td>' +
+                    '<td><input type="number" min="0" class="item-edit-quantity" value="' + qtyVal + '"></td>' +
+                    '<td><input type="text" class="item-edit-image" value="' + imgVal + '" placeholder="Image path"></td>' +
+                    '<td>' + (i.rating != null ? i.rating : '-') + '</td></tr>';
             }).join('');
-            tbody.querySelectorAll('.btn-save-item').forEach(function(btn) {
-                btn.addEventListener('click', function() { saveOneItem(this.getAttribute('data-item-id')); });
-            });
         }).catch(function() {
             tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Failed to load products</td></tr>';
         });
     }
 
-    function saveOneItem(itemId) {
-        var tr = document.querySelector('#items-tbody tr[data-item-id="' + itemId + '"]');
-        if (!tr) return;
+    function getItemPayloadFromRow(tr) {
+        var itemId = tr.getAttribute('data-item-id');
+        if (!itemId) return null;
         var title = (tr.querySelector('.item-edit-title') || {}).value;
         var price = (tr.querySelector('.item-edit-price') || {}).value;
         var category = (tr.querySelector('.item-edit-category') || {}).value;
         var quantity = (tr.querySelector('.item-edit-quantity') || {}).value;
         var image = (tr.querySelector('.item-edit-image') || {}).value;
-        fetchApiPost({ action: 'admin-update-product', itemId: itemId, title: title, price: price ? parseFloat(price) : undefined, category: category, quantity: quantity !== '' ? parseInt(quantity, 10) : undefined, image: image || undefined })
-            .then(function() {
-                if (typeof alert === 'function') alert('Product updated.');
+        return { itemId: itemId, title: title, price: price ? parseFloat(price) : undefined, category: category, quantity: quantity !== '' ? parseInt(quantity, 10) : undefined, image: image || undefined };
+    }
+
+    function updateAllItems() {
+        var tbody = document.getElementById('items-tbody');
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('tr[data-item-id]');
+        if (rows.length === 0) { alert('No products to update.'); return; }
+        var payloads = [];
+        rows.forEach(function(tr) {
+            var p = getItemPayloadFromRow(tr);
+            if (p) payloads.push(p);
+        });
+        var btn = document.getElementById('update-all-items');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...'; }
+        function runOne(index) {
+            if (index >= payloads.length) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double"></i> Update all'; }
+                alert('All products updated.');
                 loadItems();
-            })
-            .catch(function(e) { alert('Failed to update: ' + (e.message || e)); });
+                return;
+            }
+            var p = payloads[index];
+            fetchApiPost({ action: 'admin-update-product', itemId: p.itemId, title: p.title, price: p.price, category: p.category, quantity: p.quantity, image: p.image })
+                .then(function() { runOne(index + 1); })
+                .catch(function(e) {
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double"></i> Update all'; }
+                    alert('Failed at product ' + (index + 1) + ': ' + (e.message || e));
+                });
+        }
+        runOne(0);
     }
 
     // ---------- Reviews ----------
@@ -566,6 +585,8 @@
         if (refreshOrders) refreshOrders.addEventListener('click', function() { loadOrders(); });
         var refreshUsers = document.getElementById('refresh-users');
         if (refreshUsers) refreshUsers.addEventListener('click', function() { loadUsers(); });
+        var updateAllItemsBtn = document.getElementById('update-all-items');
+        if (updateAllItemsBtn) updateAllItemsBtn.addEventListener('click', updateAllItems);
         var refreshItems = document.getElementById('refresh-items');
         if (refreshItems) refreshItems.addEventListener('click', function() { loadItems(); });
         var refreshReviews = document.getElementById('refresh-reviews');
