@@ -253,21 +253,33 @@ const BACKPACK_ITEM_IDS = [
   'katrina-two-colors'
 ];
 
-// Filter products by category (and search)
+function isBackpackCard(itemId, category, title) {
+  const id = (itemId || '').toLowerCase();
+  const cat = (category || '').toLowerCase();
+  const name = (title || '').toLowerCase();
+
+  if (BACKPACK_ITEM_IDS.includes(id)) return true;
+  if (cat === 'backpack') return true;
+  if (name.includes('back pack') || name.includes('backpack')) return true;
+  if (name.includes('kiddie bag')) return true;
+  return false;
+}
+
+// Filter products by category (and URL search param ?q=)
 function filterProducts() {
     const filterValue = document.getElementById('categoryFilter').value;
     const productCards = document.querySelectorAll('.product-card');
     
-    // Get search query from URL or inline search box if present
+    // Get search query from URL if exists
     const urlParams = new URLSearchParams(window.location.search);
-    const urlSearchQuery = urlParams.get('q');
-    const inlineSearchEl = document.getElementById('exploreSearch');
-    const searchQuery = inlineSearchEl && inlineSearchEl.value ? inlineSearchEl.value : urlSearchQuery;
+    const searchQuery = urlParams.get('q');
     const queryLower = searchQuery ? searchQuery.toLowerCase() : '';
     
     productCards.forEach((card, index) => {
         const category = card.getAttribute('data-category');
         const itemId = card.getAttribute('data-item-id') || '';
+        const titleText = (card.querySelector('h3')?.textContent || '');
+        const backpackMatch = isBackpackCard(itemId, category, titleText);
         let show = false;
 
         if (filterValue === 'all') {
@@ -278,11 +290,11 @@ function filterProducts() {
                     show = (category === 'jute-tote');
                     break;
                 case 'backpacks':
-                    show = BACKPACK_ITEM_IDS.includes(itemId);
+                    show = backpackMatch;
                     break;
                 case 'handbags':
-                    // Everything that is not in backpacks list
-                    show = itemId ? !BACKPACK_ITEM_IDS.includes(itemId) : (category !== 'backpack');
+                    // Everything that is not in backpacks
+                    show = !backpackMatch;
                     break;
                 case 'envelop-module':
                     // combined envelope & module
