@@ -23,6 +23,12 @@ export default async function handler(req, res) {
           error: 'Username, email, and password are required' 
         });
       }
+      if (password.length < 8) {
+        return res.status(400).json({ 
+          success: false, 
+          error: 'Password must be at least 8 characters' 
+        });
+      }
 
       // OPTION 1: Use Supabase Auth (Recommended)
       const { data: authData, error: signUpError } = await supabase.auth.signUp({

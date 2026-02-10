@@ -45,30 +45,75 @@
         </div>
       </div>
       <div class="order-status" id="orderStatus">Status: Preparing</div>
-
-      <div class="rider" id="riderBlock">
-        <div class="avatar" id="riderAvatar">R</div>
-        <div class="meta">
-          <div id="riderName">Rider: --</div>
-          <div id="riderETA">ETA: --</div>
-        </div>
-      </div>
     </div>
   </section>
 
-  <div class="map-wrap">
-    <!-- OpenStreetMap embed as default (no API key) -->
-    <iframe id="mapFrame" class="map-frame" src="" aria-label="Order location map"></iframe>
-  </div>
-
-  <div class="progress">
-    <div style="margin-bottom:.6rem;color:#666">Delivery progress</div>
-    <div class="stages" id="stages">
-      <div class="stage" data-step="ordered">Placed</div>
-      <div class="stage" data-step="packed">Packed</div>
-      <div class="stage" data-step="dispatched">Dispatched</div>
-      <div class="stage" data-step="near">Near you</div>
-      <div class="stage" data-step="delivered">Delivered</div>
+  <div class="track-timeline-wrap">
+    <h3 class="track-timeline-title">Order progress</h3>
+    <div class="track-timeline" id="trackTimeline">
+      <div class="track-step" data-step="1">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Order Placed</span>
+        </div>
+        <p class="track-step-desc">The customer has successfully placed an order on the JBR ONLINE website. Order details are recorded in the system.</p>
+      </div>
+      <div class="track-step" data-step="2">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Payment Confirmed</span>
+        </div>
+        <p class="track-step-desc">The system verifies that the payment has been successfully processed. The order is now ready for preparation.</p>
+      </div>
+      <div class="track-step" data-step="3">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Order Being Prepared</span>
+        </div>
+        <p class="track-step-desc">JBR staff prepares the ordered items, checks product quality, and packages the items for shipment.</p>
+      </div>
+      <div class="track-step" data-step="4">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Order Ready for Pickup</span>
+        </div>
+        <p class="track-step-desc">The package is ready and waiting to be picked up by the delivery service or courier.</p>
+      </div>
+      <div class="track-step" data-step="5">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Picked Up by Courier</span>
+        </div>
+        <p class="track-step-desc">The courier has collected the package from JBR Manufacturing for delivery.</p>
+      </div>
+      <div class="track-step" data-step="6">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">In Transit</span>
+        </div>
+        <p class="track-step-desc">The order is on the way to the customer. The package may pass through sorting hubs or delivery centers.</p>
+      </div>
+      <div class="track-step" data-step="7">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Out for Delivery</span>
+        </div>
+        <p class="track-step-desc">The courier is delivering the package to the customer's address.</p>
+      </div>
+      <div class="track-step" data-step="8">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Delivered</span>
+        </div>
+        <p class="track-step-desc">The order has been successfully delivered to the customer. Proof of delivery may be available.</p>
+      </div>
+      <div class="track-step" data-step="9">
+        <div class="track-step-head">
+          <span class="track-step-dot"></span>
+          <span class="track-step-name">Order Completed</span>
+        </div>
+        <p class="track-step-desc">The transaction is fully completed, and the order is marked as finished in the system.</p>
+      </div>
     </div>
   </div>
 
@@ -87,83 +132,53 @@
     const orderNumber = qs('order_number') || qs('order') || qs('id') || 'JBR7-UNKNOWN';
     const from = qs('from') || '';
 
-    // Load order data from database if order_id is provided
-    let orderData = null;
-    if (orderId) {
-      apiFetch(`/api/get_orders`, { credentials: 'same-origin' })
+    if (orderNumber && orderNumber !== 'JBR7-UNKNOWN') {
+      document.getElementById('orderId').textContent = 'Order #' + orderNumber;
+    }
+
+    // Load order data from database (by order_id or by order_number)
+    function loadAndShowOrder() {
+      apiFetch('/api/get_orders', { credentials: 'same-origin' })
         .then(r => r.json())
         .then(data => {
-          if (data.success && data.orders) {
-            orderData = data.orders.find(o => o.id == orderId);
-            if (orderData) {
-              updateTrackInfo(orderData);
-            }
-          }
+          if (!data.success || !data.orders) return;
+          var order = orderId
+            ? data.orders.find(function(o) { return o.id == orderId; })
+            : data.orders.find(function(o) { return String(o.order_number || '') === String(orderNumber) || String(o.id) === String(orderNumber); });
+          if (order) updateTrackInfo(order);
+          else if (!orderId) setTimelineActive(3);
         })
-        .catch(e => console.error('Failed to load order:', e));
+        .catch(function(e) { console.error('Failed to load order:', e); if (!orderId) setTimelineActive(3); });
+    }
+    if (orderId || orderNumber) loadAndShowOrder();
+
+    // Map backend status to timeline step (1-9). processing→3, confirmed→4, shipped→7, delivered→9, cancelled→0
+    function getStepForStatus(status) {
+      const s = (status || '').toLowerCase();
+      if (s === 'cancelled') return 0;
+      if (s === 'delivered') return 9;
+      if (s === 'shipped') return 7;
+      if (s === 'confirmed') return 4;
+      return 3; // processing
+    }
+
+    function setTimelineActive(completedStep) {
+      const steps = document.querySelectorAll('.track-step');
+      steps.forEach(function(el) {
+        const stepNum = parseInt(el.getAttribute('data-step'), 10);
+        if (completedStep > 0 && stepNum <= completedStep) el.classList.add('active');
+        else el.classList.remove('active');
+      });
     }
 
     function updateTrackInfo(order) {
       document.getElementById('orderId').textContent = 'Order #' + order.order_number;
-      
-      // Update status
+
       const statusText = order.status.charAt(0).toUpperCase() + order.status.slice(1);
       document.getElementById('orderStatus').textContent = 'Status: ' + statusText;
 
-      // Simple sample rider data (in real app fetch from API)
-      const riders = {
-        'shipped': { name: 'Alex Cruz', avatar: 'A', lat: 14.5995, lon: 120.9842, eta: '12 mins' },
-        'delivered': { name: 'Maria Santos', avatar: 'M', lat: 14.6100, lon: 121.0000, eta: 'Delivered' }
-      };
-
-      const r = riders[order.status] || { name: 'Assigned Rider', avatar: 'R', lat: 14.5995, lon: 120.9842, eta: '20 mins' };
-      document.getElementById('riderName').textContent = 'Rider: ' + r.name;
-      document.getElementById('riderAvatar').textContent = r.avatar;
-      document.getElementById('riderETA').textContent = 'ETA: ' + r.eta;
-
-      // Set progress stages based on order status
-      const stepMap = { 'processing': 1, 'shipped': 3, 'delivered': 5 };
-      const currentStep = stepMap[order.status] || 2;
-      const stages = document.querySelectorAll('.stage');
-      stages.forEach((el, idx) => {
-        if (idx < currentStep) el.classList.add('active');
-        else el.classList.remove('active');
-      });
-
-      // Build OpenStreetMap static view (center on Manila
-      const lat = r.lat;
-      const lon = r.lon;
-      const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.03}%2C${lat-0.02}%2C${lon+0.03}%2C${lat+0.02}&layer=mapnik&marker=${lat}%2C${lon}`;
-      document.getElementById('mapFrame').src = mapUrl;
-    }
-
-    // Fallback if no order_id
-    if (!orderId) {
-      const orderNum = orderNumber.replace(/^JBR7-/, '').replace(/^0+/, '') || 'UNKNOWN';
-      document.getElementById('orderId').textContent = 'Order #' + orderNumber;
-      
-      const riders = {
-        '001': { name: 'Alex Cruz', avatar: 'A', lat: 14.5995, lon: 120.9842, eta: '12 mins' },
-        '002': { name: 'Maria Santos', avatar: 'M', lat: 14.6100, lon: 121.0000, eta: '8 mins' },
-        '003': { name: 'Rizal', avatar: 'R', lat: 14.5958, lon: 120.9874, eta: 'Arriving' }
-      };
-      
-      const r = riders[orderNum] || { name: 'Assigned Rider', avatar: 'R', lat: 14.5995, lon: 120.9842, eta: '20 mins' };
-      document.getElementById('riderName').textContent = 'Rider: ' + r.name;
-      document.getElementById('riderAvatar').textContent = r.avatar;
-      document.getElementById('riderETA').textContent = 'ETA: ' + r.eta;
-
-      const stepMap = { '1': 3, '2': 2, '3': 4, '001': 3, '002': 2, '003': 4 };
-      const currentStep = stepMap[orderNum] || 2;
-      const stages = document.querySelectorAll('.stage');
-      stages.forEach((el, idx) => {
-        if (idx <= (currentStep-1)) el.classList.add('active');
-      });
-
-      const lat = r.lat;
-      const lon = r.lon;
-      const mapUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.03}%2C${lat-0.02}%2C${lon+0.03}%2C${lat+0.02}&layer=mapnik&marker=${lat}%2C${lon}`;
-      document.getElementById('mapFrame').src = mapUrl;
+      const completedStep = getStepForStatus(order.status);
+      setTimelineActive(completedStep);
     }
 
   // Back behavior

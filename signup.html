@@ -35,9 +35,17 @@
             <div class="form-group">
                 <label>Password</label>
                 <div class="input-container">
-                    <input type="password" id="signup-password" name="password" placeholder="Create a password" required>
+                    <input type="password" id="signup-password" name="password" placeholder="Create a password (min 8 characters)" required minlength="8">
                     <i class="fa-regular fa-eye-slash eye-icon" onclick="togglePassword(this)"></i>
                 </div>
+                <small style="color:#666;font-size:0.8rem">Password must be at least 8 characters.</small>
+            </div>
+
+            <div class="form-group" style="margin-top:0.8rem">
+                <label style="display:flex;align-items:flex-start;gap:8px;cursor:pointer;font-weight:normal">
+                    <input type="checkbox" id="signup-terms" name="terms" required style="margin-top:4px;flex-shrink:0">
+                    <span>I accept the <a href="terms-of-service.html" target="_blank" rel="noopener">Terms of Use &amp; Conditions</a> and the <a href="privacy-policy.html" target="_blank" rel="noopener">Privacy Policy</a> of JBR7 Bags Manufacturing.</span>
+                </label>
             </div>
 
             <button type="submit" class="main-btn">Sign Up</button>
@@ -70,9 +78,18 @@
         const username = form.querySelector('input[name="username"]').value.trim();
         const email = form.querySelector('input[name="email"]').value.trim();
         const password = form.querySelector('input[name="password"]').value;
+        const termsAccepted = form.querySelector('#signup-terms').checked;
 
         if (!username || !email || !password) {
             alert('Please fill in all fields');
+            return;
+        }
+        if (password.length < 8) {
+            alert('Password must be at least 8 characters.');
+            return;
+        }
+        if (!termsAccepted) {
+            alert('You must accept the Terms of Use & Conditions and the Privacy Policy to sign up.');
             return;
         }
 

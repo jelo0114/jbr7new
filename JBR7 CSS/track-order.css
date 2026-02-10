@@ -57,31 +57,29 @@ nav a i{font-size:1.1rem;position:relative;z-index:1}
 .track-actions{display:flex;gap:.6rem;align-items:center}
 .view-btn{background:var(--green);color:#fff;padding:.6rem .95rem;border-radius:8px;border:0;display:inline-flex;align-items:center;gap:.6rem;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(0,0,0,0.10)}
 
-/* Map and stages */
-.map-wrap{margin:1rem 4%}
-.map-frame{width:100%;height:460px;border-radius:12px;border:0;box-shadow:0 10px 28px rgba(0,0,0,0.08)}
-.progress{max-width:1100px;margin:1.25rem auto;padding:0 4%}
-.stages{display:flex;gap:1rem;align-items:center;justify-content:space-between}
-.stage{background:#fff;padding:0.9rem;border-radius:12px;flex:1;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.05);color:#333}
-.stage.active{border:3px solid var(--green);box-shadow:0 10px 26px rgba(0,0,0,0.06)}
-.stage small{display:block;color:var(--muted);font-size:0.85rem;margin-top:.4rem}
+/* Track timeline (Shopee-style) */
+.track-timeline-wrap{max-width:720px;margin:1.5rem auto;padding:0 4%}
+.track-timeline-title{margin:0 0 1rem;color:#222;font-size:1.1rem;font-weight:700}
+.track-timeline{background:#fff;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.06);overflow:hidden}
+.track-step{padding:1rem 1.25rem;border-left:3px solid #e0e0e0;margin-left:0;position:relative;transition:border-color .2s, background .2s}
+.track-step:first-child{border-top-left-radius:12px}
+.track-step .track-step-head{display:flex;align-items:center;gap:.75rem;margin-bottom:.4rem}
+.track-step-dot{width:12px;height:12px;border-radius:50%;background:#ccc;flex-shrink:0;transition:background .2s, box-shadow .2s}
+.track-step-name{font-weight:700;color:#666;font-size:1rem}
+.track-step-desc{margin:0;color:var(--muted);font-size:0.9rem;line-height:1.45;padding-left:1.75rem}
+.track-step.active{border-left-color:var(--green);background:rgba(0,105,35,0.04)}
+.track-step.active .track-step-dot{background:var(--green);box-shadow:0 0 0 3px rgba(0,105,35,0.25)}
+.track-step.active .track-step-name{color:#222}
 
 @media (max-width:900px){
   .track-hero{flex-direction:column;align-items:stretch}
-  .map-frame{height:300px}
   nav{display:none}
   .track-info{padding:.9rem}
   .order-meta{flex-direction:column;align-items:flex-start;gap:.6rem}
   .logo{gap:.5rem}
   .logo-img{width:48px;height:48px}
+  .track-step-desc{padding-left:0}
 }
-
-/* Rider block */
-.rider{display:flex;gap:1rem;align-items:center;margin-top:1rem}
-.rider .avatar{width:64px;height:64px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.25rem}
-.rider .meta{font-size:0.98rem}
-.rider .meta .name{font-weight:700;color:#222}
-.rider .meta .eta{color:var(--muted);font-weight:600;margin-top:.25rem}
 
 /* Utilities */
 .centered{max-width:1100px;margin:0 auto}
