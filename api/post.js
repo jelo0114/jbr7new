@@ -10,6 +10,7 @@ import {
   getAdminById,
   updateOrderStatus,
   updateUserProfilePicture,
+  updateItemById,
 } from '../supabse-conn/index';
 
 import { createHash } from 'crypto';
@@ -84,6 +85,8 @@ export default async function handler(req, res) {
       // ==================== ADMIN ====================
       case 'admin-update-order-status':
         return await handleAdminUpdateOrderStatus(req, res);
+      case 'admin-update-product':
+        return await handleAdminUpdateProduct(req, res);
 
       // ==================== UPLOAD PROFILE PHOTO ====================
       case 'upload-profile-photo':
@@ -462,6 +465,30 @@ async function handleAdminUpdateOrderStatus(req, res) {
   } catch (error) {
     console.error('Admin update order status error:', error);
     return res.status(500).json({ success: false, error: error.message || 'Failed to update order status' });
+  }
+}
+
+// ==================== ADMIN: UPDATE PRODUCT (items) ====================
+async function handleAdminUpdateProduct(req, res) {
+  const { adminId, itemId, title, description, price, image, category, quantity } = req.body;
+  if (!adminId || !itemId) {
+    return res.status(400).json({ success: false, error: 'adminId and itemId are required' });
+  }
+  try {
+    const admin = await getAdminById(adminId);
+    if (!admin) return res.status(401).json({ success: false, error: 'Unauthorized' });
+    const updates = {};
+    if (title !== undefined) updates.title = title;
+    if (description !== undefined) updates.description = description;
+    if (price !== undefined) updates.price = price;
+    if (image !== undefined) updates.image = image;
+    if (category !== undefined) updates.category = category;
+    if (quantity !== undefined) updates.quantity = quantity;
+    await updateItemById(itemId, updates);
+    return res.status(200).json({ success: true, message: 'Product updated' });
+  } catch (error) {
+    console.error('Admin update product error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to update product' });
   }
 }
 

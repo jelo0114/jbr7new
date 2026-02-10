@@ -30,7 +30,7 @@ if (req.method !== 'GET') {
   return res.status(405).json({ error: 'Method not allowed' });
 }
 
-const { action, userId, itemId, orderId, orderNumber, receiptId, q, sort, adminId } = req.query;
+const { action, userId, itemId, orderId, orderNumber, receiptId, q, sort, adminId, period } = req.query;
 
 // Validate required parameters
 if (!action) {
@@ -201,7 +201,32 @@ try {
       if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
       result = await getAllReviews();
       return res.status(200).json({ success: true, data: result });
-    
+
+    case 'admin-sales':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      const ordersAll = await getAllOrders();
+      const periodType = (period || 'weekly').toLowerCase();
+      const now = Date.now();
+      const dayMs = 24 * 60 * 60 * 1000;
+      let startMs = now - 7 * dayMs;
+      if (periodType === 'monthly') startMs = now - 30 * dayMs;
+      else if (periodType === 'annually') startMs = now - 365 * dayMs;
+      const filtered = (ordersAll || []).filter(o => {
+        const t = o.created_at ? new Date(o.created_at).getTime() : 0;
+        return t >= startMs && o.status !== 'cancelled';
+      });
+      const totalRevenue = filtered.reduce((sum, o) => sum + (parseFloat(o.total) || 0), 0);
+      return res.status(200).json({
+        success: true,
+        data: {
+          period: periodType,
+          totalRevenue: Math.round(totalRevenue * 100) / 100,
+          orderCount: filtered.length,
+          orders: filtered
+        }
+      });
+
     default:
       return res.status(400).json({ error: `Invalid action: ${action}` });
   }

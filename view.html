@@ -1226,10 +1226,24 @@ function updateRatingSummary(summary){
             }
         }
        if(!product){ product = PRODUCTS[0]; }
-        populate(product);
-        
-        // Load reviews for this product after it's populated and image is loaded
-        if (product && product.title) {
+
+        function mergeProductFromApi(apiItems) {
+            if (!apiItems || !apiItems.length) return;
+            var it = apiItems.find(function(item) {
+                if (product.id && String(item.id) === String(product.id)) return true;
+                if (product.slug && (item.item_id || '').toLowerCase() === (product.slug || '').toLowerCase()) return true;
+                if (product.title && (item.title || '').toLowerCase() === (product.title || '').toLowerCase()) return true;
+                return false;
+            });
+            if (it) {
+                if (it.quantity != null) product.quantity = parseInt(it.quantity, 10);
+                if (it.image) { if (!product.imgs) product.imgs = []; product.imgs[0] = it.image; }
+            }
+        }
+
+        function doPopulate() {
+            populate(product);
+            if (product && product.title) {
             const productTitle = product.title.trim();
             console.log('Loading reviews for product title:', productTitle);
             const mainImg = document.getElementById('mainImg');
@@ -1359,6 +1373,15 @@ function updateRatingSummary(summary){
         });
 
         if (window.updateNavBadge) window.updateNavBadge();
+        }
+        fetch('/api/get?action=items', { credentials: 'same-origin' })
+            .then(function(r) { return r.json(); })
+            .then(function(apiRes) {
+                var apiItems = (apiRes && apiRes.data) ? apiRes.data : [];
+                mergeProductFromApi(apiItems);
+                doPopulate();
+            })
+            .catch(function() { doPopulate(); });
     });
 </script>
 </body>

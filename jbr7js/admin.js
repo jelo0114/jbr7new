@@ -299,23 +299,63 @@
         });
     }
 
-    // ---------- Items ----------
+    // ---------- Items (with thumbnail, quantity, editable) ----------
     function loadItems() {
         var tbody = document.getElementById('items-tbody');
         if (!tbody) return;
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Loading...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Loading...</td></tr>';
         fetchApiGet('admin-items').then(function(res) {
             var list = res.data || [];
             if (list.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No products</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">No products</td></tr>';
                 return;
             }
             tbody.innerHTML = list.map(function(i) {
-                return '<tr><td>' + (i.id || '-') + '</td><td>' + escapeHtml(i.item_id || '-') + '</td><td>' + escapeHtml(i.title || '-') + '</td><td>' + (i.price != null ? i.price : '-') + '</td><td>' + escapeHtml(i.category || '-') + '</td><td>' + (i.rating != null ? i.rating : '-') + '</td></tr>';
+                var imgSrc = (i.image || '').trim() ? i.image : 'totebag.avif';
+                if (imgSrc && !imgSrc.startsWith('http') && !imgSrc.startsWith('data:')) imgSrc = imgSrc;
+                var thumb = '<img src="' + escapeHtml(imgSrc) + '" alt="" class="item-thumb" onerror="this.src=\'totebag.avif\'">';
+                var titleVal = escapeHtml(i.title || '');
+                var priceVal = i.price != null ? Number(i.price) : '';
+                var catVal = escapeHtml(i.category || '');
+                var qtyVal = i.quantity != null ? parseInt(i.quantity, 10) : '';
+                if (qtyVal === '' || isNaN(qtyVal)) qtyVal = '';
+                var imgVal = escapeHtml(i.image || '');
+                return '<tr data-item-id="' + (i.id || '') + '">' +
+                    '<td class="item-thumb-cell">' + thumb + '</td>' +
+                    '<td>' + (i.id || '-') + '</td>' +
+                    '<td>' + escapeHtml(i.item_id || '-') + '</td>' +
+                    '<td><input type="text" class="item-edit-title" value="' + titleVal + '" data-orig="' + titleVal + '"></td>' +
+                    '<td><input type="number" step="0.01" min="0" class="item-edit-price" value="' + priceVal + '" data-orig="' + priceVal + '"></td>' +
+                    '<td><input type="text" class="item-edit-category" value="' + catVal + '" data-orig="' + catVal + '"></td>' +
+                    '<td><input type="number" min="0" class="item-edit-quantity" value="' + qtyVal + '" data-orig="' + qtyVal + '"></td>' +
+                    '<td>' + (i.rating != null ? i.rating : '-') + '</td>' +
+                    '<td class="item-actions-cell">' +
+                    '<input type="text" class="item-edit-image" value="' + imgVal + '" placeholder="Image path" title="Image path" style="max-width:120px">' +
+                    '<button type="button" class="btn btn-sm btn-save-item" data-item-id="' + (i.id || '') + '"><i class="fas fa-save"></i> Save</button>' +
+                    '</td></tr>';
             }).join('');
+            tbody.querySelectorAll('.btn-save-item').forEach(function(btn) {
+                btn.addEventListener('click', function() { saveOneItem(this.getAttribute('data-item-id')); });
+            });
         }).catch(function() {
-            tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">Failed to load products</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" class="empty-msg">Failed to load products</td></tr>';
         });
+    }
+
+    function saveOneItem(itemId) {
+        var tr = document.querySelector('#items-tbody tr[data-item-id="' + itemId + '"]');
+        if (!tr) return;
+        var title = (tr.querySelector('.item-edit-title') || {}).value;
+        var price = (tr.querySelector('.item-edit-price') || {}).value;
+        var category = (tr.querySelector('.item-edit-category') || {}).value;
+        var quantity = (tr.querySelector('.item-edit-quantity') || {}).value;
+        var image = (tr.querySelector('.item-edit-image') || {}).value;
+        fetchApiPost({ action: 'admin-update-product', itemId: itemId, title: title, price: price ? parseFloat(price) : undefined, category: category, quantity: quantity !== '' ? parseInt(quantity, 10) : undefined, image: image || undefined })
+            .then(function() {
+                if (typeof alert === 'function') alert('Product updated.');
+                loadItems();
+            })
+            .catch(function(e) { alert('Failed to update: ' + (e.message || e)); });
     }
 
     // ---------- Reviews ----------
@@ -391,9 +431,9 @@
     function downloadProductsReport() {
         fetchApiGet('admin-items').then(function(res) {
             var list = res.data || [];
-            var headers = ['id', 'item_id', 'title', 'price', 'category', 'rating', 'review_count'];
+            var headers = ['id', 'item_id', 'title', 'price', 'category', 'quantity', 'rating', 'review_count'];
             var rows = list.map(function(i) {
-                return { id: i.id, item_id: i.item_id, title: i.title, price: i.price, category: i.category, rating: i.rating, review_count: i.review_count };
+                return { id: i.id, item_id: i.item_id, title: i.title, price: i.price, category: i.category, quantity: i.quantity != null ? i.quantity : '', rating: i.rating, review_count: i.review_count };
             });
             downloadCsv('jbr7-products-report-' + new Date().toISOString().slice(0, 10) + '.csv', rows, headers);
         }).catch(function() { alert('Failed to load products for report'); });
@@ -419,8 +459,51 @@
         if (sectionId === 'users') loadUsers();
         if (sectionId === 'items') loadItems();
         if (sectionId === 'reviews') loadReviews();
+        if (sectionId === 'reports') loadSalesReport('weekly');
         if (sectionId === 'analytics') loadAnalytics();
         if (sectionId === 'settings') loadSettings();
+    }
+
+    var salesReportCache = { period: 'weekly', data: null };
+
+    function loadSalesReport(period) {
+        period = period || salesReportCache.period;
+        salesReportCache.period = period;
+        var summaryEl = document.getElementById('sales-summary');
+        if (summaryEl) summaryEl.innerHTML = '<p class="sales-placeholder">Loading...</p>';
+        document.querySelectorAll('.sales-period-btn').forEach(function(b) {
+            b.classList.toggle('active', b.getAttribute('data-period') === period);
+        });
+        fetchApiGet('admin-sales', { period: period }).then(function(res) {
+            var d = res.data || {};
+            salesReportCache.data = d;
+            var total = d.totalRevenue != null ? d.totalRevenue : 0;
+            var count = d.orderCount != null ? d.orderCount : 0;
+            var periodLabel = period === 'weekly' ? 'Last 7 days' : period === 'monthly' ? 'Last 30 days' : 'Last 365 days';
+            if (summaryEl) {
+                summaryEl.innerHTML = '<div class="sales-stats">' +
+                    '<p><strong>Period:</strong> ' + periodLabel + '</p>' +
+                    '<p><strong>Total revenue:</strong> ₱' + Number(total).toFixed(2) + '</p>' +
+                    '<p><strong>Orders:</strong> ' + count + '</p>' +
+                    '</div>';
+            }
+        }).catch(function() {
+            if (summaryEl) summaryEl.innerHTML = '<p class="sales-placeholder">Failed to load sales.</p>';
+        });
+    }
+
+    function downloadSalesReport() {
+        var d = salesReportCache.data;
+        if (!d || !d.orders) {
+            alert('Load a sales period first (Weekly / Monthly / Annually).');
+            return;
+        }
+        var headers = ['order_number', 'user_id', 'total', 'status', 'created_at'];
+        var rows = (d.orders || []).map(function(o) {
+            return { order_number: o.order_number, user_id: o.user_id, total: o.total, status: o.status, created_at: o.created_at || '' };
+        });
+        var period = salesReportCache.period || 'weekly';
+        downloadCsv('jbr7-sales-' + period + '-' + new Date().toISOString().slice(0, 10) + '.csv', rows, headers);
     }
 
     function loadSettings() {
@@ -494,6 +577,11 @@
         if (dlUsers) dlUsers.addEventListener('click', downloadUsersReport);
         var dlProducts = document.getElementById('download-products-report');
         if (dlProducts) dlProducts.addEventListener('click', downloadProductsReport);
+        document.querySelectorAll('.sales-period-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() { loadSalesReport(this.getAttribute('data-period')); });
+        });
+        var dlSales = document.getElementById('download-sales-report');
+        if (dlSales) dlSales.addEventListener('click', downloadSalesReport);
 
         document.querySelectorAll('#section-overview .filter-btn').forEach(function(btn) {
             btn.addEventListener('click', function() {

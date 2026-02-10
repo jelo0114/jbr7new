@@ -12,7 +12,7 @@ export async function getItemsWithRatings() {
   const { data, error } = await supabase
     .from('items')
     .select(
-      'id, item_id, title, description, price, image, category, rating, review_count, created_at'
+      'id, item_id, title, description, price, image, category, quantity, rating, review_count, created_at'
     )
     .order('created_at', { ascending: false });
 
@@ -65,7 +65,7 @@ export async function searchItems(query) {
   const pattern = `%${escaped}%`;
   const { data, error } = await supabase
     .from('items')
-    .select('id, item_id, title, description, price, image, category, rating, review_count, created_at')
+    .select('id, item_id, title, description, price, image, category, quantity, rating, review_count, created_at')
     .or(`title.ilike.${pattern},description.ilike.${pattern},category.ilike.${pattern}`)
     .order('created_at', { ascending: false });
 
@@ -531,6 +531,20 @@ export async function updateOrderStatus(orderId, status) {
   if (error) {
     throw new Error(`updateOrderStatus failed: ${error.message}`);
   }
+}
+
+/** Update a product/item by id (admin). Fields: title, description, price, image, category, quantity. */
+export async function updateItemById(itemId, updates) {
+  const allowed = ['title', 'description', 'price', 'image', 'category', 'quantity'];
+  const patch = {};
+  for (const key of allowed) {
+    if (updates[key] !== undefined) patch[key] = updates[key];
+  }
+  if (Object.keys(patch).length === 0) return;
+  if (patch.price !== undefined) patch.price = parseFloat(patch.price);
+  if (patch.quantity !== undefined) patch.quantity = parseInt(patch.quantity, 10);
+  const { error } = await supabase.from('items').update(patch).eq('id', parseInt(itemId, 10));
+  if (error) throw new Error(`updateItemById failed: ${error.message}`);
 }
 
 // -----------------------------

@@ -120,20 +120,23 @@
                 <div class="section-toolbar">
                     <button type="button" class="btn btn-primary" id="refresh-items"><i class="fas fa-sync-alt"></i> Refresh</button>
                 </div>
-                <div class="table-card">
+                <div class="table-card items-table-card">
                     <table class="data-table">
                         <thead>
                             <tr>
+                                <th>Thumbnail</th>
                                 <th>ID</th>
                                 <th>Item ID</th>
                                 <th>Title</th>
                                 <th>Price</th>
                                 <th>Category</th>
+                                <th>Quantity</th>
                                 <th>Rating</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="items-tbody">
-                            <tr><td colspan="6" class="empty-msg">Loading...</td></tr>
+                            <tr><td colspan="9" class="empty-msg">Loading...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -165,8 +168,20 @@
             <!-- Reports -->
             <section id="section-reports" class="admin-section">
                 <div class="reports-header">
-                    <h3>Export Reports</h3>
-                    <p>Download store data as CSV for accounting, analysis, or backup.</p>
+                    <h3>Export Reports &amp; Sales</h3>
+                    <p>Download store data as CSV and view sales by period.</p>
+                </div>
+                <div class="sales-report-card">
+                    <h4><i class="fas fa-chart-bar"></i> Sales Report</h4>
+                    <div class="sales-period-tabs">
+                        <button type="button" class="sales-period-btn active" data-period="weekly">Weekly</button>
+                        <button type="button" class="sales-period-btn" data-period="monthly">Monthly</button>
+                        <button type="button" class="sales-period-btn" data-period="annually">Annually</button>
+                    </div>
+                    <div class="sales-summary" id="sales-summary">
+                        <p class="sales-placeholder">Select a period to load sales.</p>
+                    </div>
+                    <button type="button" class="btn btn-download" id="download-sales-report"><i class="fas fa-download"></i> Download Sales CSV</button>
                 </div>
                 <div class="reports-grid">
                     <div class="report-card">
@@ -184,7 +199,7 @@
                     <div class="report-card">
                         <div class="report-card-icon"><i class="fas fa-box"></i></div>
                         <h4>Products Report</h4>
-                        <p>Product ID, title, price, category, and rating.</p>
+                        <p>Product ID, title, price, category, quantity, and rating.</p>
                         <button type="button" class="btn btn-download" id="download-products-report"><i class="fas fa-download"></i> Download CSV</button>
                     </div>
                 </div>
