@@ -2,6 +2,8 @@
     'use strict';
 
     var API_BASE = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
+    // Use PHP POST URL so product updates persist to SQL (e.g. window.JBR7_ADMIN_API_POST_URL = '/jbr7php/post.php')
+    var API_POST_URL = (typeof window !== 'undefined' && window.JBR7_ADMIN_API_POST_URL) ? window.JBR7_ADMIN_API_POST_URL : (API_BASE + '/api/post');
     var SECTION_TITLES = {
         overview: 'Dashboard Overview',
         orders: 'Order Management',
@@ -52,7 +54,7 @@
         var adminId = getAdminId();
         if (!adminId) return Promise.reject(new Error('Not logged in'));
         var payload = Object.assign({}, body, { adminId: adminId });
-        return fetch(API_BASE + '/api/post', {
+        return fetch(API_POST_URL, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },

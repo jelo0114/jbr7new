@@ -69,6 +69,7 @@ function renderProductsGrid(items) {
     const price = (parseFloat(item.price) || 0).toFixed(2);
     const rating = Math.min(5, Math.max(0, parseFloat(item.rating) || 0));
     const reviewCount = parseInt(item.review_count, 10) || 0;
+    const itemId = escape(item.item_id || '');
     const dataCategory = mapCategoryToDataCategory(item.category);
     const stars = buildStarsHtml(rating);
     const reviewText = reviewCount === 0 ? '(0 reviews)' : reviewCount === 1 ? '(1 review)' : '(' + reviewCount + ' reviews)';
@@ -77,7 +78,7 @@ function renderProductsGrid(items) {
     const viewUrl = 'view.html?title=' + encodeURIComponent(item.title) + '&from=explore';
     const safeHref = viewUrl.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
     return (
-      '<div class="product-card" data-category="' + dataCategory + '" data-price="' + price + '" data-rating="' + rating + '" data-date="' + dateStr(item.created_at) + '" data-href="' + safeHref + '" data-review-count="' + reviewCount + '">' +
+      '<div class="product-card" data-category="' + dataCategory + '" data-item-id="' + itemId + '" data-price="' + price + '" data-rating="' + rating + '" data-date="' + dateStr(item.created_at) + '" data-href="' + safeHref + '" data-review-count="' + reviewCount + '">' +
         '<div class="product-image">' +
           '<img src="' + img + '" alt="' + title + '" onerror="this.src=\'totebag.avif\'">' +
           '<button class="save-btn" onclick="toggleSave(this)"><i class="far fa-bookmark"></i></button>' +
@@ -242,18 +243,31 @@ function handleSearchQuery() {
     }
 }
 
-// Filter products by category
+// Backpacks vs Handbags mapping based on item_id
+const BACKPACK_ITEM_IDS = [
+  'plain-brass-backpack',
+  'two-colored-backpack',
+  'boys-kiddie-bag',
+  'girls-kiddie-bag',
+  'katrina-plain',
+  'katrina-two-colors'
+];
+
+// Filter products by category (and search)
 function filterProducts() {
     const filterValue = document.getElementById('categoryFilter').value;
     const productCards = document.querySelectorAll('.product-card');
     
-    // Get search query from URL if exists
+    // Get search query from URL or inline search box if present
     const urlParams = new URLSearchParams(window.location.search);
-    const searchQuery = urlParams.get('q');
+    const urlSearchQuery = urlParams.get('q');
+    const inlineSearchEl = document.getElementById('exploreSearch');
+    const searchQuery = inlineSearchEl && inlineSearchEl.value ? inlineSearchEl.value : urlSearchQuery;
     const queryLower = searchQuery ? searchQuery.toLowerCase() : '';
     
     productCards.forEach((card, index) => {
         const category = card.getAttribute('data-category');
+        const itemId = card.getAttribute('data-item-id') || '';
         let show = false;
 
         if (filterValue === 'all') {
@@ -263,8 +277,12 @@ function filterProducts() {
                 case 'tote':
                     show = (category === 'jute-tote');
                     break;
-                case 'backpack':
-                    show = (category === 'backpack');
+                case 'backpacks':
+                    show = BACKPACK_ITEM_IDS.includes(itemId);
+                    break;
+                case 'handbags':
+                    // Everything that is not in backpacks list
+                    show = itemId ? !BACKPACK_ITEM_IDS.includes(itemId) : (category !== 'backpack');
                     break;
                 case 'envelop-module':
                     // combined envelope & module

@@ -47,11 +47,16 @@
                 <select id="categoryFilter" onchange="filterProducts()">
                     <option value="all">All Categories</option>
                     <option value="tote">Tote Bag</option>
-                    <option value="backpack">Backpack</option>
+                    <option value="backpacks">Backpacks</option>
+                    <option value="handbags">Handbags</option>
                     <option value="envelop-module">Module and Envelopes</option>
                     <option value="rvr">RIKI, VANITY, RINGLIGHT bags</option>
                     <option value="kiddie">Kiddie Bags</option>
                 </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="fas fa-search"></i> Search:</label>
+                <input type="text" id="exploreSearch" oninput="filterProducts()" placeholder="Search products...">
             </div>
             <div class="filter-group">
                 <label><i class="fas fa-sort"></i> Sort By:</label>

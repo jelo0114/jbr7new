@@ -44,20 +44,45 @@ try {
     
     // Match reviews using multiple strategies to ensure we get all reviews
     // Use COUNT(DISTINCT r.id) to avoid duplicate counts
-    $stmt = $pdo->query('
-        SELECT i.id, i.item_id, i.title, i.description, i.price, i.image, i.category,
-               COALESCE(AVG(CAST(r.rating AS DECIMAL(3,1))), 0) as rating,
-               COUNT(DISTINCT r.id) as review_count
-        FROM items i
-        LEFT JOIN reviews r ON (
-            r.item_id = CONCAT("item_", MD5(i.title)) 
-            OR r.item_id = i.item_id
-            OR r.item_id = i.title
-            OR r.product_title = i.title
-        )
-        GROUP BY i.id, i.item_id, i.title, i.description, i.price, i.image, i.category
-        ORDER BY i.created_at DESC
-    ');
+    // Try with quantity column first; if missing (e.g. before running mysql_items_quantity.sql), fallback
+    $withQuantity = true;
+    try {
+        $stmt = $pdo->query('
+            SELECT i.id, i.item_id, i.title, i.description, i.price, i.image, i.category,
+                   COALESCE(i.quantity, 99) AS quantity,
+                   COALESCE(AVG(CAST(r.rating AS DECIMAL(3,1))), 0) as rating,
+                   COUNT(DISTINCT r.id) as review_count
+            FROM items i
+            LEFT JOIN reviews r ON (
+                r.item_id = CONCAT("item_", MD5(i.title))
+                OR r.item_id = i.item_id
+                OR r.item_id = i.title
+                OR r.product_title = i.title
+            )
+            GROUP BY i.id, i.item_id, i.title, i.description, i.price, i.image, i.category, i.quantity
+            ORDER BY i.created_at DESC
+        ');
+    } catch (PDOException $e) {
+        if (strpos($e->getMessage(), 'quantity') !== false) {
+            $withQuantity = false;
+            $stmt = $pdo->query('
+                SELECT i.id, i.item_id, i.title, i.description, i.price, i.image, i.category,
+                       COALESCE(AVG(CAST(r.rating AS DECIMAL(3,1))), 0) as rating,
+                       COUNT(DISTINCT r.id) as review_count
+                FROM items i
+                LEFT JOIN reviews r ON (
+                    r.item_id = CONCAT("item_", MD5(i.title))
+                    OR r.item_id = i.item_id
+                    OR r.item_id = i.title
+                    OR r.product_title = i.title
+                )
+                GROUP BY i.id, i.item_id, i.title, i.description, i.price, i.image, i.category
+                ORDER BY i.created_at DESC
+            ');
+        } else {
+            throw $e;
+        }
+    }
     $items = $stmt->fetchAll();
 
     // Format items - ensure rating is calculated correctly
@@ -85,6 +110,7 @@ try {
             'price' => (float)$item['price'],
             'image' => $item['image'],
             'category' => $item['category'],
+            'quantity' => ($withQuantity && isset($item['quantity'])) ? (int)$item['quantity'] : 99,
             'rating' => $rating,
             'review_count' => $reviewCount,
         ];
