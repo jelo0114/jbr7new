@@ -1,6 +1,6 @@
 // EmailJS Configuration
 const EMAILJS_CONFIG = {
-    serviceID: 'service_ve1cv2g',
+    serviceID: 'service_bwniz2u',
     templateID: 'template_xg1gobv',
     publicKey: 'nbW5cNH5Zylk8cmdh'
 };
