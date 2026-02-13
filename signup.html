@@ -6,22 +6,216 @@
     <title>JBR7 Bags - Sign Up</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/JBR7 CSS/signin.css">
-    
+    <style>
+        /* OTP Modal Styles */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .otp-modal {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+            line-height: 1;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .otp-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .otp-header i {
+            font-size: 3rem;
+            color: #4CAF50;
+            margin-bottom: 1rem;
+        }
+
+        .otp-header h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .otp-header p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .otp-input-container {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin: 1.5rem 0;
+        }
+
+        .otp-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .otp-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+
+        .otp-input.error {
+            border-color: #f44336;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .otp-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .verify-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .verify-btn:hover {
+            background: #45a049;
+        }
+
+        .verify-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .resend-container {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .resend-btn {
+            background: none;
+            border: none;
+            color: #4CAF50;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.9rem;
+            padding: 0;
+        }
+
+        .resend-btn:hover {
+            color: #45a049;
+        }
+
+        .resend-btn:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            color: #f44336;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            color: #4CAF50;
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-left: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 <body>
     
-     <div class="logo-container">
+    <div class="logo-container">
         <img src="JBR7 BAGS LOGO.jpg" alt="JBR7 BAGS LOGO" class="logo-image" onerror="this.style.display='none'">
-
-    <div class="logo-text">
-        <span class="brand-name"></span>
-        <span class="brand-tagline">MANUFACTURING</span>
+        <div class="logo-text">
+            <span class="brand-name"></span>
+            <span class="brand-tagline">MANUFACTURING</span>
+        </div>
     </div>
-</div>
+
     <div class="auth-card">
         <h2 style="text-align:center;margin-bottom:12px;color:#333;font-size:1.35rem">Sign Up</h2>
 
-    <form id="signup-form" style="margin-top:6px">
+        <form id="signup-form" style="margin-top:6px">
             <div class="form-group">
                 <label>Username</label>
                 <input type="text" id="signup-username" name="username" placeholder="Choose a username" required>
@@ -48,7 +242,7 @@
                 </label>
             </div>
 
-            <button type="submit" class="main-btn">Sign Up</button>
+            <button type="submit" class="main-btn" id="signup-btn">Sign Up</button>
 
             <div style="text-align:center;margin-top:0.6rem">
                 <a href="index.html" class="return-home">Return to home</a>
@@ -60,72 +254,337 @@
             </div>
         </form>
     </div>
-   
 
+    <!-- OTP Verification Modal -->
+    <div class="modal-overlay" id="otp-modal">
+        <div class="otp-modal">
+            <button class="modal-close" onclick="closeOTPModal()">&times;</button>
+            
+            <div class="otp-header">
+                <i class="fas fa-envelope-open-text"></i>
+                <h3>Verify Your Email</h3>
+                <p>We've sent a 6-digit code to <strong id="user-email-display"></strong></p>
+            </div>
+
+            <div class="otp-input-container">
+                <input type="text" class="otp-input" maxlength="1" data-index="0" />
+                <input type="text" class="otp-input" maxlength="1" data-index="1" />
+                <input type="text" class="otp-input" maxlength="1" data-index="2" />
+                <input type="text" class="otp-input" maxlength="1" data-index="3" />
+                <input type="text" class="otp-input" maxlength="1" data-index="4" />
+                <input type="text" class="otp-input" maxlength="1" data-index="5" />
+            </div>
+
+            <div class="error-message" id="otp-error"></div>
+            <div class="success-message" id="otp-success"></div>
+
+            <div class="otp-actions">
+                <button class="verify-btn" id="verify-otp-btn" onclick="verifyOTP()">
+                    Verify Email
+                </button>
+
+                <div class="resend-container">
+                    <span>Didn't receive the code? </span>
+                    <button class="resend-btn" id="resend-btn" onclick="resendOTP()">
+                        Resend Code
+                    </button>
+                    <span id="resend-timer" style="display:none;"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-    // Simple password toggle for the eye icon (kept client-side)
-    function togglePassword(icon){
-        const input = icon.parentElement.querySelector('input[type="password"]');
-        if(!input) return;
-        if(input.type === 'password'){ input.type = 'text'; icon.classList.remove('fa-eye-slash'); icon.classList.add('fa-eye'); }
-        else { input.type = 'password'; icon.classList.remove('fa-eye'); icon.classList.add('fa-eye-slash'); }
-    }
+        // Initialize Supabase client
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseAnonKey);
 
-    // Handle signup via API so we can capture user_id
-    document.getElementById('signup-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const form = this;
-        const username = form.querySelector('input[name="username"]').value.trim();
-        const email = form.querySelector('input[name="email"]').value.trim();
-        const password = form.querySelector('input[name="password"]').value;
-        const termsAccepted = form.querySelector('#signup-terms').checked;
+        let pendingUserEmail = '';
+        let resendTimer = null;
+        let resendCountdown = 60;
 
-        if (!username || !email || !password) {
-            alert('Please fill in all fields');
-            return;
-        }
-        if (password.length < 8) {
-            alert('Password must be at least 8 characters.');
-            return;
-        }
-        if (!termsAccepted) {
-            alert('You must accept the Terms of Use & Conditions and the Privacy Policy to sign up.');
-            return;
-        }
-
-        // FIXED: Call the correct consolidated API endpoint
-        fetch('/api/actions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                action: 'signup',
-                username, 
-                email, 
-                password 
-            })
-        })
-        .then(r => {
-            // Add error handling for non-JSON responses
-            if (!r.ok) {
-                throw new Error(`HTTP error! status: ${r.status}`);
-            }
-            return r.json();
-        })
-        .then(data => {
-            if (data.success && data.user_id) {
-                var uid = data.user_id.toString();
-                sessionStorage.setItem('jbr7_user_id', uid);
-                sessionStorage.setItem('jbr7_auth_uid', uid);
-                window.location.href = 'home.html';
+        // Simple password toggle
+        function togglePassword(icon) {
+            const input = icon.parentElement.querySelector('input[type="password"]');
+            if (!input) return;
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
             } else {
-                alert(data.error || 'Signup failed');
+                input.type = 'password';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
             }
-        })
-        .catch(err => {
-            console.error('Signup error:', err);
-            alert('Signup failed. Please try again.');
+        }
+
+        // OTP Input Handler
+        document.addEventListener('DOMContentLoaded', function() {
+            const otpInputs = document.querySelectorAll('.otp-input');
+            
+            otpInputs.forEach((input, index) => {
+                input.addEventListener('input', function(e) {
+                    const value = e.target.value;
+                    
+                    // Only allow numbers
+                    if (!/^\d*$/.test(value)) {
+                        e.target.value = '';
+                        return;
+                    }
+
+                    // Move to next input
+                    if (value.length === 1 && index < otpInputs.length - 1) {
+                        otpInputs[index + 1].focus();
+                    }
+
+                    // Clear error state
+                    input.classList.remove('error');
+                    hideError();
+                });
+
+                input.addEventListener('keydown', function(e) {
+                    // Move to previous input on backspace
+                    if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                        otpInputs[index - 1].focus();
+                    }
+                });
+
+                input.addEventListener('paste', function(e) {
+                    e.preventDefault();
+                    const pastedData = e.clipboardData.getData('text').trim();
+                    
+                    if (/^\d{6}$/.test(pastedData)) {
+                        pastedData.split('').forEach((char, i) => {
+                            if (otpInputs[i]) {
+                                otpInputs[i].value = char;
+                            }
+                        });
+                        otpInputs[5].focus();
+                    }
+                });
+            });
         });
-    });
+
+        // Handle Signup Form Submission
+        document.getElementById('signup-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const form = this;
+            const signupBtn = document.getElementById('signup-btn');
+            
+            const username = form.querySelector('input[name="username"]').value.trim();
+            const email = form.querySelector('input[name="email"]').value.trim();
+            const password = form.querySelector('input[name="password"]').value;
+            const termsAccepted = form.querySelector('#signup-terms').checked;
+
+            // Validation
+            if (!username || !email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            if (password.length < 8) {
+                alert('Password must be at least 8 characters.');
+                return;
+            }
+            if (!termsAccepted) {
+                alert('You must accept the Terms of Use & Conditions and the Privacy Policy to sign up.');
+                return;
+            }
+
+            // Disable button and show loading
+            signupBtn.disabled = true;
+            signupBtn.innerHTML = 'Creating Account<span class="loading-spinner"></span>';
+
+            try {
+                // Sign up with Supabase Auth
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            username: username
+                        },
+                        emailRedirectTo: window.location.origin + '/home.html'
+                    }
+                });
+
+                if (error) throw error;
+
+                // Store email and show OTP modal
+                pendingUserEmail = email;
+                document.getElementById('user-email-display').textContent = email;
+                showOTPModal();
+                startResendTimer();
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                alert(error.message || 'Signup failed. Please try again.');
+            } finally {
+                // Re-enable button
+                signupBtn.disabled = false;
+                signupBtn.innerHTML = 'Sign Up';
+            }
+        });
+
+        // Show OTP Modal
+        function showOTPModal() {
+            document.getElementById('otp-modal').classList.add('active');
+            document.querySelectorAll('.otp-input')[0].focus();
+        }
+
+        // Close OTP Modal
+        function closeOTPModal() {
+            if (confirm('Are you sure you want to close? You need to verify your email to complete signup.')) {
+                document.getElementById('otp-modal').classList.remove('active');
+                clearOTPInputs();
+                hideError();
+                hideSuccess();
+            }
+        }
+
+        // Get OTP Code from inputs
+        function getOTPCode() {
+            const inputs = document.querySelectorAll('.otp-input');
+            return Array.from(inputs).map(input => input.value).join('');
+        }
+
+        // Clear OTP Inputs
+        function clearOTPInputs() {
+            document.querySelectorAll('.otp-input').forEach(input => {
+                input.value = '';
+                input.classList.remove('error');
+            });
+        }
+
+        // Show Error Message
+        function showError(message) {
+            const errorEl = document.getElementById('otp-error');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+            document.querySelectorAll('.otp-input').forEach(input => {
+                input.classList.add('error');
+            });
+        }
+
+        // Hide Error Message
+        function hideError() {
+            document.getElementById('otp-error').classList.remove('show');
+        }
+
+        // Show Success Message
+        function showSuccess(message) {
+            const successEl = document.getElementById('otp-success');
+            successEl.textContent = message;
+            successEl.classList.add('show');
+        }
+
+        // Hide Success Message
+        function hideSuccess() {
+            document.getElementById('otp-success').classList.remove('show');
+        }
+
+        // Verify OTP
+        async function verifyOTP() {
+            const otpCode = getOTPCode();
+            const verifyBtn = document.getElementById('verify-otp-btn');
+
+            if (otpCode.length !== 6) {
+                showError('Please enter the complete 6-digit code');
+                return;
+            }
+
+            hideError();
+            hideSuccess();
+            verifyBtn.disabled = true;
+            verifyBtn.innerHTML = 'Verifying<span class="loading-spinner"></span>';
+
+            try {
+                // Verify OTP with Supabase
+                const { data, error } = await supabase.auth.verifyOtp({
+                    email: pendingUserEmail,
+                    token: otpCode,
+                    type: 'signup'
+                });
+
+                if (error) throw error;
+
+                // Success - show message and redirect
+                showSuccess('Email verified successfully! Redirecting...');
+                
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 1500);
+
+            } catch (error) {
+                console.error('OTP verification error:', error);
+                showError(error.message || 'Invalid code. Please try again.');
+                clearOTPInputs();
+                document.querySelectorAll('.otp-input')[0].focus();
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.innerHTML = 'Verify Email';
+            }
+        }
+
+        // Resend OTP
+        async function resendOTP() {
+            const resendBtn = document.getElementById('resend-btn');
+            
+            if (resendBtn.disabled) return;
+
+            hideError();
+            hideSuccess();
+            resendBtn.disabled = true;
+
+            try {
+                // Resend OTP via Supabase
+                const { error } = await supabase.auth.resend({
+                    type: 'signup',
+                    email: pendingUserEmail
+                });
+
+                if (error) throw error;
+
+                showSuccess('Code resent successfully! Check your email.');
+                clearOTPInputs();
+                startResendTimer();
+
+            } catch (error) {
+                console.error('Resend error:', error);
+                showError(error.message || 'Failed to resend code. Please try again.');
+                resendBtn.disabled = false;
+            }
+        }
+
+        // Start Resend Timer
+        function startResendTimer() {
+            const resendBtn = document.getElementById('resend-btn');
+            const timerEl = document.getElementById('resend-timer');
+            
+            resendCountdown = 60;
+            resendBtn.style.display = 'none';
+            timerEl.style.display = 'inline';
+            
+            resendTimer = setInterval(() => {
+                resendCountdown--;
+                timerEl.textContent = `(${resendCountdown}s)`;
+                
+                if (resendCountdown <= 0) {
+                    clearInterval(resendTimer);
+                    resendBtn.style.display = 'inline';
+                    resendBtn.disabled = false;
+                    timerEl.style.display = 'none';
+                }
+            }, 1000);
+        }
+
+        // Allow Enter key to verify OTP
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('otp-modal').classList.contains('active')) {
+                verifyOTP();
+            }
+        });
     </script>
 </body>
 </html>
