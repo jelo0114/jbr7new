@@ -3,87 +3,186 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Receipt - JBR7 Bags</title>
+  <title>Waybill - JBR7 Bags</title>
   
  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   
   <style>
-    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fafafa;color:#222;padding:2rem}
-    .receipt{max-width:900px;margin:0 auto;background:#fff;padding:1.5rem;border-radius:8px;box-shadow:0 6px 30px rgba(0,0,0,0.08)}
+    body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#fafafa;color:#222;padding:1rem}
+    .receipt{max-width:1000px;margin:0 auto;background:#fff;border:3px solid #000;padding:0}
+    
+    /* Waybill Header */
+    .waybill-header{background:#000;color:#fff;padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #000}
     .company{display:flex;align-items:center;gap:1rem}
-    .company img{width:72px;height:72px;border-radius:8px;object-fit:cover}
-    .company h1{margin:0;font-size:1.25rem}
-    .meta{display:flex;justify-content:space-between;margin-top:1rem}
-    .meta .left, .meta .right{font-size:0.95rem;color:#555}
-    table{width:100%;border-collapse:collapse;margin-top:1rem}
-    th,td{padding:0.8rem;border-bottom:1px solid #eee;text-align:left}
-    th{background:#fafafa;color:#333}
+    .company img{width:60px;height:60px;border-radius:4px;object-fit:cover;background:#fff;padding:4px}
+    .company h1{margin:0;font-size:1.1rem;color:#fff}
+    .company .addr{font-size:0.75rem;color:#ddd;margin-top:0.25rem}
+    
+    /* Tracking Section */
+    .tracking-section{background:#f5f5f5;padding:1rem 1.5rem;border-bottom:2px solid #000;text-align:center}
+    .tracking-section h2{margin:0;font-size:0.8rem;color:#666;text-transform:uppercase;letter-spacing:1px}
+    .tracking-number{font-size:2rem;font-weight:700;margin:0.5rem 0;font-family:monospace;letter-spacing:2px}
+    
+    /* Address Grid */
+    .address-grid{display:grid;grid-template-columns:1fr 1fr;border-bottom:2px solid #000}
+    .address-box{padding:1.5rem;border-right:2px solid #000}
+    .address-box:last-child{border-right:none}
+    .address-box h3{margin:0 0 1rem 0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:#666;border-bottom:2px solid #000;padding-bottom:0.5rem}
+    .address-content{font-size:0.95rem;line-height:1.8;color:#222}
+    .address-content div{margin:0.25rem 0}
+    .address-label{font-weight:600;color:#000;font-size:0.8rem;text-transform:uppercase;margin-top:0.5rem}
+    
+    /* Shipment Details */
+    .shipment-details{padding:1.5rem;border-bottom:2px solid #000;background:#fafafa}
+    .meta{display:grid;grid-template-columns:repeat(2, 1fr);gap:1rem}
+    .meta-item{display:flex;flex-direction:column;gap:0.25rem}
+    .meta-item label{font-size:0.75rem;color:#666;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+    .meta-item span{font-size:0.95rem;color:#000;font-weight:500}
+    
+    /* Items Section */
+    .items-section{padding:1.5rem;border-bottom:2px solid #000}
+    .items-section h3{margin:0 0 1rem 0;font-size:0.85rem;text-transform:uppercase;letter-spacing:0.5px;color:#666}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:0.7rem;border-bottom:1px solid #ddd;text-align:left;font-size:0.9rem}
+    th{background:#f5f5f5;color:#333;font-weight:600;text-transform:uppercase;font-size:0.75rem;letter-spacing:0.5px}
     .right{text-align:right}
-    .totals{margin-top:1rem;display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end}
-    .totals .row{width:320px;display:flex;justify-content:space-between;padding:0.4rem 0}
-    .actions{display:flex;gap:0.5rem;margin-top:1.25rem}
-    .btn{background:#006923;color:#fff;padding:0.6rem 0.9rem;border-radius:6px;border:none;cursor:pointer}
-    .btn.secondary{background:#fff;color:#006923;border:1px solid #006923}
-    @media print{.actions{display:none};body{background:#fff}}
+    
+    /* Totals */
+    .totals-section{padding:1.5rem;background:#f5f5f5}
+    .totals{display:flex;flex-direction:column;gap:0.5rem;align-items:flex-end}
+    .totals .row{width:350px;display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid #ddd}
+    .totals .row:last-child{border-bottom:3px double #000;font-weight:700;font-size:1.15rem;padding-top:0.75rem}
+    
+    /* Footer Actions */
+    .actions{display:flex;gap:0.5rem;margin:1.5rem;padding-top:1rem;border-top:2px dashed #ccc}
+    .btn{background:#006923;color:#fff;padding:0.7rem 1.2rem;border-radius:4px;border:none;cursor:pointer;font-weight:600;text-transform:uppercase;font-size:0.85rem;letter-spacing:0.5px}
+    .btn.secondary{background:#fff;color:#006923;border:2px solid #006923}
+    
+    /* Barcode Placeholder */
+    .barcode-area{padding:1rem 1.5rem;text-align:center;background:#fff;border-top:2px solid #000;border-bottom:2px solid #000}
+    .barcode-placeholder{height:60px;background:repeating-linear-gradient(90deg,#000 0px,#000 2px,#fff 2px,#fff 4px);margin:0.5rem auto;max-width:400px}
+    
+    @media print{
+      .actions{display:none}
+      body{background:#fff;padding:0}
+      .receipt{border:2px solid #000;max-width:100%}
+      header{display:none}
+    }
+    @media (max-width:768px){
+      .address-grid{grid-template-columns:1fr}
+      .address-box{border-right:none;border-bottom:2px solid #000}
+      .address-box:last-child{border-bottom:none}
+      .meta{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
-  <header style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 2rem;background:#fff;border-bottom:1px solid #eee;margin:-2rem -2rem 2rem -2rem;padding:0.75rem 2rem">
+  <header style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 2rem;background:#fff;border-bottom:1px solid #eee;margin:-1rem -1rem 1rem -1rem">
     <a href="explore.html" style="color:#006923;text-decoration:none;font-weight:600"><i class="fas fa-arrow-left"></i> Return to Shop</a>
     <a href="#" data-page="notifications" style="position:relative;color:#333;padding:0.5rem" title="Notifications"><i class="fas fa-bell"></i></a>
   </header>
+  
   <div class="receipt" id="receiptRoot">
-    <div class="company">
-      <img src="JBR7 BAGS LOGO.jpg" alt="logo" onerror="this.style.display='none'">
-      <div>
-        <h1>JBR7 BAGS MANUFACTURING</h1>
-        <div class="addr">Email: roquejennylynbatac@gmail.com • Phone: +639216821649</div>
+    <!-- Waybill Header -->
+    <div class="waybill-header">
+      <div class="company">
+        <img src="JBR7 BAGS LOGO.jpg" alt="logo" onerror="this.style.display='none'">
+        <div>
+          <h1>JBR7 BAGS MANUFACTURING</h1>
+          <div class="addr">Email: roquejennylynbatac@gmail.com • Phone: +639216821649</div>
+        </div>
+      </div>
+      <div style="text-align:right;color:#fff">
+        <div style="font-size:0.75rem;text-transform:uppercase;letter-spacing:1px">Waybill</div>
+        <div style="font-size:0.85rem;margin-top:0.25rem" id="orderDate"></div>
       </div>
     </div>
 
-    <div class="meta">
-      <div class="left">
-        <div id="orderId"></div>
-        <div id="orderDate"></div>
+    <!-- Tracking Number -->
+    <div class="tracking-section">
+      <h2>Tracking Number</h2>
+      <div class="tracking-number" id="orderId"></div>
+    </div>
+
+    <!-- Barcode -->
+    <div class="barcode-area">
+      <div class="barcode-placeholder"></div>
+      <div style="font-size:0.75rem;color:#666;margin-top:0.5rem">Scan for tracking</div>
+    </div>
+
+    <!-- Address Grid -->
+    <div class="address-grid">
+      <!-- From Address -->
+      <div class="address-box">
+        <h3><i class="fas fa-warehouse"></i> Ship From</h3>
+        <div class="address-content">
+          <div style="font-weight:700;font-size:1.05rem">JBR7 BAGS MANUFACTURING</div>
+          <div style="margin-top:0.5rem">roquejennylynbatac@gmail.com</div>
+          <div>+639216821649</div>
+        </div>
       </div>
-      <div class="right">
-        <div id="payment"></div>
-        <div id="courier"></div>
+      
+      <!-- To Address -->
+      <div class="address-box">
+        <h3><i class="fas fa-map-marker-alt"></i> Ship To</h3>
+        <div class="address-content" id="shippingAddress">
+          <div id="shippingName" style="font-weight:700;font-size:1.05rem"></div>
+          <div id="shippingPhone" style="margin-top:0.5rem"></div>
+          <div id="shippingAddressLine1"></div>
+          <div id="shippingAddressLine2"></div>
+          <div id="shippingCityProvince"></div>
+          <div id="shippingPostalCode"></div>
+          <div id="shippingCountry"></div>
+          <div class="address-label" style="margin-top:1rem">Customer Contact</div>
+          <div id="custContact" style="font-weight:600"></div>
+        </div>
       </div>
     </div>
 
-    <table id="itemsTable">
-      <thead>
-        <tr><th>Item</th><th class="right">Unit</th><th class="right">Qty</th><th class="right">Line</th></tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-
-    <div class="totals">
-      <div class="row"><div>Subtotal</div><div id="subtotal">₱0.00</div></div>
-      <div class="row" id="discount-row" style="display:none"><div>Discount (coupon)</div><div id="discount">-₱0.00</div></div>
-      <div class="row" style="font-weight:700;font-size:1.1rem"><div>Total</div><div id="total">₱0.00</div></div>
-    </div>
-
-    <div style="margin-top:1rem;color:#555;font-size:0.95rem">Customer: <span id="custContact"></span></div>
-
-    <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #eee">
-      <h3 style="margin:0 0 0.75rem 0;font-size:1rem;color:#333">Shipping Address</h3>
-      <div id="shippingAddress" style="color:#555;font-size:0.95rem;line-height:1.6">
-        <div id="shippingName"></div>
-        <div id="shippingPhone"></div>
-        <div id="shippingAddressLine1"></div>
-        <div id="shippingAddressLine2"></div>
-        <div id="shippingCityProvince"></div>
-        <div id="shippingPostalCode"></div>
-        <div id="shippingCountry"></div>
+    <!-- Shipment Details -->
+    <div class="shipment-details">
+      <div class="meta">
+        <div class="meta-item">
+          <label><i class="fas fa-credit-card"></i> Payment Method</label>
+          <span id="payment"></span>
+        </div>
+        <div class="meta-item">
+          <label><i class="fas fa-shipping-fast"></i> Courier Service</label>
+          <span id="courier"></span>
+        </div>
       </div>
     </div>
 
+    <!-- Items Section -->
+    <div class="items-section">
+      <h3><i class="fas fa-box"></i> Package Contents</h3>
+      <table id="itemsTable">
+        <thead>
+          <tr>
+            <th>Item Description</th>
+            <th class="right">Unit Price</th>
+            <th class="right">Quantity</th>
+            <th class="right">Line Total</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="totals-section">
+      <div class="totals">
+        <div class="row"><div>Subtotal</div><div id="subtotal">₱0.00</div></div>
+        <div class="row" id="discount-row" style="display:none"><div>Discount (coupon)</div><div id="discount">-₱0.00</div></div>
+        <div class="row"><div>Total Amount</div><div id="total">₱0.00</div></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
     <div class="actions">
-      <button class="btn" onclick="window.print()">Print Receipt</button>
-      <button class="btn secondary" id="backBtn">Continue Shopping</button>
+      <button class="btn" onclick="window.print()"><i class="fas fa-print"></i> Print Waybill</button>
+      <button class="btn secondary" id="backBtn"><i class="fas fa-shopping-bag"></i> Continue Shopping</button>
     </div>
   </div>
 
