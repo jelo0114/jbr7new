@@ -39,6 +39,7 @@ function generateVerificationCode() {
 // Send verification email via EmailJS
 function sendVerificationEmail(email, username, code) {
     const templateParams = {
+        to_email: email, 
         customer_name: username,
         verification_code: code,
         expiry_time: '10',
