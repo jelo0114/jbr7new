@@ -59,10 +59,6 @@
     .btn{background:#006923;color:#fff;padding:0.7rem 1.2rem;border-radius:4px;border:none;cursor:pointer;font-weight:600;text-transform:uppercase;font-size:0.85rem;letter-spacing:0.5px}
     .btn.secondary{background:#fff;color:#006923;border:2px solid #006923}
     
-    /* Barcode Placeholder */
-    .barcode-area{padding:1rem 1.5rem;text-align:center;background:#fff;border-top:2px solid #000;border-bottom:2px solid #000}
-    .barcode-placeholder{height:60px;background:repeating-linear-gradient(90deg,#000 0px,#000 2px,#fff 2px,#fff 4px);margin:0.5rem auto;max-width:400px}
-    
     @media print{
       .actions{display:none}
       body{background:#fff;padding:0}
@@ -99,16 +95,10 @@
       </div>
     </div>
 
-    <!-- Tracking Number -->
+    <!-- Tracking Number / Order ID -->
     <div class="tracking-section">
       <h2>Tracking Number</h2>
       <div class="tracking-number" id="orderId"></div>
-    </div>
-
-    <!-- Barcode -->
-    <div class="barcode-area">
-      <div class="barcode-placeholder"></div>
-      <div style="font-size:0.75rem;color:#666;margin-top:0.5rem">Scan for tracking</div>
     </div>
 
     <!-- Address Grid -->
