@@ -391,3 +391,18 @@ input:focus {
         padding: 20px; 
     }
 }
+.register-admin-btn {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 16px;
+    background-color: #1f2937;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: 0.3s ease;
+}
+
+.register-admin-btn:hover {
+    background-color: #111827;
+}
