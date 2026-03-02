@@ -145,6 +145,65 @@ export default async function handler(req, res) {
         });
 
       // ==================== ADMIN AUTH ====================
+
+      case 'admin-signup':
+        const { name: adminName, email: newAdminEmail, password: newAdminPassword } = payload;
+
+        if (!adminName || !newAdminEmail || !newAdminPassword) {
+          return res.status(400).json({
+            success: false,
+            error: 'Name, email and password are required'
+          });
+        }
+
+        if (newAdminPassword.length < 8) {
+          return res.status(400).json({
+            success: false,
+            error: 'Password must be at least 8 characters'
+          });
+        }
+
+        // Check if admin already exists
+        const { data: existingAdmin, error: existingAdminError } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('email', String(newAdminEmail).trim())
+          .maybeSingle();
+
+        if (existingAdminError) {
+          console.error('Admin check error:', existingAdminError);
+          throw existingAdminError;
+        }
+
+        if (existingAdmin) {
+          return res.status(400).json({
+            success: false,
+            error: 'Admin email already registered'
+          });
+        }
+
+        const adminPasswordHash = hashPassword(newAdminPassword);
+
+        const { data: createdAdmin, error: insertAdminError } = await supabase
+          .from('admin_users')
+          .insert({
+            name: String(adminName).trim(),
+            email: String(newAdminEmail).trim(),
+            password_hash: adminPasswordHash
+          })
+          .select('id')
+          .single();
+
+        if (insertAdminError) {
+          console.error('Admin insert error:', insertAdminError);
+          throw insertAdminError;
+        }
+
+        return res.status(200).json({
+          success: true,
+          admin_id: createdAdmin?.id || null
+        });
+
       case 'admin-login':
         const { email: adminEmail, password: adminPassword } = payload;
         if (!adminEmail || !adminPassword) {
