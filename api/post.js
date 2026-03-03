@@ -88,6 +88,12 @@ export default async function handler(req, res) {
       case 'admin-update-product':
         return await handleAdminUpdateProduct(req, res);
 
+      // ==================== NEW: ADMIN REGISTER & DELETE ====================
+      case 'admin-register':
+        return await handleAdminRegister(req, res);
+      case 'admin-delete':
+        return await handleAdminDelete(req, res);
+
       // ==================== UPLOAD PROFILE PHOTO ====================
       case 'upload-profile-photo':
         return await handleUploadProfilePhoto(req, res);
@@ -759,5 +765,90 @@ async function handleDeleteSavedItem(req, res) {
       success: false,
       error: error.message
     });
+  }
+}
+
+// ==================== NEW: ADMIN REGISTER ====================
+async function handleAdminRegister(req, res) {
+  const { adminId, name, email, password } = req.body;
+
+  if (!adminId) return res.status(400).json({ success: false, error: 'adminId is required' });
+  const requestingAdmin = await getAdminById(adminId);
+  if (!requestingAdmin) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+  if (!name || !name.trim())
+    return res.status(400).json({ success: false, error: 'Name is required' });
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).trim()))
+    return res.status(400).json({ success: false, error: 'Valid email is required' });
+  if (!password || password.length < 8)
+    return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
+
+  const normalizedEmail = String(email).trim().toLowerCase();
+
+  try {
+    const { data: existing, error: checkErr } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+
+    if (checkErr) throw checkErr;
+    if (existing) return res.status(400).json({ success: false, error: 'An admin with this email already exists' });
+
+    const { data: newAdmin, error: insertErr } = await supabase
+      .from('admin_users')
+      .insert({ name: name.trim(), email: normalizedEmail, password_hash: hashPassword(password) })
+      .select('id, name, email, created_at')
+      .single();
+
+    if (insertErr) throw insertErr;
+
+    return res.status(200).json({
+      success: true,
+      message: `Admin "${name.trim()}" registered successfully`,
+      data: newAdmin,
+    });
+  } catch (error) {
+    console.error('Admin register error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to register admin' });
+  }
+}
+
+// ==================== NEW: ADMIN DELETE ====================
+async function handleAdminDelete(req, res) {
+  const { adminId, targetAdminId } = req.body;
+
+  if (!adminId) return res.status(400).json({ success: false, error: 'adminId is required' });
+  if (!targetAdminId) return res.status(400).json({ success: false, error: 'targetAdminId is required' });
+  if (String(adminId) === String(targetAdminId))
+    return res.status(400).json({ success: false, error: 'You cannot remove your own admin account' });
+
+  const requestingAdmin = await getAdminById(adminId);
+  if (!requestingAdmin) return res.status(401).json({ success: false, error: 'Unauthorized' });
+
+  try {
+    const { data: target, error: targetErr } = await supabase
+      .from('admin_users')
+      .select('id, name, email')
+      .eq('id', targetAdminId)
+      .maybeSingle();
+
+    if (targetErr) throw targetErr;
+    if (!target) return res.status(404).json({ success: false, error: 'Admin account not found' });
+
+    const { error: deleteErr } = await supabase
+      .from('admin_users')
+      .delete()
+      .eq('id', targetAdminId);
+
+    if (deleteErr) throw deleteErr;
+
+    return res.status(200).json({
+      success: true,
+      message: `Admin "${target.name || target.email}" removed successfully`,
+    });
+  } catch (error) {
+    console.error('Admin delete error:', error);
+    return res.status(500).json({ success: false, error: error.message || 'Failed to remove admin' });
   }
 }

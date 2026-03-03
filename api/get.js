@@ -227,6 +227,20 @@ try {
         }
       });
 
+    // ==================== NEW: ADMIN LIST ====================
+    case 'admin-list':
+      if (!adminId) return res.status(400).json({ success: false, error: 'adminId required' });
+      if (!(await getAdminById(adminId))) return res.status(401).json({ success: false, error: 'Unauthorized' });
+      const { data: admins, error: adminsErr } = await supabase
+        .from('admin_users')
+        .select('id, name, email, created_at')
+        .order('created_at', { ascending: true });
+      if (adminsErr) {
+        console.error('admin-list error:', adminsErr);
+        return res.status(500).json({ success: false, error: adminsErr.message || 'Failed to fetch admin list' });
+      }
+      return res.status(200).json({ success: true, data: admins || [] });
+
     default:
       return res.status(400).json({ error: `Invalid action: ${action}` });
   }
