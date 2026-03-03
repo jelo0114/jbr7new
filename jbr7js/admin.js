@@ -2,7 +2,6 @@
     'use strict';
 
     var API_BASE = (typeof window !== 'undefined' && window.JBR7_API_BASE) ? window.JBR7_API_BASE : '';
-    // Use PHP POST URL so product updates persist to SQL (e.g. window.JBR7_ADMIN_API_POST_URL = '/jbr7php/post.php')
     var API_POST_URL = (typeof window !== 'undefined' && window.JBR7_ADMIN_API_POST_URL) ? window.JBR7_ADMIN_API_POST_URL : (API_BASE + '/api/post');
     var SECTION_TITLES = {
         overview: 'Dashboard Overview',
@@ -12,6 +11,7 @@
         reviews: 'Reviews',
         reports: 'Download Reports',
         analytics: 'Analytics & Reporting',
+        'admin-register': 'Admin Registration',
         settings: 'Settings'
     };
 
@@ -82,6 +82,13 @@
         return 'status-processing';
     }
 
+    function escapeHtml(s) {
+        if (s == null) return '';
+        var div = document.createElement('div');
+        div.textContent = s;
+        return div.innerHTML;
+    }
+
     var overviewCache = { orders: [], usersCount: 0, itemsCount: 0, reviewsCount: 0 };
     var overviewPeriod = 'all';
     var analyticsCache = { orders: [], itemsCount: 0, reviewsCount: 0 };
@@ -115,14 +122,10 @@
             fetchApiGet('admin-items').then(function(d) { return d.data || []; }),
             fetchApiGet('admin-reviews').then(function(d) { return d.data || []; })
         ]).then(function(arr) {
-            var users = arr[0];
-            var orders = arr[1];
-            var items = arr[2];
-            var reviews = arr[3];
-            overviewCache.orders = orders;
-            overviewCache.usersCount = users.length;
-            overviewCache.itemsCount = items.length;
-            overviewCache.reviewsCount = reviews.length;
+            overviewCache.orders = arr[1];
+            overviewCache.usersCount = arr[0].length;
+            overviewCache.itemsCount = arr[2].length;
+            overviewCache.reviewsCount = arr[3].length;
             applyOverviewFilter();
         }).catch(function() {
             setStat('stat-users', '—');
@@ -136,8 +139,7 @@
         setStat('stat-users', overviewCache.usersCount);
         setStat('stat-items', overviewCache.itemsCount);
         setStat('stat-reviews', overviewCache.reviewsCount);
-        var filtered = filterOrdersByPeriod(overviewCache.orders, overviewPeriod);
-        setStat('stat-orders', filtered.length);
+        setStat('stat-orders', filterOrdersByPeriod(overviewCache.orders, overviewPeriod).length);
     }
 
     // ---------- Analytics ----------
@@ -154,8 +156,8 @@
             fetchApiGet('admin-reviews').then(function(d) { return d.data || []; })
         ]).then(function(arr) {
             analyticsCache.orders = arr[0];
-            analyticsCache.itemsCount = (arr[1] || []).length;
-            analyticsCache.reviewsCount = (arr[2] || []).length;
+            analyticsCache.itemsCount = arr[1].length;
+            analyticsCache.reviewsCount = arr[2].length;
             applyAnalyticsFilter();
         }).catch(function() {
             setStat('analytics-revenue', '—');
@@ -186,14 +188,13 @@
         if (statusEl) {
             var order = ['processing', 'confirmed', 'shipped', 'delivered', 'cancelled'];
             var html = order.map(function(s) {
-                var count = byStatus[s] || 0;
-                return '<div class="breakdown-row"><span class="status-name">' + s + '</span><span class="status-count">' + count + '</span></div>';
+                return '<div class="breakdown-row"><span class="status-name">' + s + '</span><span class="status-count">' + (byStatus[s] || 0) + '</span></div>';
             }).join('');
             statusEl.innerHTML = html || '<p class="empty-msg">No orders</p>';
         }
     }
 
-    // ---------- Orders (status from API; admin can update — reflects on profile) ----------
+    // ---------- Orders ----------
     function loadOrders() {
         var tbody = document.getElementById('orders-tbody');
         if (!tbody) return;
@@ -250,15 +251,10 @@
             var current = (tr.getAttribute('data-current-status') || '').toLowerCase();
             var selected = select ? (select.value || 'processing').toLowerCase() : current;
             if (selected !== current) {
-                updates.push({
-                    orderId: tr.getAttribute('data-order-id'),
-                    status: selected
-                });
+                updates.push({ orderId: tr.getAttribute('data-order-id'), status: selected });
             }
         });
-        if (updates.length === 0) {
-            return;
-        }
+        if (updates.length === 0) return;
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating ' + updates.length + '…';
         Promise.all(updates.map(function(u) { return updateOrderStatus(u.orderId, u.status); }))
@@ -273,13 +269,6 @@
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-check-double"></i> Update all changes';
             });
-    }
-
-    function escapeHtml(s) {
-        if (s == null) return '';
-        var div = document.createElement('div');
-        div.textContent = s;
-        return div.innerHTML;
     }
 
     // ---------- Users ----------
@@ -301,7 +290,7 @@
         });
     }
 
-    // ---------- Items (with thumbnail, quantity, editable) ----------
+    // ---------- Items ----------
     function loadItems() {
         var tbody = document.getElementById('items-tbody');
         if (!tbody) return;
@@ -314,7 +303,6 @@
             }
             tbody.innerHTML = list.map(function(i) {
                 var imgSrc = (i.image || '').trim() ? i.image : 'totebag.avif';
-                if (imgSrc && !imgSrc.startsWith('http') && !imgSrc.startsWith('data:')) imgSrc = imgSrc;
                 var thumb = '<img src="' + escapeHtml(imgSrc) + '" alt="" class="item-thumb" onerror="this.src=\'totebag.avif\'">';
                 var titleVal = escapeHtml(i.title || '');
                 var priceVal = i.price != null ? Number(i.price) : '';
@@ -400,7 +388,7 @@
         });
     }
 
-    // ---------- Download Reports (CSV) ----------
+    // ---------- CSV Reports ----------
     function csvEscape(val) {
         if (val == null) return '';
         var s = String(val);
@@ -425,14 +413,7 @@
             var headers = ['order_number', 'customer', 'customer_orders', 'total', 'status', 'created_at'];
             var rows = list.map(function(o) {
                 var name = (o.user && (o.user.username || o.user.email)) ? (o.user.username || o.user.email) : 'User #' + (o.user_id || '');
-                return {
-                    order_number: o.order_number || o.id,
-                    customer: name,
-                    customer_orders: o.user_order_count,
-                    total: o.total,
-                    status: o.status,
-                    created_at: o.created_at || ''
-                };
+                return { order_number: o.order_number || o.id, customer: name, customer_orders: o.user_order_count, total: o.total, status: o.status, created_at: o.created_at || '' };
             });
             downloadCsv('jbr7-orders-report-' + new Date().toISOString().slice(0, 10) + '.csv', rows, headers);
         }).catch(function() { alert('Failed to load orders for report'); });
@@ -460,31 +441,7 @@
         }).catch(function() { alert('Failed to load products for report'); });
     }
 
-    // ---------- Sidebar & sections ----------
-    function setPageTitle(sectionId) {
-        var el = document.getElementById('page-title');
-        if (el) el.textContent = SECTION_TITLES[sectionId] || 'Admin';
-    }
-
-    function switchSection(sectionId) {
-        document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
-        document.querySelectorAll('.nav-item').forEach(function(t) {
-            t.classList.remove('active');
-            if (t.getAttribute('data-section') === sectionId) t.classList.add('active');
-        });
-        var section = document.getElementById('section-' + sectionId);
-        if (section) section.classList.add('active');
-        setPageTitle(sectionId);
-        if (sectionId === 'overview') loadOverview();
-        if (sectionId === 'orders') loadOrders();
-        if (sectionId === 'users') loadUsers();
-        if (sectionId === 'items') loadItems();
-        if (sectionId === 'reviews') loadReviews();
-        if (sectionId === 'reports') loadSalesReport('weekly');
-        if (sectionId === 'analytics') loadAnalytics();
-        if (sectionId === 'settings') loadSettings();
-    }
-
+    // ---------- Sales Report ----------
     var salesReportCache = { period: 'weekly', data: null };
 
     function loadSalesReport(period) {
@@ -515,27 +472,280 @@
 
     function downloadSalesReport() {
         var d = salesReportCache.data;
-        if (!d || !d.orders) {
-            alert('Load a sales period first (Weekly / Monthly / Annually).');
-            return;
-        }
+        if (!d || !d.orders) { alert('Load a sales period first (Weekly / Monthly / Annually).'); return; }
         var headers = ['order_number', 'user_id', 'total', 'status', 'created_at'];
         var rows = (d.orders || []).map(function(o) {
             return { order_number: o.order_number, user_id: o.user_id, total: o.total, status: o.status, created_at: o.created_at || '' };
         });
-        var period = salesReportCache.period || 'weekly';
-        downloadCsv('jbr7-sales-' + period + '-' + new Date().toISOString().slice(0, 10) + '.csv', rows, headers);
+        downloadCsv('jbr7-sales-' + (salesReportCache.period || 'weekly') + '-' + new Date().toISOString().slice(0, 10) + '.csv', rows, headers);
+    }
+
+    // ==========================================================
+    // ==================== ADMIN REGISTRATION ==================
+    // ==========================================================
+
+    /** Show alert inside the registration form */
+    function showRegAlert(msg, type) {
+        var el = document.getElementById('admin-reg-alert');
+        if (!el) return;
+        el.className = 'admin-reg-alert ' + (type || 'info');
+        el.textContent = msg;
+        el.style.display = 'block';
+        if (type === 'success') {
+            setTimeout(function() { el.style.display = 'none'; }, 4000);
+        }
+    }
+
+    function hideRegAlert() {
+        var el = document.getElementById('admin-reg-alert');
+        if (el) el.style.display = 'none';
+    }
+
+    /** Password strength meter */
+    function evalPasswordStrength(pw) {
+        var score = 0;
+        if (pw.length >= 8) score++;
+        if (pw.length >= 12) score++;
+        if (/[A-Z]/.test(pw)) score++;
+        if (/[0-9]/.test(pw)) score++;
+        if (/[^A-Za-z0-9]/.test(pw)) score++;
+        return score; // 0–5
+    }
+
+    function updateStrengthMeter(pw) {
+        var fill = document.getElementById('pw-strength-fill');
+        var label = document.getElementById('pw-strength-label');
+        if (!fill || !label) return;
+        var score = evalPasswordStrength(pw);
+        var pct = (score / 5) * 100;
+        var colors = ['#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#27ae60'];
+        var labels = ['Too weak', 'Weak', 'Fair', 'Good', 'Strong'];
+        fill.style.width = pct + '%';
+        fill.style.background = pw.length === 0 ? '' : colors[Math.min(score - 1, 4)] || colors[0];
+        label.textContent = pw.length === 0 ? '' : (labels[Math.min(score - 1, 4)] || labels[0]);
+        label.style.color = pw.length === 0 ? '' : (colors[Math.min(score - 1, 4)] || colors[0]);
+    }
+
+    /** Toggle password eye */
+    function bindPasswordToggle(btnId, inputId) {
+        var btn = document.getElementById(btnId);
+        var inp = document.getElementById(inputId);
+        if (!btn || !inp) return;
+        btn.addEventListener('click', function() {
+            var show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            var icon = btn.querySelector('i');
+            if (icon) icon.className = show ? 'fas fa-eye-slash' : 'fas fa-eye';
+        });
+    }
+
+    /** Clear registration form */
+    function clearRegForm() {
+        ['reg-name', 'reg-email', 'reg-password', 'reg-confirm'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        updateStrengthMeter('');
+        hideRegAlert();
+    }
+
+    /** Submit new admin registration */
+    function submitAdminRegistration() {
+        hideRegAlert();
+        var name     = (document.getElementById('reg-name')    || {}).value || '';
+        var email    = (document.getElementById('reg-email')   || {}).value || '';
+        var password = (document.getElementById('reg-password')|| {}).value || '';
+        var confirm  = (document.getElementById('reg-confirm') || {}).value || '';
+
+        // Client-side validation
+        if (!name.trim()) { showRegAlert('Full name is required.', 'error'); return; }
+        if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showRegAlert('Enter a valid email address.', 'error'); return; }
+        if (password.length < 8) { showRegAlert('Password must be at least 8 characters.', 'error'); return; }
+        if (password !== confirm) { showRegAlert('Passwords do not match.', 'error'); return; }
+
+        var btn = document.getElementById('submit-admin-reg');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...'; }
+
+        fetchApiPost({
+            action: 'admin-register',
+            name: name.trim(),
+            email: email.trim().toLowerCase(),
+            password: password
+        })
+        .then(function(res) {
+            showRegAlert('Admin "' + escapeHtml(name.trim()) + '" registered successfully!', 'success');
+            clearRegForm();
+            loadAdminList(); // refresh the admin table
+        })
+        .catch(function(err) {
+            showRegAlert((err && err.message) ? err.message : 'Registration failed. Please try again.', 'error');
+        })
+        .finally(function() {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-user-plus"></i> Register Admin'; }
+        });
+    }
+
+    /** Load existing admin accounts into the table */
+    function loadAdminList() {
+        var tbody = document.getElementById('admins-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Loading...</td></tr>';
+        fetchApiGet('admin-list').then(function(res) {
+            var list = res.data || [];
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">No admins found</td></tr>';
+                return;
+            }
+            var selfId = getAdminId();
+            tbody.innerHTML = list.map(function(a) {
+                var isSelf = String(a.id) === String(selfId);
+                var badge = isSelf ? '<span class="self-badge">You</span>' : '';
+                var actions = isSelf
+                    ? '<span style="color:var(--text-secondary,#aaa);font-size:.8rem;">—</span>'
+                    : '<button type="button" class="action-btn-remove" data-admin-id="' + a.id + '" data-admin-name="' + escapeHtml(a.name || a.email) + '"><i class="fas fa-trash-alt"></i> Remove</button>';
+                return '<tr>' +
+                    '<td>' + (a.id || '-') + '</td>' +
+                    '<td>' + escapeHtml(a.name || '-') + badge + '</td>' +
+                    '<td>' + escapeHtml(a.email || '-') + '</td>' +
+                    '<td>' + formatDate(a.created_at) + '</td>' +
+                    '<td>' + actions + '</td>' +
+                    '</tr>';
+            }).join('');
+
+            // Bind remove buttons
+            tbody.querySelectorAll('.action-btn-remove').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    openDeleteModal(this.getAttribute('data-admin-id'), this.getAttribute('data-admin-name'));
+                });
+            });
+        }).catch(function() {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Failed to load admins</td></tr>';
+        });
+    }
+
+    // ---------- Delete Admin Modal ----------
+    var deleteTargetId = null;
+
+    function openDeleteModal(adminId, adminName) {
+        deleteTargetId = adminId;
+        var modal = document.getElementById('admin-delete-modal');
+        var body = document.getElementById('modal-body');
+        if (body) body.textContent = 'Remove admin "' + adminName + '"? This action cannot be undone.';
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function closeDeleteModal() {
+        deleteTargetId = null;
+        var modal = document.getElementById('admin-delete-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function confirmDeleteAdmin() {
+        if (!deleteTargetId) return;
+        var confirmBtn = document.getElementById('modal-confirm-delete');
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing...'; }
+        fetchApiPost({
+            action: 'admin-delete',
+            targetAdminId: deleteTargetId
+        })
+        .then(function() {
+            closeDeleteModal();
+            loadAdminList();
+        })
+        .catch(function(err) {
+            closeDeleteModal();
+            alert('Could not remove admin: ' + ((err && err.message) || 'Unknown error'));
+        })
+        .finally(function() {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Remove'; }
+        });
+    }
+
+    /** Bind all admin-register section events */
+    function initAdminRegisterSection() {
+        // Password strength meter
+        var pwInput = document.getElementById('reg-password');
+        if (pwInput) {
+            pwInput.addEventListener('input', function() { updateStrengthMeter(this.value); });
+        }
+
+        // Toggle eye icons
+        bindPasswordToggle('toggle-reg-pw', 'reg-password');
+        bindPasswordToggle('toggle-reg-confirm', 'reg-confirm');
+
+        // Submit
+        var submitBtn = document.getElementById('submit-admin-reg');
+        if (submitBtn) submitBtn.addEventListener('click', submitAdminRegistration);
+
+        // Clear
+        var clearBtn = document.getElementById('clear-admin-reg');
+        if (clearBtn) clearBtn.addEventListener('click', clearRegForm);
+
+        // Refresh table
+        var refreshBtn = document.getElementById('refresh-admins');
+        if (refreshBtn) refreshBtn.addEventListener('click', loadAdminList);
+
+        // Modal confirm / cancel
+        var confirmDel = document.getElementById('modal-confirm-delete');
+        if (confirmDel) confirmDel.addEventListener('click', confirmDeleteAdmin);
+
+        var cancelDel = document.getElementById('modal-cancel');
+        if (cancelDel) cancelDel.addEventListener('click', closeDeleteModal);
+
+        // Close modal on overlay click
+        var modal = document.getElementById('admin-delete-modal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) closeDeleteModal();
+            });
+        }
+
+        // Allow Enter key to submit form
+        ['reg-name', 'reg-email', 'reg-password', 'reg-confirm'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') submitAdminRegistration();
+                });
+            }
+        });
+    }
+
+    // ==========================================================
+
+    // ---------- Sidebar & sections ----------
+    function setPageTitle(sectionId) {
+        var el = document.getElementById('page-title');
+        if (el) el.textContent = SECTION_TITLES[sectionId] || 'Admin';
+    }
+
+    function switchSection(sectionId) {
+        document.querySelectorAll('.admin-section').forEach(function(s) { s.classList.remove('active'); });
+        document.querySelectorAll('.nav-item').forEach(function(t) {
+            t.classList.remove('active');
+            if (t.getAttribute('data-section') === sectionId) t.classList.add('active');
+        });
+        var section = document.getElementById('section-' + sectionId);
+        if (section) section.classList.add('active');
+        setPageTitle(sectionId);
+        if (sectionId === 'overview')       loadOverview();
+        if (sectionId === 'orders')         loadOrders();
+        if (sectionId === 'users')          loadUsers();
+        if (sectionId === 'items')          loadItems();
+        if (sectionId === 'reviews')        loadReviews();
+        if (sectionId === 'reports')        loadSalesReport('weekly');
+        if (sectionId === 'analytics')      loadAnalytics();
+        if (sectionId === 'admin-register') loadAdminList();
+        if (sectionId === 'settings')       loadSettings();
     }
 
     function loadSettings() {
         var nameEl = document.getElementById('settings-admin-name');
         var emailEl = document.getElementById('settings-admin-email');
-        if (nameEl) nameEl.textContent = sessionStorage.getItem('jbr7_admin_name') || '—';
+        if (nameEl)  nameEl.textContent  = sessionStorage.getItem('jbr7_admin_name')  || '—';
         if (emailEl) emailEl.textContent = sessionStorage.getItem('jbr7_admin_email') || '—';
         var logoutBtn = document.getElementById('settings-logout-btn');
-        if (logoutBtn) {
-            logoutBtn.onclick = function() { logout(); };
-        }
+        if (logoutBtn) logoutBtn.onclick = function() { logout(); };
     }
 
     function logout() {
@@ -553,6 +763,7 @@
         if (!checkAdmin()) return;
         setAdminName();
         loadOverview();
+        initAdminRegisterSection();
 
         var menuBtn = document.getElementById('admin-menu-btn');
         var overlay = document.getElementById('sidebar-overlay');
@@ -561,14 +772,10 @@
                 document.body.classList.toggle('sidebar-open');
                 menuBtn.setAttribute('aria-label', document.body.classList.contains('sidebar-open') ? 'Close menu' : 'Open menu');
                 var icon = menuBtn.querySelector('i');
-                if (icon) {
-                    icon.className = document.body.classList.contains('sidebar-open') ? 'fas fa-times' : 'fas fa-bars';
-                }
+                if (icon) icon.className = document.body.classList.contains('sidebar-open') ? 'fas fa-times' : 'fas fa-bars';
             });
         }
-        if (overlay) {
-            overlay.addEventListener('click', closeSidebar);
-        }
+        if (overlay) overlay.addEventListener('click', closeSidebar);
 
         document.querySelectorAll('.nav-item').forEach(function(item) {
             item.addEventListener('click', function(e) {

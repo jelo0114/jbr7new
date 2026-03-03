@@ -29,6 +29,7 @@
             <a href="#" class="nav-item" data-section="reports"><i class="fas fa-file-download"></i> <span>Reports</span></a>
             <div class="nav-divider"></div>
             <a href="#" class="nav-item" data-section="analytics"><i class="fas fa-chart-line"></i> <span>Analytics</span></a>
+            <a href="#" class="nav-item" data-section="admin-register"><i class="fas fa-user-plus"></i> <span>Admin Registration</span></a>
             <a href="#" class="nav-item" data-section="settings"><i class="fas fa-cog"></i> <span>Settings</span></a>
         </nav>
         <div class="sidebar-footer">
@@ -228,7 +229,81 @@
                 </div>
             </section>
 
-            <!-- Settings (with function) -->
+            <!-- ==================== ADMIN REGISTRATION ==================== -->
+            <section id="section-admin-register" class="admin-section">
+                <div class="settings-card" style="max-width:560px;">
+                    <h3><i class="fas fa-user-plus"></i> Register New Admin</h3>
+                    <p class="settings-desc">Create a new admin account. The new admin will be able to log in immediately after registration.</p>
+
+                    <!-- Alert box (hidden by default) -->
+                    <div id="admin-reg-alert" class="admin-reg-alert" style="display:none;" role="alert"></div>
+
+                    <div class="admin-reg-form">
+                        <div class="form-group">
+                            <label for="reg-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="reg-name" class="form-input" placeholder="e.g. Juan dela Cruz" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-email">Email Address <span class="required">*</span></label>
+                            <input type="email" id="reg-email" class="form-input" placeholder="admin@jbr7bags.com" autocomplete="off">
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-password">Password <span class="required">*</span></label>
+                            <div class="password-wrap">
+                                <input type="password" id="reg-password" class="form-input" placeholder="At least 8 characters" autocomplete="new-password">
+                                <button type="button" class="toggle-pw" id="toggle-reg-pw" aria-label="Toggle password visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="pw-strength-bar"><div id="pw-strength-fill"></div></div>
+                            <span id="pw-strength-label" class="pw-strength-label"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-confirm">Confirm Password <span class="required">*</span></label>
+                            <div class="password-wrap">
+                                <input type="password" id="reg-confirm" class="form-input" placeholder="Re-enter password" autocomplete="new-password">
+                                <button type="button" class="toggle-pw" id="toggle-reg-confirm" aria-label="Toggle confirm password visibility">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-primary" id="submit-admin-reg">
+                                <i class="fas fa-user-plus"></i> Register Admin
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="clear-admin-reg">
+                                <i class="fas fa-times"></i> Clear
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Admins Table -->
+                <div class="settings-card" style="margin-top:2rem;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem;">
+                        <h3 style="margin:0;"><i class="fas fa-shield-alt"></i> Existing Admins</h3>
+                        <button type="button" class="btn btn-secondary" id="refresh-admins"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div class="table-card" style="margin:0;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Registered</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admins-tbody">
+                                <tr><td colspan="5" class="empty-msg">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings -->
             <section id="section-settings" class="admin-section">
                 <div class="settings-card">
                     <h3><i class="fas fa-user-shield"></i> Admin account</h3>
@@ -257,8 +332,84 @@
         </main>
     </div>
 
+    <!-- Confirm Delete Modal -->
+    <div id="admin-delete-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-box">
+            <h4 id="modal-title"><i class="fas fa-exclamation-triangle" style="color:#e74c3c;"></i> Remove Admin</h4>
+            <p id="modal-body">Are you sure you want to remove this admin account? This cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-danger" id="modal-confirm-delete">Remove</button>
+                <button type="button" class="btn btn-secondary" id="modal-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
 
-    
+    <style>
+        /* ── Admin Registration extra styles (self-contained, no conflict) ── */
+        .admin-reg-form { display: flex; flex-direction: column; gap: 1.1rem; margin-top: 1.2rem; }
+        .form-group { display: flex; flex-direction: column; gap: .35rem; }
+        .form-group label { font-size: .85rem; font-weight: 600; color: var(--text-secondary, #555); }
+        .form-group .required { color: #e74c3c; }
+        .form-input {
+            padding: .6rem .85rem;
+            border: 1.5px solid var(--border, #dde1e7);
+            border-radius: 8px;
+            font-size: .95rem;
+            background: var(--input-bg, #fff);
+            color: var(--text, #1a1a2e);
+            transition: border-color .2s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form-input:focus { outline: none; border-color: var(--accent, #3b5bdb); }
+        .password-wrap { position: relative; display: flex; align-items: center; }
+        .password-wrap .form-input { padding-right: 2.8rem; }
+        .toggle-pw {
+            position: absolute; right: .7rem;
+            background: none; border: none; cursor: pointer;
+            color: var(--text-secondary, #888); font-size: .95rem; padding: 0; line-height: 1;
+        }
+        .toggle-pw:hover { color: var(--accent, #3b5bdb); }
+        .pw-strength-bar {
+            height: 4px; border-radius: 4px;
+            background: var(--border, #dde1e7);
+            margin-top: .35rem; overflow: hidden;
+        }
+        #pw-strength-fill { height: 100%; width: 0; border-radius: 4px; transition: width .3s, background .3s; }
+        .pw-strength-label { font-size: .78rem; color: var(--text-secondary, #888); margin-top: .2rem; }
+        .form-actions { display: flex; gap: .75rem; flex-wrap: wrap; margin-top: .5rem; }
+        .admin-reg-alert {
+            padding: .75rem 1rem; border-radius: 8px; font-size: .9rem;
+            margin-bottom: .5rem; font-weight: 500;
+        }
+        .admin-reg-alert.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .admin-reg-alert.error   { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .admin-reg-alert.info    { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .btn-danger { background: #e74c3c; color: #fff; border: none; }
+        .btn-danger:hover { background: #c0392b; }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.45);
+            display: flex; align-items: center; justify-content: center; z-index: 9999;
+        }
+        .modal-box {
+            background: var(--card-bg, #fff); border-radius: 12px; padding: 2rem;
+            max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,.2);
+        }
+        .modal-box h4 { margin: 0 0 .75rem; font-size: 1.1rem; display: flex; align-items: center; gap: .5rem; }
+        .modal-box p { margin: 0 0 1.25rem; color: var(--text-secondary, #555); font-size: .95rem; }
+        .modal-actions { display: flex; gap: .75rem; }
+        .action-btn-remove {
+            background: none; border: 1px solid #e74c3c; color: #e74c3c;
+            border-radius: 6px; padding: .3rem .75rem; font-size: .82rem;
+            cursor: pointer; transition: background .2s;
+        }
+        .action-btn-remove:hover { background: #fdecea; }
+        .self-badge {
+            font-size: .75rem; background: var(--accent, #3b5bdb);
+            color: #fff; border-radius: 20px; padding: .1rem .5rem; margin-left: .4rem;
+        }
+    </style>
+
     <script src="jbr7js/admin.js"></script>
 </body>
 </html>
