@@ -313,6 +313,11 @@ export default async function handler(req, res) {
         const { data: inserted, error: insertErr } = await supabase.from('password_reset_tokens').insert(insertPayload).select('id').maybeSingle();
         if (insertErr) {
           console.error('Insert token error:', insertErr);
+          // Helpful error when the table doesn't exist in the database
+          const msg = (insertErr && insertErr.message) ? String(insertErr.message) : '';
+          if (msg.toLowerCase().includes('could not find the table') || msg.toLowerCase().includes('relation "password_reset_tokens"') || msg.toLowerCase().includes('does not exist')) {
+            return res.status(500).json({ success: false, error: "Database table 'password_reset_tokens' not found. Please create the table (see repo SQL/create_password_reset_tokens.sql) and retry." });
+          }
           throw insertErr;
         }
 
