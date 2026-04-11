@@ -125,6 +125,8 @@
     
     <script src="jbr7js/user-storage.js"></script>
     <script>
+        // Default EmailJS service id (you provided this id). Set PUBLIC key in a separate script.
+        window.EMAILJS_SERVICE_ID = window.EMAILJS_SERVICE_ID || 'service_bwniz2u';
         // Redirect only if user is logged in THIS session (same tab)
         (function() {
             var uid = sessionStorage.getItem('jbr7_user_id');
@@ -133,6 +135,29 @@
                 return;
             }
         })();
+        
+        // Safe helper to pre-fill email on sign-in page when user opted to be remembered.
+        function applyRememberMe() {
+            try {
+                var emailInput = document.querySelector('#signin-form input[name="email"]');
+                if (!emailInput) return;
+
+                // Check a few likely storage keys used elsewhere in the app
+                var rememberedFlag = localStorage.getItem('jbr7_remember_me');
+                var rememberedEmail = localStorage.getItem('jbr7_remember_email') || localStorage.getItem('jbr7_customer_email') || sessionStorage.getItem('jbr7_user_email') || localStorage.getItem('jbr7_user_email');
+
+                if (rememberedEmail && String(emailInput.value).trim() === '') {
+                    emailInput.value = rememberedEmail;
+                }
+
+                // If there's a remember-me checkbox, set it according to stored flag
+                var cb = document.querySelector('#signin-form input[name="remember_me"]');
+                if (cb) cb.checked = (rememberedFlag === 'true' || rememberedFlag === true);
+            } catch (e) {
+                // non-fatal
+                console.warn('applyRememberMe error', e);
+            }
+        }
         // Pre-fill email and checkbox when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() { applyRememberMe(); setTimeout(applyRememberMe, 50); });
