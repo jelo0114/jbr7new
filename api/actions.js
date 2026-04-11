@@ -18,7 +18,7 @@ import {
   logLogin,
 } from '../supabse-conn/index';
 
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 import { supabase } from '../lib/supabaseClient';
 
 // Hash password helper
@@ -286,6 +286,123 @@ export default async function handler(req, res) {
         }
         await logUserActivity(userId, payload);
         break;
+      
+      // ==================== PASSWORD RESET ====================
+      case 'create_reset_token': {
+        const { email } = payload;
+        if (!email) return res.status(400).json({ success: false, error: 'Email is required' });
+
+        // Try to find user by email
+        const { data: user, error: userErr } = await supabase.from('users').select('id,email').eq('email', String(email).trim()).maybeSingle();
+        if (userErr) {
+          console.error('User lookup error:', userErr);
+          throw userErr;
+        }
+
+        // Generate secure token
+        const token = randomBytes(32).toString('hex');
+        const expires_at = new Date(Date.now() + (60 * 60 * 1000)).toISOString(); // 1 hour
+
+        const insertPayload = {
+          token,
+          user_id: user ? user.id : null,
+          email: String(email).trim(),
+          expires_at
+        };
+
+        const { data: inserted, error: insertErr } = await supabase.from('password_reset_tokens').insert(insertPayload).select('id').maybeSingle();
+        if (insertErr) {
+          console.error('Insert token error:', insertErr);
+          throw insertErr;
+        }
+
+        // Build a reset URL using SITE_URL env or request headers
+        const proto = (req.headers['x-forwarded-proto'] || 'https');
+        const host = req.headers['x-forwarded-host'] || req.headers.host || '';
+        const siteUrl = (process.env.SITE_URL || (proto + '://' + host)).replace(/\/$/, '');
+        const reset_url = siteUrl + '/reset-password.html?token=' + encodeURIComponent(token);
+
+        return res.status(200).json({ success: true, reset_url, token });
+      }
+
+      case 'verify_reset_token': {
+        const { token } = payload;
+        if (!token) return res.status(400).json({ success: false, error: 'Token is required' });
+
+        const { data: tokenRow, error: tokenErr } = await supabase
+          .from('password_reset_tokens')
+          .select('id, user_id, email, expires_at')
+          .eq('token', token)
+          .maybeSingle();
+
+        if (tokenErr) {
+          console.error('Token lookup error:', tokenErr);
+          throw tokenErr;
+        }
+
+        if (!tokenRow) {
+          return res.status(404).json({ success: false, error: 'Token not found' });
+        }
+
+        const now = new Date();
+        if (tokenRow.expires_at && new Date(tokenRow.expires_at) < now) {
+          // remove expired token
+          await supabase.from('password_reset_tokens').delete().eq('id', tokenRow.id);
+          return res.status(400).json({ success: false, error: 'Token expired' });
+        }
+
+        return res.status(200).json({ success: true, email: tokenRow.email || null, user_id: tokenRow.user_id || null });
+      }
+
+      case 'reset_password': {
+        const { token, password } = payload;
+        if (!token || !password) return res.status(400).json({ success: false, error: 'Token and password are required' });
+        if (typeof password !== 'string' || password.length < 8) return res.status(400).json({ success: false, error: 'Password must be at least 8 characters' });
+
+        const { data: tokenRow, error: tokenErr } = await supabase
+          .from('password_reset_tokens')
+          .select('id, user_id, email, expires_at')
+          .eq('token', token)
+          .maybeSingle();
+
+        if (tokenErr) {
+          console.error('Token lookup error:', tokenErr);
+          throw tokenErr;
+        }
+
+        if (!tokenRow) {
+          return res.status(404).json({ success: false, error: 'Invalid token' });
+        }
+
+        const now = new Date();
+        if (tokenRow.expires_at && new Date(tokenRow.expires_at) < now) {
+          await supabase.from('password_reset_tokens').delete().eq('id', tokenRow.id);
+          return res.status(400).json({ success: false, error: 'Token expired' });
+        }
+
+        // Update user's password
+        const password_hash = hashPassword(password);
+        let updateErr = null;
+        if (tokenRow.user_id) {
+          const { error: uErr } = await supabase.from('users').update({ password_hash }).eq('id', tokenRow.user_id);
+          updateErr = uErr;
+        } else if (tokenRow.email) {
+          const { error: uErr } = await supabase.from('users').update({ password_hash }).eq('email', tokenRow.email);
+          updateErr = uErr;
+        } else {
+          return res.status(500).json({ success: false, error: 'Token missing user identifier' });
+        }
+
+        if (updateErr) {
+          console.error('Password update error:', updateErr);
+          throw updateErr;
+        }
+
+        // Delete token after successful reset
+        await supabase.from('password_reset_tokens').delete().eq('id', tokenRow.id);
+
+        return res.status(200).json({ success: true, message: 'Password updated successfully' });
+      }
       
       default:
         return res.status(400).json({ error: `Invalid action: ${action}` });

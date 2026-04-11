@@ -313,7 +313,41 @@
 
                     // Use a clear async flow: try EmailJS SDK, then EmailJS REST API. Do NOT call server fallback here.
                     (async function(){
-                        var tplParams = { to_name: '', to_email: email, reset_url: resetUrl };
+                        // First, ask the server to create a secure reset token & URL.
+                        var resetUrlFromServer = null;
+                        try {
+                            const tokenResp = await fetch('/api/actions', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                                body: JSON.stringify({ action: 'create_reset_token', email: email })
+                            });
+                            const tokenJson = await tokenResp.json();
+                            if (!tokenJson || !tokenJson.success) {
+                                throw new Error((tokenJson && (tokenJson.error || tokenJson.message)) || 'Could not create reset token');
+                            }
+                            resetUrlFromServer = tokenJson.reset_url;
+                        } catch (e) {
+                            console.error('create_reset_token failed', e);
+                            // Show a friendly error and stop
+                            errDiv.textContent = 'Unable to create reset link. Please try again later.';
+                            errDiv.style.display = 'block';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Send reset email';
+                            return;
+                        }
+
+                        // Send multiple commonly-used param names to increase compatibility with EmailJS templates
+                        var tplParams = {
+                            to_name: '',
+                            to_email: email,
+                            user_email: email,
+                            reply_to: email,
+                            email: email,
+                            to: email,
+                            reset_url: resetUrlFromServer || resetUrl,
+                            from_name: 'JBR7 Bags'
+                        };
 
                         // Helper to show errors in the modal
                         function showError(msg){
@@ -381,42 +415,6 @@
                         // 3) If no EmailJS configuration available, show friendly error (do NOT call server fallback automatically)
                         showError('Email sending is not configured. Please contact the site administrator.');
                     })();
-
-                    // Fallback: send to server endpoint (if you implement server-side handling)
-                    fetch('/api/actions', {
-                        method: 'POST',
-                        credentials: 'same-origin',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: JSON.stringify({ action: 'forgot_password', email: email })
-                    })
-                    .then(function(res){
-                        if (res.ok) return res.json();
-                        return res.json().then(function(err){ return Promise.reject(err); });
-                    })
-                    .then(function(data){
-                        if (data && data.success) {
-                            successDiv.textContent = data.message || 'Reset instructions sent if the email exists in our system.';
-                            successDiv.style.display = 'block';
-                            setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
-                        } else {
-                            var msg = (data && (data.error || data.message)) || 'Unable to send reset email. Please try again later.';
-                            errDiv.textContent = msg;
-                            errDiv.style.display = 'block';
-                            submitBtn.disabled = false;
-                            submitBtn.textContent = 'Send reset email';
-                        }
-                    })
-                    .catch(function(err){
-                        console.error('Forgot password error:', err);
-                        var msg = (err && (err.error || err.message)) || 'Network or server error. Please try again.';
-                        errDiv.textContent = msg;
-                        errDiv.style.display = 'block';
-                        submitBtn.disabled = false;
-                        submitBtn.textContent = 'Send reset email';
-                    });
             });
         })();
     </script>
