@@ -311,56 +311,76 @@
                     // Build a reset URL — ideally this should be generated server-side with a secure token.
                     var resetUrl = window.PASSWORD_RESET_BASE_URL ? (window.PASSWORD_RESET_BASE_URL + '?email=' + encodeURIComponent(email)) : (location.origin + '/reset-password.html?email=' + encodeURIComponent(email));
 
-                    // Try client-side EmailJS SDK first (if available)
-                    if (emailjsService && emailjsKey && window.emailjs) {
-                        try {
-                            if (!emailjs._userID) emailjs.init(emailjsKey);
-                        } catch(e) { /* ignore init errors */ }
-
+                    // Use a clear async flow: try EmailJS SDK, then EmailJS REST API. Do NOT call server fallback here.
+                    (async function(){
                         var tplParams = { to_name: '', to_email: email, reset_url: resetUrl };
-                        emailjs.send(emailjsService, 'template_07a7ez2', tplParams)
-                        .then(function(resp){
-                            successDiv.textContent = 'Reset instructions sent (check your email).';
-                            successDiv.style.display = 'block';
-                            setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
-                        })
-                        .catch(function(err){
-                            console.error('EmailJS SDK send error:', err);
-                            // If SDK fails, try REST API below
-                            // fallthrough to REST API block
-                        });
-                        // attempt REST API send as well if SDK fails silently; we'll continue to REST below
-                    }
 
-                    // If EmailJS SDK isn't available (or SDK failed), call EmailJS REST API directly as a reliable fallback
-                    if (emailjsService && emailjsKey) {
-                        fetch('https://api.emailjs.com/api/v1.0/email/send', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                service_id: emailjsService,
-                                template_id: 'template_07a7ez2',
-                                user_id: emailjsKey,
-                                template_params: { to_name: '', to_email: email, reset_url: resetUrl }
-                            })
-                        })
-                        .then(function(res){
-                            if (res.ok) return res.json();
-                            return res.text().then(function(t){ return Promise.reject(new Error(t || 'EmailJS REST error')); });
-                        })
-                        .then(function(data){
-                            successDiv.textContent = 'Reset instructions sent (check your email).';
-                            successDiv.style.display = 'block';
-                            setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
-                        })
-                        .catch(function(err){
-                            console.error('EmailJS REST error:', err);
-                            // Fallback to server POST if EmailJS REST failed
-                            // continue to server fallback below
-                        });
-                        // We attempted EmailJS REST API; stop here and don't call the server fallback.
-                        return;
-                    }
+                        // Helper to show errors in the modal
+                        function showError(msg){
+                            errDiv.textContent = msg;
+                            errDiv.style.display = 'block';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Send reset email';
+                        }
+
+                        // 1) Try EmailJS SDK if available
+                        if (emailjsService && emailjsKey && window.emailjs) {
+                            try {
+                                if (!emailjs._userID) emailjs.init(emailjsKey);
+                            } catch(e) {
+                                console.warn('emailjs.init failed', e);
+                            }
+
+                            try {
+                                console.log('EmailJS SDK send tplParams=', tplParams);
+                                await emailjs.send(emailjsService, 'template_07a7ez2', tplParams);
+                                successDiv.textContent = 'Reset instructions sent (check your email).';
+                                successDiv.style.display = 'block';
+                                setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
+                                return; // done
+                            } catch(sdkErr) {
+                                console.warn('EmailJS SDK error', sdkErr);
+                                // continue to REST attempt
+                            }
+                        }
+
+                        // 2) Try EmailJS REST API if we have service + key
+                        if (emailjsService && emailjsKey) {
+                            try {
+                                console.log('EmailJS REST send tplParams=', tplParams);
+                                var r = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        service_id: emailjsService,
+                                        template_id: 'template_07a7ez2',
+                                        user_id: emailjsKey,
+                                        template_params: tplParams
+                                    })
+                                });
+
+                                if (!r.ok) {
+                                    var text = await r.text();
+                                    console.error('EmailJS REST bad response', r.status, text);
+                                    showError('EmailJS REST error: ' + (text || ('status ' + r.status)));
+                                    return;
+                                }
+
+                                // success
+                                successDiv.textContent = 'Reset instructions sent (check your email).';
+                                successDiv.style.display = 'block';
+                                setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
+                                return;
+                            } catch(restErr) {
+                                console.error('EmailJS REST exception', restErr);
+                                showError('Unable to send reset email (network error).');
+                                return;
+                            }
+                        }
+
+                        // 3) If no EmailJS configuration available, show friendly error (do NOT call server fallback automatically)
+                        showError('Email sending is not configured. Please contact the site administrator.');
+                    })();
 
                     // Fallback: send to server endpoint (if you implement server-side handling)
                     fetch('/api/actions', {
