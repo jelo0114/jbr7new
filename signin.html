@@ -273,44 +273,83 @@
                 submitBtn.textContent = 'Sending...';
                 errDiv.style.display = 'none';
                 successDiv.style.display = 'none';
+                    // Prefer sending via EmailJS if configured (client-side send using your EmailJS template)
+                    // Set these globals in your page (recommended) before this script runs:
+                    //   window.EMAILJS_SERVICE_ID = 'your_service_id';
+                    //   window.EMAILJS_PUBLIC_KEY = 'your_public_key';
+                    // The template id used below is 'template_07a7ez2' as requested.
+                    var emailjsService = window.EMAILJS_SERVICE_ID || null;
+                    var emailjsKey = window.EMAILJS_PUBLIC_KEY || null;
 
-                fetch('/api/actions', {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ action: 'forgot_password', email: email })
-                })
-                .then(function(res){
-                    if (res.ok) return res.json();
-                    return res.json().then(function(err){ return Promise.reject(err); });
-                })
-                .then(function(data){
-                    if (data && data.success) {
-                        successDiv.textContent = data.message || 'Reset instructions sent if the email exists in our system.';
-                        successDiv.style.display = 'block';
-                        // auto-close after short delay
-                        setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
-                    } else {
-                        var msg = (data && (data.error || data.message)) || 'Unable to send reset email. Please try again later.';
+                    // Build a reset URL — ideally this should be generated server-side with a secure token.
+                    var resetUrl = window.PASSWORD_RESET_BASE_URL ? (window.PASSWORD_RESET_BASE_URL + '?email=' + encodeURIComponent(email)) : (location.origin + '/reset-password.html?email=' + encodeURIComponent(email));
+
+                    if (emailjsService && emailjsKey && window.emailjs) {
+                        // Initialize emailjs if not already
+                        try { if (!emailjs._userID) emailjs.init(emailjsKey); } catch(e) { /* ignore */ }
+
+                        var tplParams = {
+                            to_name: '',
+                            to_email: email,
+                            reset_url: resetUrl
+                        };
+
+                        emailjs.send(emailjsService, 'template_07a7ez2', tplParams)
+                        .then(function(resp){
+                            successDiv.textContent = 'Reset instructions sent (check your email).';
+                            successDiv.style.display = 'block';
+                            setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
+                        })
+                        .catch(function(err){
+                            console.error('EmailJS send error:', err);
+                            errDiv.textContent = 'Unable to send reset email via EmailJS. Check console for details.';
+                            errDiv.style.display = 'block';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Send reset email';
+                        });
+                        return;
+                    }
+
+                    // Fallback: send to server endpoint (if you implement server-side handling)
+                    fetch('/api/actions', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({ action: 'forgot_password', email: email })
+                    })
+                    .then(function(res){
+                        if (res.ok) return res.json();
+                        return res.json().then(function(err){ return Promise.reject(err); });
+                    })
+                    .then(function(data){
+                        if (data && data.success) {
+                            successDiv.textContent = data.message || 'Reset instructions sent if the email exists in our system.';
+                            successDiv.style.display = 'block';
+                            setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
+                        } else {
+                            var msg = (data && (data.error || data.message)) || 'Unable to send reset email. Please try again later.';
+                            errDiv.textContent = msg;
+                            errDiv.style.display = 'block';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Send reset email';
+                        }
+                    })
+                    .catch(function(err){
+                        console.error('Forgot password error:', err);
+                        var msg = (err && (err.error || err.message)) || 'Network or server error. Please try again.';
                         errDiv.textContent = msg;
                         errDiv.style.display = 'block';
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Send reset email';
-                    }
-                })
-                .catch(function(err){
-                    console.error('Forgot password error:', err);
-                    var msg = (err && (err.error || err.message)) || 'Network or server error. Please try again.';
-                    errDiv.textContent = msg;
-                    errDiv.style.display = 'block';
-                    submitBtn.disabled = false;
-                    submitBtn.textContent = 'Send reset email';
-                });
+                    });
             });
         })();
     </script>
+
+        <!-- EmailJS SDK (optional) - only required if you plan to send via EmailJS from the browser -->
+        <script src="https://cdn.emailjs.com/sdk/3.2/email.min.js"></script>
 </body>
 </html>
