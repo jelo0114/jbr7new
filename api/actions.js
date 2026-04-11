@@ -154,12 +154,11 @@ export default async function handler(req, res) {
           return res.status(400).json({ success: false, error: 'Email and password are required' });
         }
         const adminHash = hashPassword(adminPassword);
-        // NEW: normalize email to lowercase so it matches how admin-register stores it
-        const normalizedAdminEmail = String(adminEmail).trim().toLowerCase();
+        // Use ilike for case-insensitive email match (works regardless of how email was stored in DB)
         const { data: admin, error: adminErr } = await supabase
           .from('admin_users')
           .select('id, email, name')
-          .eq('email', normalizedAdminEmail)
+          .ilike('email', String(adminEmail).trim())
           .eq('password_hash', adminHash)
           .maybeSingle();
         if (adminErr) {

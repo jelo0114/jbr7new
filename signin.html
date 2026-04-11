@@ -11,7 +11,67 @@
     <link rel="stylesheet" href="/JBR7 CSS/signin.css">
     <style>
         /* Back button for auth pages */
-        
+
+        /* Simple modal styles for Forgot Password */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-dialog {
+            background: #fff;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            padding: 1.25rem 1.25rem;
+            font-family: inherit;
+        }
+
+        .modal-header {
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:0.5rem;
+        }
+
+        .modal-header h3 { margin:0; font-size:1.05rem; }
+
+        .modal-close {
+            background: transparent;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .modal-body p { margin:0 0 0.5rem 0; color:#333; font-size:0.95rem }
+
+        .modal-body input[type="email"] {
+            width:100%;
+            padding:0.6rem 0.7rem;
+            border:1px solid #ddd;
+            border-radius:6px;
+            margin-bottom:0.6rem;
+            box-sizing:border-box;
+        }
+
+        .modal-footer { text-align:right; }
+
+        .modal-footer .btn { padding:0.55rem 0.9rem; border-radius:6px; border:0; cursor:pointer }
+
+        .btn-secondary { background:#eee; color:#222; margin-right:0.5rem }
+        .btn-primary { background:#1a73e8; color:#fff }
     </style>
 </head>
 <body>
@@ -47,6 +107,10 @@
 
             <button class="main-btn" type="submit" id="signin-submit-btn">Sign In</button>
             <div id="signin-error" style="display:none;color:#e53e3e;text-align:center;margin-top:1rem;font-size:0.9rem;"></div>
+
+            <div style="text-align:center;margin-top:0.6rem">
+                <a href="#" id="forgot-password-link" class="return-home">Forgot password?</a>
+            </div>
 
             <div class="divider">OR</div>
             <div style="text-align:center;margin-top:0.6rem">
@@ -137,6 +201,116 @@
                 submitBtn.textContent = 'Sign In';
             });
         });
+    </script>
+    
+    <!-- Forgot password modal -->
+    <div class="modal-overlay" id="forgot-modal" aria-hidden="true" role="dialog" aria-labelledby="forgot-modal-title">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 id="forgot-modal-title">Reset your password</h3>
+                <button class="modal-close" id="forgot-modal-close" aria-label="Close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Enter the email address for your account and we'll send instructions to reset your password.</p>
+                <input type="email" id="forgot-email" placeholder="Your email address" required>
+                <div id="forgot-error" style="display:none;color:#e53e3e;font-size:0.9rem;margin-bottom:0.5rem"></div>
+                <div id="forgot-success" style="display:none;color:green;font-size:0.95rem;margin-bottom:0.5rem"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="forgot-cancel">Cancel</button>
+                <button class="btn btn-primary" id="forgot-submit">Send reset email</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            var forgotLink = document.getElementById('forgot-password-link');
+            if (!forgotLink) return;
+
+            var modal = document.getElementById('forgot-modal');
+            var closeBtn = document.getElementById('forgot-modal-close');
+            var cancelBtn = document.getElementById('forgot-cancel');
+            var submitBtn = document.getElementById('forgot-submit');
+            var emailInput = document.getElementById('forgot-email');
+            var errDiv = document.getElementById('forgot-error');
+            var successDiv = document.getElementById('forgot-success');
+
+            function openModal(){
+                errDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+                errDiv.textContent = '';
+                successDiv.textContent = '';
+                modal.classList.add('active');
+                modal.setAttribute('aria-hidden','false');
+                setTimeout(function(){ emailInput.focus(); }, 40);
+            }
+
+            function closeModal(){
+                modal.classList.remove('active');
+                modal.setAttribute('aria-hidden','true');
+            }
+
+            forgotLink.addEventListener('click', function(e){ e.preventDefault(); openModal(); });
+            closeBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function(e){ if (e.target === modal) closeModal(); });
+
+            function validEmail(v){
+                return typeof v === 'string' && /\S+@\S+\.\S+/.test(v);
+            }
+
+            submitBtn.addEventListener('click', function(){
+                var email = emailInput.value ? emailInput.value.trim() : '';
+                if (!validEmail(email)){
+                    errDiv.textContent = 'Please enter a valid email address.';
+                    errDiv.style.display = 'block';
+                    return;
+                }
+
+                // disable while sending
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Sending...';
+                errDiv.style.display = 'none';
+                successDiv.style.display = 'none';
+
+                fetch('/api/actions', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: JSON.stringify({ action: 'forgot_password', email: email })
+                })
+                .then(function(res){
+                    if (res.ok) return res.json();
+                    return res.json().then(function(err){ return Promise.reject(err); });
+                })
+                .then(function(data){
+                    if (data && data.success) {
+                        successDiv.textContent = data.message || 'Reset instructions sent if the email exists in our system.';
+                        successDiv.style.display = 'block';
+                        // auto-close after short delay
+                        setTimeout(function(){ closeModal(); submitBtn.disabled = false; submitBtn.textContent = 'Send reset email'; }, 2000);
+                    } else {
+                        var msg = (data && (data.error || data.message)) || 'Unable to send reset email. Please try again later.';
+                        errDiv.textContent = msg;
+                        errDiv.style.display = 'block';
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Send reset email';
+                    }
+                })
+                .catch(function(err){
+                    console.error('Forgot password error:', err);
+                    var msg = (err && (err.error || err.message)) || 'Network or server error. Please try again.';
+                    errDiv.textContent = msg;
+                    errDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Send reset email';
+                });
+            });
+        })();
     </script>
 </body>
 </html>
