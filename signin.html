@@ -125,8 +125,10 @@
     
     <script src="jbr7js/user-storage.js"></script>
     <script>
-        // Default EmailJS service id (you provided this id). Set PUBLIC key in a separate script.
-        window.EMAILJS_SERVICE_ID = window.EMAILJS_SERVICE_ID || 'service_bwniz2u';
+    // Default EmailJS service id (you provided this id). Set PUBLIC key below.
+    window.EMAILJS_SERVICE_ID = window.EMAILJS_SERVICE_ID || 'service_bwniz2u';
+    // EmailJS public key (user provided) — used to initialize the EmailJS SDK in the browser
+    window.EMAILJS_PUBLIC_KEY = window.EMAILJS_PUBLIC_KEY || 'nbW5cNH5Zylk8cmdh';
         // Redirect only if user is logged in THIS session (same tab)
         (function() {
             var uid = sessionStorage.getItem('jbr7_user_id');
