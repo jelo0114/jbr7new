@@ -311,6 +311,84 @@
                 });
         }
 
+        // ---------- Print All Orders (toolbar) ----------
+        function printAllOrders() {
+            // Fetch all admin orders (includes order_items and user info via API mapping)
+            fetchApiGet('admin-orders').then(function(res) {
+                var list = res.data || [];
+                if (!list || list.length === 0) {
+                    return alert('No orders available to print.');
+                }
+
+                // Build combined HTML with page breaks
+                var container = document.createElement('div');
+                container.style.fontFamily = 'Arial, Helvetica, sans-serif';
+                container.style.color = '#222';
+                container.style.padding = '12px';
+
+                // Header
+                var header = document.createElement('div');
+                header.style.textAlign = 'center';
+                header.style.marginBottom = '14px';
+                header.innerHTML = '<h1 style="margin:0;">JBR7 BAGS</h1><div style="font-size:0.95rem;color:#555;">Orders Report</div>';
+                container.appendChild(header);
+
+                // Date
+                var meta = document.createElement('div');
+                meta.style.textAlign = 'center';
+                meta.style.marginBottom = '12px';
+                meta.innerHTML = '<div style="font-size:0.9rem;color:#333;">Generated: ' + new Date().toLocaleString() + '</div>';
+                container.appendChild(meta);
+
+                list.forEach(function(order, idx) {
+                    var block = document.createElement('div');
+                    block.style.marginBottom = '18px';
+                    block.innerHTML = buildPrintableOrderHtml(order);
+                    // page break after each order except last
+                    if (idx < list.length - 1) block.style.pageBreakAfter = 'always';
+                    container.appendChild(block);
+                });
+
+                // Generate PDF via html2pdf if available
+                if (window.html2pdf) {
+                    var filename = 'jbr7-orders-' + (new Date().toISOString().slice(0,10)) + '.pdf';
+                    var opt = {
+                        margin:       10,
+                        filename:     filename,
+                        image:        { type: 'jpeg', quality: 0.98 },
+                        html2canvas:  { scale: 2 },
+                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                    };
+                    // Attach to DOM offscreen so all styles/images render
+                    container.style.position = 'fixed';
+                    container.style.left = '-10000px';
+                    document.body.appendChild(container);
+                    html2pdf().from(container).set(opt).save().then(function() {
+                        document.body.removeChild(container);
+                    }).catch(function() {
+                        document.body.removeChild(container);
+                        alert('Failed to generate PDF for all orders');
+                    });
+                } else {
+                    // Fallback: open print window
+                    var w = window.open('', '_blank');
+                    if (!w) return alert('Please allow popups to print.');
+                    w.document.write('<!doctype html><html><head><title>All Orders</title>');
+                    w.document.write('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">');
+                    w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;padding:18px;color:#222} .order-block{margin-bottom:24px;page-break-after:always}</style>');
+                    w.document.write('</head><body>');
+                    w.document.write(container.innerHTML);
+                    w.document.write('</body></html>');
+                    w.document.close();
+                    w.focus();
+                    setTimeout(function() { w.print(); }, 600);
+                }
+
+            }).catch(function(err) {
+                alert('Failed to load orders: ' + ((err && err.message) || 'Unknown error'));
+            });
+        }
+
     function updateOrderStatus(orderId, status) {
         return fetchApiPost({
             action: 'admin-update-order-status',
@@ -871,6 +949,8 @@
         if (updateAllOrders) updateAllOrders.addEventListener('click', updateAllOrderChanges);
         var refreshOrders = document.getElementById('refresh-orders');
         if (refreshOrders) refreshOrders.addEventListener('click', function() { loadOrders(); });
+    var printAllBtn = document.getElementById('print-all-orders');
+    if (printAllBtn) printAllBtn.addEventListener('click', function() { printAllOrders(); });
 
         // Delegate print button clicks in orders table (rows are dynamic)
         var ordersTbody = document.getElementById('orders-tbody');
