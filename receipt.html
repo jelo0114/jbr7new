@@ -171,6 +171,8 @@
 
     <!-- Actions -->
     <div class="actions">
+      <button class="btn" id="printBtn"><i class="fas fa-print"></i> Print Waybill</button>
+      <button class="btn" id="pdfBtn"><i class="fas fa-file-pdf"></i> Save as PDF</button>
       <button class="btn secondary" id="backBtn"><i class="fas fa-shopping-bag"></i> Continue Shopping</button>
     </div>
   </div>
@@ -178,5 +180,33 @@
   <script src="jbr7js/user-storage.js"></script>
   <script src="jbr7js/notifications.js"></script>
   <script src="jbr7js/receipt.js"></script>
+  <!-- html2pdf for client-side PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var printBtn = document.getElementById('printBtn');
+      var pdfBtn = document.getElementById('pdfBtn');
+      var backBtn = document.getElementById('backBtn');
+
+      if (printBtn) printBtn.addEventListener('click', function(){ window.print(); });
+
+      if (pdfBtn) pdfBtn.addEventListener('click', function(){
+        var element = document.getElementById('receiptRoot');
+        if (!element) return;
+        var opt = {
+          margin:       10,
+          filename:     (document.getElementById('orderId')?.textContent || 'waybill') + '.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'pt', format: 'a4', orientation: 'portrait' }
+        };
+        // Temporarily show full bleed background for better PDF
+        element.style.background = '#fff';
+        html2pdf().set(opt).from(element).save().then(function(){ element.style.background=''; });
+      });
+
+      if (backBtn) backBtn.addEventListener('click', function(){ window.location.href = 'explore.html'; });
+    });
+  </script>
 </body>
 </html>
