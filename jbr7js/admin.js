@@ -223,14 +223,93 @@
                     '<td data-label="Total">' + escapeHtml(totalStr) + '</td>' +
                     '<td data-label="Status"><span class="status-badge ' + statusClass(status) + '">' + escapeHtml(status) + '</span></td>' +
                     '<td data-label="Date">' + formatDate(o.created_at) + '</td>' +
-                    '<td class="order-actions-cell" data-label="Change status">' +
-                    '<select class="order-status-select" data-order-id="' + o.id + '" aria-label="Order status">' + opts + '</select>' +
-                    '</td></tr>';
+                    '<td class="order-actions-cell" data-label="Change status">'
+                        + '<select class="order-status-select" data-order-id="' + o.id + '" aria-label="Order status">' + opts + '</select>'
+                        + ' <button type="button" class="btn btn-outline btn-print" data-order-id="' + o.id + '" title="Print order"><i class="fas fa-print"></i> Print</button>'
+                        + '</td></tr>';
             }).join('');
         }).catch(function() {
             tbody.innerHTML = '<tr><td colspan="7" class="empty-msg">Failed to load orders</td></tr>';
         });
     }
+
+        // ---------- Print / PDF for orders ----------
+        function buildPrintableOrderHtml(order) {
+            var o = order || {};
+            var items = (o.order_items || []);
+            var companyHtml = '<div style="text-align:center;margin-bottom:18px;">'
+                + '<h2 style="margin:0;">JBR7 BAGS</h2>'
+                + '<div style="font-size:0.9rem;color:#555;">Order Receipt</div>'
+                + '</div>';
+            var meta = '<div style="display:flex;justify-content:space-between;gap:12px;margin-bottom:12px;">'
+                + '<div><strong>Order#</strong><div>' + (o.order_number || o.id || '') + '</div></div>'
+                + '<div><strong>Date</strong><div>' + (o.created_at ? new Date(o.created_at).toLocaleString() : '') + '</div></div>'
+                + '<div><strong>Status</strong><div>' + (o.status || '') + '</div></div>'
+                + '</div>';
+            var customer = '<div style="margin-bottom:12px;"><strong>Customer</strong><div>' + (o.user && (o.user.username || o.user.email) ? (o.user.username || o.user.email) : ('User #' + (o.user_id || '-'))) + '</div></div>';
+            var itemsHeader = '<table style="width:100%;border-collapse:collapse;margin-bottom:12px;">'
+                + '<thead><tr><th style="text-align:left;border-bottom:1px solid #ddd;padding:6px">Item</th><th style="text-align:right;border-bottom:1px solid #ddd;padding:6px">Price</th><th style="text-align:right;border-bottom:1px solid #ddd;padding:6px">Qty</th><th style="text-align:right;border-bottom:1px solid #ddd;padding:6px">Subtotal</th></tr></thead><tbody>';
+            var itemsRows = items.map(function(it) {
+                var title = it.title || it.product_title || it.item_id || 'Item';
+                var price = (it.price != null ? Number(it.price) : (it.unit_price != null ? Number(it.unit_price) : 0));
+                var qty = (it.quantity != null ? it.quantity : (it.qty != null ? it.qty : 1));
+                var subtotal = (price * qty) || 0;
+                return '<tr>'
+                    + '<td style="padding:6px;border-bottom:1px solid #f1f1f1">' + escapeHtml(title) + '</td>'
+                    + '<td style="padding:6px;border-bottom:1px solid #f1f1f1;text-align:right">' + price.toFixed(2) + '</td>'
+                    + '<td style="padding:6px;border-bottom:1px solid #f1f1f1;text-align:right">' + qty + '</td>'
+                    + '<td style="padding:6px;border-bottom:1px solid #f1f1f1;text-align:right">' + subtotal.toFixed(2) + '</td>'
+                    + '</tr>';
+            }).join('');
+            var itemsFooter = '</tbody></table>';
+            var totals = '<div style="text-align:right;font-size:1rem;">'
+                + '<div><strong>Total:</strong> ₱' + (o.total != null ? Number(o.total).toFixed(2) : '0.00') + '</div>'
+                + '</div>';
+            var html = '<div style="font-family:Arial,Helvetica,sans-serif;color:#222;padding:18px;">' + companyHtml + meta + customer + itemsHeader + itemsRows + itemsFooter + totals + '</div>';
+            return html;
+        }
+
+        function printOrder(orderId) {
+            if (!orderId) return alert('Missing order id');
+            // fetch full order details
+            fetchApiGet('orders', { orderId: orderId })
+                .then(function(res) {
+                    var data = res.data || [];
+                    var order = Array.isArray(data) && data.length ? data[0] : (data || {});
+                    var content = buildPrintableOrderHtml(order);
+                    // If html2pdf available, use it to save as PDF; otherwise open print window
+                    if (window.html2pdf) {
+                        var opt = {
+                            margin:       10,
+                            filename:     'order-' + (order.order_number || order.id || orderId) + '.pdf',
+                            image:        { type: 'jpeg', quality: 0.98 },
+                            html2canvas:  { scale: 2 },
+                            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        };
+                        var container = document.createElement('div');
+                        container.innerHTML = content;
+                        // small visible offscreen container to ensure fonts/images render
+                        container.style.position = 'fixed'; container.style.left = '-10000px'; container.style.top = '0';
+                        document.body.appendChild(container);
+                        html2pdf().from(container).set(opt).save().then(function() { document.body.removeChild(container); }).catch(function() { document.body.removeChild(container); alert('Failed to generate PDF'); });
+                    } else {
+                        var w = window.open('', '_blank');
+                        if (!w) return alert('Please allow popups to print.');
+                        w.document.write('<!doctype html><html><head><title>Order ' + (order.order_number || order.id || '') + '</title>');
+                        w.document.write('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">');
+                        w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;padding:18px;color:#222}</style>');
+                        w.document.write('</head><body>');
+                        w.document.write(content);
+                        w.document.write('</body></html>');
+                        w.document.close();
+                        w.focus();
+                        setTimeout(function() { w.print(); }, 600);
+                    }
+                })
+                .catch(function(err) {
+                    alert('Failed to load order for printing: ' + ((err && err.message) || 'Unknown error'));
+                });
+        }
 
     function updateOrderStatus(orderId, status) {
         return fetchApiPost({
@@ -792,6 +871,18 @@
         if (updateAllOrders) updateAllOrders.addEventListener('click', updateAllOrderChanges);
         var refreshOrders = document.getElementById('refresh-orders');
         if (refreshOrders) refreshOrders.addEventListener('click', function() { loadOrders(); });
+
+        // Delegate print button clicks in orders table (rows are dynamic)
+        var ordersTbody = document.getElementById('orders-tbody');
+        if (ordersTbody) {
+            ordersTbody.addEventListener('click', function(e) {
+                var btn = e.target.closest && e.target.closest('.btn-print');
+                if (btn) {
+                    var id = btn.getAttribute('data-order-id');
+                    if (id) printOrder(id);
+                }
+            });
+        }
         var refreshUsers = document.getElementById('refresh-users');
         if (refreshUsers) refreshUsers.addEventListener('click', function() { loadUsers(); });
         var updateAllItemsBtn = document.getElementById('update-all-items');
