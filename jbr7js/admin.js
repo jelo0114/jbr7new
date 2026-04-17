@@ -336,14 +336,19 @@
             }
 
             // Fetch all admin orders (includes order_items and user info via API mapping)
+            appendPrintStatus('Starting print all orders');
             ensureHtml2Pdf().then(function() {
+                appendPrintStatus('html2pdf available');
+                appendPrintStatus('Fetching admin-orders...');
                 return fetchApiGet('admin-orders');
             }).then(function(res) {
                 var list = res.data || [];
-                if (!list || list.length === 0) {
-                    if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
-                    return alert('No orders available to print.');
-                }
+                    appendPrintStatus('Fetched orders: ' + (list ? list.length : 0));
+                    if (!list || list.length === 0) {
+                        if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+                        appendPrintStatus('No orders to print');
+                        return alert('No orders available to print.');
+                    }
 
                 // Build combined HTML with page breaks
                 var container = document.createElement('div');
@@ -373,6 +378,10 @@
                     if (idx < list.length - 1) block.style.pageBreakAfter = 'always';
                     container.appendChild(block);
                 });
+                // show sample order JSON in overlay for debugging
+                try {
+                    appendPrintStatus('Sample order (first): ' + JSON.stringify(list[0], null, 2));
+                } catch (e) { appendPrintStatus('Failed to stringify sample order'); }
 
                 // Generate PDF via html2pdf if available
                 if (window.html2pdf) {
@@ -394,13 +403,16 @@
                     container.style.background = '#fff';
                     document.body.appendChild(container);
                     console.debug('printAllOrders: container length', container.innerText ? container.innerText.length : 0);
+                    appendPrintStatus('Generating PDF...');
                     html2pdf().from(container).set(opt).save().then(function() {
                         document.body.removeChild(container);
+                        appendPrintStatus('PDF generated successfully');
                         if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
                     }).catch(function(err) {
                         document.body.removeChild(container);
                         if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
                         console.error('html2pdf error:', err);
+                        appendPrintStatus('html2pdf error: ' + (err && err.message ? err.message : 'unknown'));
                         alert('Failed to generate PDF for all orders: ' + (err && err.message ? err.message : 'Unknown error'));
                     });
                 } else {
@@ -417,6 +429,7 @@
                     w.focus();
                     setTimeout(function() { w.print(); }, 600);
                     if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+                    appendPrintStatus('Opened print window fallback');
                 }
 
             }).catch(function(err) {
@@ -424,6 +437,40 @@
                 console.error('printAllOrders error:', err);
                 alert('Failed to load orders: ' + ((err && err.message) || 'Unknown error'));
             });
+        }
+
+        // ---------- Print status overlay (visual debug) ----------
+        function ensurePrintOverlay() {
+            var id = 'print-status-overlay';
+            var el = document.getElementById(id);
+            if (el) return el;
+            el = document.createElement('div');
+            el.id = id;
+            el.style.position = 'fixed';
+            el.style.right = '12px';
+            el.style.bottom = '12px';
+            el.style.width = '360px';
+            el.style.maxHeight = '60vh';
+            el.style.overflow = 'auto';
+            el.style.background = 'rgba(255,255,255,0.98)';
+            el.style.border = '1px solid #ddd';
+            el.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+            el.style.padding = '10px';
+            el.style.zIndex = 100000;
+            el.style.fontSize = '13px';
+            el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><strong>Print status</strong><button id="print-status-close" style="background:none;border:none;cursor:pointer">✕</button></div><div id="print-status-log" style="font-family:monospace;white-space:pre-wrap;max-height:46vh;overflow:auto;color:#222"></div>';
+            document.body.appendChild(el);
+            document.getElementById('print-status-close').addEventListener('click', function() { el.style.display = 'none'; });
+            return el;
+        }
+
+        function appendPrintStatus(msg) {
+            try {
+                var el = ensurePrintOverlay();
+                var log = el.querySelector('#print-status-log');
+                var ts = new Date().toLocaleTimeString();
+                log.textContent = ts + ' – ' + msg + '\n' + log.textContent;
+            } catch (e) { console.debug('appendPrintStatus error', e); }
         }
 
     function updateOrderStatus(orderId, status) {
