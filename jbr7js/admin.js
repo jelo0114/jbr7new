@@ -272,50 +272,90 @@
         function printOrder(orderId) {
             if (!orderId) return alert('Missing order id');
             // fetch full order details
-            fetchApiGet('orders', { orderId: orderId })
-                .then(function(res) {
-                    var data = res.data || [];
-                    var order = Array.isArray(data) && data.length ? data[0] : (data || {});
-                    var content = buildPrintableOrderHtml(order);
-                    // If html2pdf available, use it to save as PDF; otherwise open print window
-                    if (window.html2pdf) {
-                        var opt = {
-                            margin:       10,
-                            filename:     'order-' + (order.order_number || order.id || orderId) + '.pdf',
-                            image:        { type: 'jpeg', quality: 0.98 },
-                            html2canvas:  { scale: 2 },
-                            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        };
-                        var container = document.createElement('div');
-                        container.innerHTML = content;
-                        // Place an invisible but renderable container on-screen so html2canvas can capture it
-                        container.style.position = 'fixed';
-                        container.style.left = '0';
-                        container.style.top = '0';
-                        container.style.width = '800px';
-                        container.style.opacity = '0';
-                        container.style.zIndex = '9999';
-                        container.style.background = '#fff';
-                        document.body.appendChild(container);
-                        console.debug('printOrder: container length', container.innerText ? container.innerText.length : 0);
-                        html2pdf().from(container).set(opt).save().then(function() { document.body.removeChild(container); }).catch(function() { document.body.removeChild(container); alert('Failed to generate PDF'); });
-                    } else {
-                        var w = window.open('', '_blank');
-                        if (!w) return alert('Please allow popups to print.');
-                        w.document.write('<!doctype html><html><head><title>Order ' + (order.order_number || order.id || '') + '</title>');
-                        w.document.write('<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">');
-                        w.document.write('<style>body{font-family:Arial,Helvetica,sans-serif;padding:18px;color:#222}</style>');
-                        w.document.write('</head><body>');
-                        w.document.write(content);
-                        w.document.write('</body></html>');
-                        w.document.close();
-                        w.focus();
-                        setTimeout(function() { w.print(); }, 600);
-                    }
-                })
-                .catch(function(err) {
-                    alert('Failed to load order for printing: ' + ((err && err.message) || 'Unknown error'));
-                });
+            // Instead of immediately printing, open the preview modal for the single order
+            previewOrder(orderId);
+        }
+
+        // ---------- Preview modal ----------
+        function ensurePreviewModal() {
+            var id = 'print-preview-modal';
+            var el = document.getElementById(id);
+            if (el) return el;
+            el = document.createElement('div');
+            el.id = id;
+            el.style.position = 'fixed';
+            el.style.inset = '0';
+            el.style.background = 'rgba(0,0,0,0.4)';
+            el.style.display = 'flex';
+            el.style.alignItems = 'flex-start';
+            el.style.justifyContent = 'center';
+            el.style.padding = '40px';
+            el.style.zIndex = 100001;
+            el.style.overflow = 'auto';
+            el.innerHTML = '<div id="print-preview-box" style="background:#fff;padding:18px;border-radius:8px;max-width:900px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,0.25);">'
+                + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">'
+                + '<h3 style="margin:0">Print Preview</h3>'
+                + '<div><button id="preview-download" class="btn btn-primary">Download PDF</button> '
+                + '<button id="preview-close" class="btn btn-secondary">Close</button></div>'
+                + '</div>'
+                + '<div id="print-preview-content" style="background:#fff"></div>'
+                + '</div>';
+            document.body.appendChild(el);
+            document.getElementById('preview-close').addEventListener('click', function() { el.style.display = 'none'; });
+            return el;
+        }
+
+        function showPreviewHtml(html, filename) {
+            var modal = ensurePreviewModal();
+            modal.style.display = 'flex';
+            var content = document.getElementById('print-preview-content');
+            content.innerHTML = html;
+            var dl = document.getElementById('preview-download');
+            dl.onclick = function() {
+                // generate PDF from content
+                var opt = {
+                    margin:       10,
+                    filename:     filename || 'document.pdf',
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                // ensure html2pdf loaded
+                if (!window.html2pdf) {
+                    var s = document.createElement('script'); s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js'; document.head.appendChild(s);
+                    s.onload = function() { html2pdf().from(content).set(opt).save(); };
+                    s.onerror = function() { alert('Failed to load PDF library'); };
+                } else {
+                    html2pdf().from(content).set(opt).save();
+                }
+            };
+        }
+
+        // ---------- Preview functions ----------
+        function previewOrder(orderId) {
+            appendPrintStatus('Previewing order ' + orderId);
+            fetchApiGet('orders', { orderId: orderId }).then(function(res) {
+                var data = res.data || [];
+                var order = Array.isArray(data) && data.length ? data[0] : (data || {});
+                var html = buildPrintableOrderHtml(order);
+                showPreviewHtml(html, 'order-' + (order.order_number || order.id || orderId) + '.pdf');
+            }).catch(function(err) {
+                appendPrintStatus('Failed to fetch order: ' + ((err && err.message) || 'Unknown'));
+                alert('Failed to load order for preview: ' + ((err && err.message) || 'Unknown error'));
+            });
+        }
+
+        function previewAllOrders() {
+            appendPrintStatus('Preview all orders');
+            fetchApiGet('admin-orders').then(function(res) {
+                var list = res.data || [];
+                if (!list || list.length === 0) return alert('No orders to preview');
+                var html = list.map(function(o) { return '<div style="page-break-after:always">' + buildPrintableOrderHtml(o) + '</div>'; }).join('');
+                showPreviewHtml(html, 'jbr7-orders-' + (new Date().toISOString().slice(0,10)) + '.pdf');
+            }).catch(function(err) {
+                appendPrintStatus('Failed to fetch admin-orders: ' + ((err && err.message) || 'Unknown'));
+                alert('Failed to load orders for preview: ' + ((err && err.message) || 'Unknown error'));
+            });
         }
 
         // ---------- Print All Orders (toolbar) ----------
@@ -1035,6 +1075,8 @@
         if (refreshOrders) refreshOrders.addEventListener('click', function() { loadOrders(); });
     var printAllBtn = document.getElementById('print-all-orders');
     if (printAllBtn) printAllBtn.addEventListener('click', function() { printAllOrders(); });
+    var previewAllBtn = document.getElementById('preview-all-orders');
+    if (previewAllBtn) previewAllBtn.addEventListener('click', function() { previewAllOrders(); });
 
         // Delegate print button clicks in orders table (rows are dynamic)
         var ordersTbody = document.getElementById('orders-tbody');
@@ -1043,7 +1085,7 @@
                 var btn = e.target.closest && e.target.closest('.btn-print');
                 if (btn) {
                     var id = btn.getAttribute('data-order-id');
-                    if (id) printOrder(id);
+                    if (id) previewOrder(id);
                 }
             });
         }
