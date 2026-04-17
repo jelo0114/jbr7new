@@ -313,10 +313,28 @@
 
         // ---------- Print All Orders (toolbar) ----------
         function printAllOrders() {
+            var printBtn = document.getElementById('print-all-orders');
+            if (printBtn) { printBtn.disabled = true; printBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...'; }
+
+            // Ensure html2pdf is available; if not, try to load it dynamically
+            function ensureHtml2Pdf() {
+                if (window.html2pdf) return Promise.resolve();
+                return new Promise(function(resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js';
+                    s.onload = function() { setTimeout(resolve, 50); };
+                    s.onerror = function() { reject(new Error('Failed to load html2pdf library')); };
+                    document.head.appendChild(s);
+                });
+            }
+
             // Fetch all admin orders (includes order_items and user info via API mapping)
-            fetchApiGet('admin-orders').then(function(res) {
+            ensureHtml2Pdf().then(function() {
+                return fetchApiGet('admin-orders');
+            }).then(function(res) {
                 var list = res.data || [];
                 if (!list || list.length === 0) {
+                    if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
                     return alert('No orders available to print.');
                 }
 
@@ -365,9 +383,12 @@
                     document.body.appendChild(container);
                     html2pdf().from(container).set(opt).save().then(function() {
                         document.body.removeChild(container);
-                    }).catch(function() {
+                        if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+                    }).catch(function(err) {
                         document.body.removeChild(container);
-                        alert('Failed to generate PDF for all orders');
+                        if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+                        console.error('html2pdf error:', err);
+                        alert('Failed to generate PDF for all orders: ' + (err && err.message ? err.message : 'Unknown error'));
                     });
                 } else {
                     // Fallback: open print window
@@ -382,9 +403,12 @@
                     w.document.close();
                     w.focus();
                     setTimeout(function() { w.print(); }, 600);
+                    if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
                 }
 
             }).catch(function(err) {
+                if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
+                console.error('printAllOrders error:', err);
                 alert('Failed to load orders: ' + ((err && err.message) || 'Unknown error'));
             });
         }
