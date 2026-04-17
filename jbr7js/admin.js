@@ -288,9 +288,16 @@
                         };
                         var container = document.createElement('div');
                         container.innerHTML = content;
-                        // small visible offscreen container to ensure fonts/images render
-                        container.style.position = 'fixed'; container.style.left = '-10000px'; container.style.top = '0';
+                        // Place an invisible but renderable container on-screen so html2canvas can capture it
+                        container.style.position = 'fixed';
+                        container.style.left = '0';
+                        container.style.top = '0';
+                        container.style.width = '800px';
+                        container.style.opacity = '0';
+                        container.style.zIndex = '9999';
+                        container.style.background = '#fff';
                         document.body.appendChild(container);
+                        console.debug('printOrder: container length', container.innerText ? container.innerText.length : 0);
                         html2pdf().from(container).set(opt).save().then(function() { document.body.removeChild(container); }).catch(function() { document.body.removeChild(container); alert('Failed to generate PDF'); });
                     } else {
                         var w = window.open('', '_blank');
@@ -377,10 +384,16 @@
                         html2canvas:  { scale: 2 },
                         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
                     };
-                    // Attach to DOM offscreen so all styles/images render
+                    // Attach to DOM in an invisible on-screen position so html2canvas can render it
                     container.style.position = 'fixed';
-                    container.style.left = '-10000px';
+                    container.style.left = '0';
+                    container.style.top = '0';
+                    container.style.width = '800px';
+                    container.style.opacity = '0';
+                    container.style.zIndex = '9999';
+                    container.style.background = '#fff';
                     document.body.appendChild(container);
+                    console.debug('printAllOrders: container length', container.innerText ? container.innerText.length : 0);
                     html2pdf().from(container).set(opt).save().then(function() {
                         document.body.removeChild(container);
                         if (printBtn) { printBtn.disabled = false; printBtn.innerHTML = '<i class="fas fa-print"></i> Print'; }
